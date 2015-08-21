@@ -44,11 +44,19 @@ price_fields_ids = [
     "5594688623d3fd7d311a4584",
     "55c5392c23d3fd4817ed01d0"]
 
+#This are all the forms related to service,
+#every time logistoage creates a new services form
+#we have to add it here
 service_forms = [3484,3428,3452,3456,3468,3466,3463,3431,3461,3483,3470,3465,3469,3464,3451,3462,3467,3450,3460,3449,3459,3458,3457,3455,3454,3583,3453,3963,3964,3965,3966,4009,3967,3968,3969,4008,3970,4010,4007,3972,3981,3971,3973,3974,3975,3976,3977,3978,3979,3980]
 
+#This are all the forms related to space unit,
+#every time logistoage creates a new related to space unit form
+#we have to add it here
 space_forms = [3448,3486]
 
 #service_id:price_id
+#everytime we add a new price
+#we have to add it here , with the service id and the price is related to
 service_price_json = {
         "5591627901a4de7bb8eb1ad9":"558b01dd01a4de7bba851397",
         "559167ed01a4de7bba852991":"558b01dd01a4de7bba851398",
@@ -97,6 +105,7 @@ service_price_json = {
 }
 
 #service_id:price_id
+#just for extra space
 extra_price_json = {
         "558d685701a4de7bba85289f":"55c5392c23d3fd4817ed01d0",
         "55a010c323d3fd2994ab74e8":"55c5392c23d3fd4817ed01d0",
@@ -206,18 +215,6 @@ def get_service_price():
         price_list = set_price_warehouse(price_line, price_list, client, warehouse)
         price_list[client][warehouse] = set_price_service(price_line, price_list[client][warehouse])
     return price_list
-
-class Price(object):
-    client = ""
-    warehouse = ""
-    service = ""
-    price = 0
-    # The class "constructor" - It's actually an initializer
-    def __init__(self, client, warehouse, service, price):
-        self.client = client
-        self.warehouse = warehouse
-        self.service = service
-        self.price = price
 
 class FakeETLModel(object):
     def __init__(self, **kwargs):
@@ -340,23 +337,46 @@ def invoicing_month(one_record_json):
         month = one_record_json['created_at'].strftime('%B').upper()
     return {'559174f601a4de7bb94f87ed':month}
 
-def verify_one_record_per_company(report_answer, one_record_json):
-    one_record_json.pop('folio')
-    one_record_json.pop('end_date')
-    one_record_json.pop('start_date')
-    one_record_json.pop('updated_at')
-    one_record_json.pop('version')
-    client = re.sub(' ', '_', one_record_json['5591627901a4de7bb8eb1ad5']).lower()
-    warehouse = re.sub(' ', '_', one_record_json['5591627901a4de7bb8eb1ad4']).lower()
-    created_at = one_record_json['created_at']
+def get_all_months(db_form_answer):
+    proyect = [{"$project":
+                    {
+                    "year":{"$year" : "$created_at"},
+                    "month":{"$month" : "$created_at"},
+                    }
+                },
+                {"$group":
+                    {"_id":
+                        {"year":"$year", "month":"$month"},
+                    }
+                }]
+    year_month = db_form_answer.aggregate(proyect)['result']
+    return year_month
+
+
+def verify_one_record_per_company(db_form_answer, report_answer):#, one_record_json):
+    # one_record_json.pop('folio')
+    # one_record_json.pop('end_date')
+    # one_record_json.pop('start_date')
+    # one_record_json.pop('updated_at')
+    # one_record_json.pop('version')
+    all_client = db_form_answer.distinct('answers.5591627901a4de7bb8eb1ad5')
+    #client = re.sub(' ', '_', one_record_json['5591627901a4de7bb8eb1ad5']).lower()
+    #warehouse = re.sub(' ', '_', one_record_json['5591627901a4de7bb8eb1ad4']).lower()
+    all_warehouse = db_form_answer.distinct('answers.5591627901a4de7bb8eb1ad4')
     all_types = report_answer.distinct('itype')
-    for itype in all_types:
-        one_record_id = str(created_at.year) + str(created_at.month) + client + warehouse + '_' + itype
-        one_record_json.update({'_id':one_record_id, 'itype':itype})
-        one_record_json.update(invoicing_month(one_record_json))
-        bb = report_answer.find({'_id':one_record_id, 'itype':itype}).count()
-        if not report_answer.find({'_id':one_record_id, 'itype':itype}).count():
-            report_answer.insert(one_record_json)
+    for client in all_client:
+        for warehouse in all_warehouse:
+            for year_month in get_all_months(db_form_answer):
+                year = year_month['_id']['year']
+                month = year_month['_id']['month']
+                date = '%s-%s-01'%(year, month)
+                created_at = datetime.strptime(date,'%Y-%m-%d')
+                for itype in all_types:
+                    one_record_json = {}
+                    one_record_id = str(year) + str(month) + client + warehouse + '_' + itype
+                    one_record_json.update({'_id':one_record_id, 'itype':itype, 'created_at': created_at })
+                    one_record_json.update(invoicing_month(one_record_json))
+                    report_answer.insert(one_record_json)
     return True
 
 
@@ -381,8 +401,8 @@ def etl():
         # Obtener coleccion de reportes si existe, crear si aún no existe
         if 'report_answer' in user_conn['db'].collection_names():
             report_answer = user_conn['db']['report_answer']
-        else:
-            report_answer = Collection(user_conn['db'], "report_answer", create=True)
+            report_answer.drop()
+        report_answer = Collection(user_conn['db'], "report_answer", create=True)
         report = { "form_id": etl_model.item_id }
         all_forms_find = {"form_id": {"$in":all_forms}}
         count = 0
@@ -440,8 +460,8 @@ def etl():
             except KeyError:
                 continue
             report_answer.update({'_id':rent_service['_id']}, rent_service, upsert=True)
-            verify_one_record_per_company(report_answer, meta_answers)
-        return record_answer
+        verify_one_record_per_company(form_answer, report_answer)
+        return True
 
 PRICE_LIST = get_service_price()
 etl()
