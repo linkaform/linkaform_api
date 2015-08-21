@@ -374,7 +374,12 @@ def verify_one_record_per_company(db_form_answer, report_answer):#, one_record_j
                 for itype in all_types:
                     one_record_json = {}
                     one_record_id = str(year) + str(month) + client + warehouse + '_' + itype
-                    one_record_json.update({'_id':one_record_id, 'itype':itype, 'created_at': created_at })
+                    one_record_json.update({
+                        '_id':one_record_id,
+                        'itype':itype,
+                        'created_at': created_at,
+                        '5591627901a4de7bb8eb1ad5':client,
+                        '5591627901a4de7bb8eb1ad4':warehouse })
                     one_record_json.update(invoicing_month(one_record_json))
                     report_answer.insert(one_record_json)
     return True
