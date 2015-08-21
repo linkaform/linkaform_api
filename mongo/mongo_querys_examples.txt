@@ -1,0 +1,33 @@
+
+
+
+db.report_answer.aggregate(
+  [
+    {$unwind : "$answers"},
+    {$match : 
+      {"answers.field_text" : "Resultado de la Recepcion/Entrega"}
+    },
+    {$group :
+      {
+        _id : "$answers.field_value" ,
+        count : { $sum:1}
+
+      }
+    }
+  ]
+)
+
+
+db.report_answer.aggregate(
+
+   [
+      {
+        $group : {
+           _id : { sin_detalle: { $month: "$date" }, day: { $dayOfMonth: "$date" }, year: { $year: "$date" } },
+           totalPrice: { $sum: { $multiply: [ "$price", "$quantity" ] } },
+           averageQuantity: { $avg: "$quantity" },
+           count: { $sum: 1 }
+        }
+      }
+   ]
+)

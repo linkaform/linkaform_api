@@ -1,0 +1,23 @@
+select extract(year from aa.end_date) as agnio,
+extract(month from aa.end_date) as mes,
+extract(day from aa.end_date) as dia,
+aa.parent_id, uc.first_name, max(aa.daily_count) as max_daily_count,
+count(aa.daily_count) as daily_count,
+sum(aa.seconds_duration)/60 as min_total
+from activities_activities as aa
+LEFT OUTER JOIN users_customuser as uc ON (aa.user_id = uc.id)
+where  end_date between '2015-08-01' and '2015-08-20'
+group by dia, mes, agnio, aa.parent_id, uc.first_name
+order by agnio ASC, mes ASC, dia ASC, aa.parent_id, uc.first_name;
+
+
+
+Domain-0                                     0  1024     1     r----- 473292.1
+abby.info-sync.com                           1  10.1.66.14    1     -b---- 481220.9
+bigbird                                     37  10.1.66.19     2     -b----   2750.3
+birt                                        32  10.1.66.17     4     -b---- 583035.4
+emms                                        33  10.1.66.29     2     -b----    615.6
+mongo2                                      36  10.1.66.32     2     -b----   2545.3
+oscar                                        4  10.1.66.11     2     -b---- 353915.7
+slimey                                      38  10.1.66.12     2     -b----   5867.7
+root@elmo:~#
