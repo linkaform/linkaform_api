@@ -332,7 +332,7 @@ def insert_rent_services(meta_answer):
 def invoicing_month(one_record_json):
     month = one_record_json.get('559174f601a4de7bb94f87ed',False)
     if not month:
-        locale.setlocale(locale.LC_TIME,'')
+        locale.setlocale(locale.LC_TIME,'es_MX.utf-8')
         date_format = locale.nl_langinfo(locale.D_FMT)
         month = one_record_json['created_at'].strftime('%B').upper()
     return {'559174f601a4de7bb94f87ed':month}
@@ -353,20 +353,15 @@ def get_all_months(db_form_answer):
     return year_month
 
 
-def verify_one_record_per_company(db_form_answer, report_answer):#, one_record_json):
-    # one_record_json.pop('folio')
-    # one_record_json.pop('end_date')
-    # one_record_json.pop('start_date')
-    # one_record_json.pop('updated_at')
-    # one_record_json.pop('version')
-    all_client = db_form_answer.distinct('answers.5591627901a4de7bb8eb1ad5')
-    #client = re.sub(' ', '_', one_record_json['5591627901a4de7bb8eb1ad5']).lower()
-    #warehouse = re.sub(' ', '_', one_record_json['5591627901a4de7bb8eb1ad4']).lower()
-    all_warehouse = db_form_answer.distinct('answers.5591627901a4de7bb8eb1ad4')
+def verify_one_record_per_company(report_answer):#, one_record_json):
+    all_client = report_answer.distinct('5591627901a4de7bb8eb1ad5')
+    all_warehouse = report_answer.distinct('5591627901a4de7bb8eb1ad4')
     all_types = report_answer.distinct('itype')
-    for client in all_client:
-        for warehouse in all_warehouse:
-            for year_month in get_all_months(db_form_answer):
+    for client_upper in all_client:
+        client = re.sub(' ', '_', client_upper ).lower()
+        for warehouse_upper in all_warehouse:
+            warehouse = re.sub(' ', '_', warehouse_upper).lower()
+            for year_month in get_all_months(report_answer):
                 year = year_month['_id']['year']
                 month = year_month['_id']['month']
                 date = '%s-%s-01'%(year, month)
@@ -378,10 +373,10 @@ def verify_one_record_per_company(db_form_answer, report_answer):#, one_record_j
                         '_id':one_record_id,
                         'itype':itype,
                         'created_at': created_at,
-                        '5591627901a4de7bb8eb1ad5':client,
-                        '5591627901a4de7bb8eb1ad4':warehouse })
+                        '5591627901a4de7bb8eb1ad5':client_upper,
+                        '5591627901a4de7bb8eb1ad4':warehouse_upper })
                     one_record_json.update(invoicing_month(one_record_json))
-                    report_answer.insert(one_record_json)
+                    report_answer.update({'_id':one_record_id}, one_record_json, upsert=True)
     return True
 
 
@@ -465,7 +460,7 @@ def etl():
             except KeyError:
                 continue
             report_answer.update({'_id':rent_service['_id']}, rent_service, upsert=True)
-        verify_one_record_per_company(form_answer, report_answer)
+        verify_one_record_per_company(report_answer)
         return True
 
 PRICE_LIST = get_service_price()
