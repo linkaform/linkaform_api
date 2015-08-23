@@ -123,7 +123,7 @@ other_field = {
     'Cliente':{'id':'5591627901a4de7bb8eb1ad5','required':True},
     'Almacen': {'id':'5591627901a4de7bb8eb1ad4','required':True},
     'Documento':{'id':'55917c1701a4de7bb94f87ef','required':False},
-    'Fecha_de_Captura':{'id':'55b7f41623d3fd41daa1c414', 'required':False},
+    'Fecha_de_Captura':{'id':'55b7f41623d3fd41daa1c414','old_id':'55b7f3e023d3fd41dbccb376', 'required':False},
     'Mes':{'id':'559174f601a4de7bb94f87ed','required':False},
     'Fecha':{'id':'55b7f3e023d3fd41dbccb376','required':False},
     }
@@ -388,6 +388,8 @@ def get_meta_answer_with_rules(record):
     created_at = record['created_at']
     res = record['answers'].get(other_field['Fecha_de_Captura']['id'], False)
     if not res:
+        record['answers'].get(other_field['Fecha_de_Captura']['old_id'], False)
+    if not res:
         date = str(created_at.year) + '-' + str(created_at.month) + '-' + str(created_at.day)
         res =  datetime.strptime(date,'%Y-%m-%d')
     return {other_field['Fecha_de_Captura']['id']:res}
@@ -412,8 +414,11 @@ def etl():
             report_answer.drop()
         report_answer = Collection(user_conn['db'], "report_answer", create=True)
         report = { "form_id": etl_model.item_id }
-        all_forms_find = {"form_id": {"$in":all_forms}}
         count = 0
+        all_forms_find = {"form_id": {"$in":all_forms}}
+        #alter_find = {'answers.5591627901a4de7bb8eb1ad5':'celer','form_id': {"$in":space_forms}}
+        #alter_find =  {"answers.55b7f41623d3fd41daa1c414":{"$gte": 'ISODate("2015-05-01T00:00:00Z")', '$lt':'ISODate("2015-08-01T00:00:00Z")'}}
+        ###replace alter_find with all_forms_find
         for record in form_answer.find(all_forms_find):
             count +=1
             print 'records', count
