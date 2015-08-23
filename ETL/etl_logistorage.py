@@ -22,7 +22,7 @@ price_fields_ids = [
     "558b01dd01a4de7bba85139f",
     "559168bd01a4de7bba852996",
     "558b01dd01a4de7bba8513a0",
-    #"558b01dd01a4de7bba8513a1",
+    "558b01dd01a4de7bba8513a1",
     "558b01dd01a4de7bba8513a2",
     "558b01dd01a4de7bba8513a3",
     "558b01dd01a4de7bba8513a4",
@@ -57,6 +57,9 @@ space_forms = [3448,3486]
 #service_id:price_id
 #everytime we add a new price
 #we have to add it here , with the service id and the price is related to
+
+#558b01dd01a4de7bba8513a1:65
+
 service_price_json = {
         "5591627901a4de7bb8eb1ad9":"558b01dd01a4de7bba851397",
         "559167ed01a4de7bba852991":"558b01dd01a4de7bba851398",
@@ -290,7 +293,9 @@ def get_answer(answer, field, meta_answers= {}):
                 else:
                     return answer
         elif field["field_type"] == "date":
-            return datetime.strptime(answer,'%Y-%m-%d')
+            #TODO get time offset
+            date = answer + 'T05'
+            return datetime.strptime(date,'%Y-%m-%dT%H')
         elif field_id in service_price_json.keys():
             try:
                 return get_service_answer_json(answer, field, meta_answers)
@@ -351,7 +356,6 @@ def get_all_months(db_form_answer):
     year_month = db_form_answer.aggregate(proyect)['result']
     return year_month
 
-
 def verify_one_record_per_company(report_answer):#, one_record_json):
     all_client = report_answer.distinct('5591627901a4de7bb8eb1ad5')
     all_warehouse = report_answer.distinct('5591627901a4de7bb8eb1ad4')
@@ -379,7 +383,6 @@ def verify_one_record_per_company(report_answer):#, one_record_json):
                     report_answer.update({'_id':one_record_id}, one_record_json, upsert=True)
     return True
 
-
 #TODO AGREGAR LISTA DE PRECIOS EN PESOS Y DLLS
 #VALIDAR FECHA DE LISTA DE PRECIOS
 #INSERTAR PRECIO ESPECIAL
@@ -387,11 +390,18 @@ def verify_one_record_per_company(report_answer):#, one_record_json):
 def get_meta_answer_with_rules(record):
     created_at = record['created_at']
     res = record['answers'].get(other_field['Fecha_de_Captura']['id'], False)
+    #TODO Get the real offset from mongodb
+    #do in mongo
+    #var now = new Date();
+    #now.getTimezoneOffset()
+    #this will give you the offset in munuts
+    offset = '05'
     if not res:
-        record['answers'].get(other_field['Fecha_de_Captura']['old_id'], False)
+        res = record['answers'].get(other_field['Fecha_de_Captura']['old_id'], False)
     if not res:
-        date = str(created_at.year) + '-' + str(created_at.month) + '-' + str(created_at.day)
-        res =  datetime.strptime(date,'%Y-%m-%d')
+        res = str(created_at.year) + '-' + str(created_at.month) + '-' + str(created_at.day)
+    date = res + 'T%s'%offset
+    res =  datetime.strptime(date,'%Y-%m-%dT%H')
     return {other_field['Fecha_de_Captura']['id']:res}
 
 def etl():
