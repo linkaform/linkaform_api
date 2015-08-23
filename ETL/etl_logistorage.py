@@ -117,12 +117,13 @@ extra_price_condition_json = {
         "55c5392c23d3fd4817ed01d0":"5594688623d3fd7d311a4584",
 }
 
-meta = ["_id", "version","folio", "created_at", "updated_at", "end_date", "ip", "platform", "start_date"]
+meta = ["_id", "version","folio", "created_at", "updated_at", "end_date", "start_date"]
 
 other_field = {
     'Cliente':{'id':'5591627901a4de7bb8eb1ad5','required':True},
     'Almacen': {'id':'5591627901a4de7bb8eb1ad4','required':True},
     'Documento':{'id':'55917c1701a4de7bb94f87ef','required':False},
+    'Fecha_de_Captura':{'id':'55b7f41623d3fd41daa1c414', 'required':False},
     'Mes':{'id':'559174f601a4de7bb94f87ed','required':False},
     'Fecha':{'id':'55b7f3e023d3fd41dbccb376','required':False},
     }
@@ -230,7 +231,6 @@ class FakeETLModel(object):
         #expiration = kwargs["expiration"]
         #active = True
 
-
 def get_service_answer_json(answer, field, meta_answers):
     price_id = service_price_json[field['field_id']['id']]
     client = re.sub(' ', '_', meta_answers['5591627901a4de7bb8eb1ad5']).lower()
@@ -304,7 +304,6 @@ def get_answer(answer, field, meta_answers= {}):
         else:
             return answer
 
-
 def insert_rent_services(meta_answer):
     rent_json = meta_answer.copy()
     rent_json.pop('folio')
@@ -373,6 +372,7 @@ def verify_one_record_per_company(report_answer):#, one_record_json):
                         '_id':one_record_id,
                         'itype':itype,
                         'created_at': created_at,
+                        '55b7f41623d3fd41daa1c414':created_at,
                         '5591627901a4de7bb8eb1ad5':client_upper,
                         '5591627901a4de7bb8eb1ad4':warehouse_upper })
                     one_record_json.update(invoicing_month(one_record_json))
@@ -383,6 +383,14 @@ def verify_one_record_per_company(report_answer):#, one_record_json):
 #TODO AGREGAR LISTA DE PRECIOS EN PESOS Y DLLS
 #VALIDAR FECHA DE LISTA DE PRECIOS
 #INSERTAR PRECIO ESPECIAL
+
+def get_meta_answer_with_rules(record):
+    created_at = record['created_at']
+    res = record['answers'].get(other_field['Fecha_de_Captura']['id'], False)
+    if not res:
+        date = str(created_at.year) + '-' + str(created_at.month) + '-' + str(created_at.day)
+        res =  datetime.strptime(date,'%Y-%m-%d')
+    return {other_field['Fecha_de_Captura']['id']:res}
 
 def etl():
     all_forms = service_forms + space_forms
@@ -428,9 +436,12 @@ def etl():
                 if meta_answer:
                     meta_answers.update({raw_meta:meta_answer})
                 else:
+                    print 'NOT FOUND THE the metadata ', raw_meta
+                    print 'meta_answer',meta_answer
                     pass_all = True
-                    pass
+                    continue
             ### Metadata form fields
+            meta_answers.update(get_meta_answer_with_rules(record))
             for meta_field in other_field.values():
                 meta_answer = record["answers"].get(meta_field['id'], False)
                 if meta_answer:
@@ -438,10 +449,14 @@ def etl():
                     record["answers"].pop(meta_field['id'])
                 else:
                     if meta_field['required']:
+                        print 'DID NOT FIND THE FOLLOWING FIND AND WILL SKIP THIS RECORD', meta_field
                         pass_all = True
-                        pass
             if pass_all:
-                pass
+                try:
+                    print 'SKIPING ...', record['_id']
+                except:
+                    pass
+                continue
             record_answer.update(meta_answers)
             service_answers = {}
             ### Fileds for services
@@ -458,7 +473,8 @@ def etl():
             try:
                 rent_service = insert_rent_services(meta_answers)
             except KeyError:
-                continue
+                print 'COULD NOT INSERT RENT, NO PRICE LIST FOR...',meta_answers
+                pass
             report_answer.update({'_id':rent_service['_id']}, rent_service, upsert=True)
         verify_one_record_per_company(report_answer)
         return True
