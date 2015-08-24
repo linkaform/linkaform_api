@@ -3,7 +3,7 @@
 import time
 import requests
 import simplejson
-import os
+import os, re
 from datetime import datetime
 
 
@@ -12,17 +12,16 @@ LOGIN_URL = "http://grover.info-sync.com/api/infosync/user_admin/login/"
 USERNAME = 'logistorage.infosync@gmail.com'
 PASS = '654321'
 
-
-
+#forms_to_pass = [ 4177,4239, 4178, 4184, 4172, 4197, 4170, 4171, 4181, 4176, 4182, 4196, 4174, 4175, 4199, 4180, 4173, 4179, 4185]
+forms_to_pass = []
 #forma alimento infosync
 KEYS_POSITION = {}
 #IMPORT SANFANDILA
 #Form Producción Sanfandila
 #Forma Clasificadora
-file_path_dir = '/var/tmp/logistorage/Junio/'
+file_path_dir = '/var/tmp/logistorage/new/'
 files = os.popen('ls %s'%file_path_dir)
 all_files = files.read().split('\n')
-
 
 def load_answers(metadata, file_path):
     load_file = get_file_to_import(file_path)
@@ -53,11 +52,11 @@ def post_answers(session, answers):
             print 'r.content', r.content
             #print 'answer=', answer
             response = simplejson.loads(r.content)
-            print '----------------------------------'
-            print "Response: "
-            print simplejson.dumps(response, indent=4)
+            # print '----------------------------------'
+            # print "Response: "
+            # print simplejson.dumps(response, indent=4)
             errors_json.append(response)
-            print '----------------------------------'
+            # print '----------------------------------'
     print 'Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, index+1)
     if errors_json:
         print 'errors_json=', errors_json
@@ -109,7 +108,7 @@ def get_answer_for_field_id(answer_keys, answer, field_id, field_type=''):
             except ValueError:
                 return answer[records[0]]
         else:
-                return answer[records[0]]         
+                return answer[records[0]]
     else:
         return ""
 
@@ -128,7 +127,7 @@ def set_record_order(group_fields, answer, answer_keys ):
 
 def get_group_order_dict(positions, keys_position):
     result = {}
-    count = 0 
+    count = 0
     for position_id in positions:
         result.update({count:keys_position[position_id]})
         update_key_position(count, keys_position[position_id])
@@ -143,10 +142,12 @@ def update_key_position(count, answer):
     return True
 
 def convert_to_epoch(strisodate):
+    strisodate2 = re.sub(' ','',strisodate)
+    strisodate2 = strisodate2.split(' ')[0]
     try:
-        date_object = datetime.strptime(strisodate, '%Y-%m-%d')
+        date_object = datetime.strptime(strisodate2, '%Y-%m-%d')
     except ValueError:
-        date_object = datetime.strptime(strisodate,  '%m/%d/%y')
+        date_object = datetime.strptime(strisodate2[:8],  '%d/%m/%y')
     return int(date_object.strftime("%s"))
 
 def form_file_config_control_salidas(metadata, answer):
@@ -210,6 +211,7 @@ def form_file_config_unidad_espacio_miller(metadata, answer):
         "5591627901a4de7bb8eb1ad5":get_answer_for_field_id(answer_keys, answer,'5591627901a4de7bb8eb1ad5'),
         "559a966d23d3fd7010c63053":get_answer_for_field_id(answer_keys, answer,'559a966d23d3fd7010c63053'),
         "558d685701a4de7bba85289f":get_answer_for_field_id(answer_keys, answer,'558d685701a4de7bba85289f', 'float'),
+        '55b7f41623d3fd41daa1c414':get_answer_for_field_id(answer_keys, answer,'created_at','date')
         }
     }
     return clean_file_structure(file_structure)
@@ -224,15 +226,16 @@ def clean_file_structure(file_structure):
 
 if __name__ == "__main__":
     for file_name in all_files:
-        print '-----------------'
         if file_name:
             file_path = file_path_dir + file_name
             print 'file_path=',file_path
             TIME_STARTED = time.time()
             FORM_ID = int(file_name.split('_')[1].split('.')[0])
+            if FORM_ID in forms_to_pass:
+                continue
             metadata = { 'form_id':FORM_ID,
                 'lat':25.644885499999997,
-                'glong':-100.3862645, 
+                'glong':-100.3862645,
                 'start_time':time.time()}
             print "Loading answers... FORM", FORM_ID
             answers = load_answers(metadata, file_path)
@@ -241,7 +244,7 @@ if __name__ == "__main__":
                 session = requests.Session()
                 # Log In
                 if login(session, USERNAME, PASS):
-                    print "User logged in.", 
+                    print "User logged in.",
                     post_answers(session, answers, )
                 else:
                     print "Invalid login."
