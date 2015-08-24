@@ -69,7 +69,7 @@ tij = [ 4170, 4171,  4172,  4173,  4174,  4175,  4176,  4177,  4178,  4179,  418
 vsa = [4186, 4187,  4188,  4189,  4190,  4191,  4198,  4295]
 
 service_forms = mty + mex + gdl + tij + vsa + juarez
- 
+
 #This are all the forms related to space unit,
 #every time logistoage creates a new related to space unit form
 #we have to add it here
@@ -388,8 +388,9 @@ def verify_one_record_per_company(report_answer):#, one_record_json):
             for year_month in get_all_months(report_answer):
                 year = year_month['_id']['year']
                 month = year_month['_id']['month']
-                date = '%s-%s-01'%(year, month)
-                created_at = datetime.strptime(date,'%Y-%m-%d')
+                offset = '05'
+                date = '%s-%s-01T%s:00:00'%(year, month, offset)
+                created_at = datetime.strptime(date,'%Y-%m-%dT%H:%M:%S')
                 for itype in all_types:
                     one_record_json = {}
                     one_record_id = str(year) + str(month) + client + warehouse + '_' + itype
