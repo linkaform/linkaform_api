@@ -1,4 +1,5 @@
 var conn = new Mongo();
+var now = new Date();
 
 /* Get list of databases */
 var dbList = db.adminCommand('listDatabases');
@@ -18,26 +19,31 @@ for(var i in dbList.databases) {
 			var dateFieldIds = [];
 
 			/* Check which fields are dates or datetimes */
-			for(var j in record.voucher.fields) {
-				var field = record.voucher.fields[j];
-				if(['date', 'datetime'].indexOf(field.field_type) !== -1) {
-					if(dateFieldIds.indexOf(field.field_id.id) === -1) {
-						dateFieldIds.push(field.field_id.id);
+			if(record.voucher && record.voucher.fields) {
+				for(var j in record.voucher.fields) {
+					var field = record.voucher.fields[j];
+					if(['date', 'datetime'].indexOf(field.field_type) !== -1) {
+						if(dateFieldIds.indexOf(field.field_id.id) === -1) {
+							dateFieldIds.push(field.field_id.id);
+						}
 					}
 				}
+			} else {
+				printjson(record.answers);
 			}
 
 			/* Update every answer of date and datetime fields */
+			var answers = {};
 			for(var j in dateFieldIds) {
 				var fieldId = dateFieldIds[j];
 				var actualAnswer = record.answers[fieldId];
 				if(actualAnswer) {
 					var newAnswer = new Date(actualAnswer);
-					print(actualAnswer + ',' + newAnswer);
-					record.answers[fieldId] = newAnswer;
-					db.form_answer.update({_id: record._id}, record);
+					answers['answers.' + fieldId] = newAnswer;
 				}
 			}
+
+			db.form_answer.update({_id: record._id}, { '$set': answers });
 		}
 	}
 }
