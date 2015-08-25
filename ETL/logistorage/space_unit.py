@@ -32,9 +32,8 @@ def get_query():
             'UE_total' : {
                 '$cond': {
                     'if': { '$gt': [ { '$add' : ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed'] },
-                    'then': { '$add': [ { '$multiply': [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] }, '$UE_extra_price' ] },
-                                        { '$multiply': [ { '$add': ['$UE_avg','$UEP_avg','$UEE_avg']}, '$UE_unit_price' ]} ] },
-                    'else': { '$multiply': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg']}, '$UE_unit_price' ]}
+                    'then': { '$multiply': [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] }, '$UE_extra_price' ] },
+                    'else': 0
                 }
             }
         }},
