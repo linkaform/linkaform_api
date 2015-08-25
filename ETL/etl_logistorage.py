@@ -522,8 +522,8 @@ def etl():
         verify_one_record_per_company(report_answer)
         return True
 
-PRICE_LIST = get_service_price()
-etl()
+#PRICE_LIST = get_service_price()
+#etl()
 
 def loop_query_update(cr_report_total, query_result, operation_type='update'):
     count = 0
@@ -558,14 +558,21 @@ def get_insert_id (rec):
         except:
             #TODO CURRENCY
             currency = 'mx'
-            if type(rec['month']) == type(1) or rec['month'] in range(13):
-                # locale.setlocale(locale.LC_TIME,'es_MX.utf-8')
-                # date_format = locale.nl_langinfo(locale.D_FMT)
-                # month = rec['month'].strftime('%B').upper()
-                month = MONTH_DIR[int(rec['month'])]
-            else:
-                month = rec['month']
-        db_id = currency + str(rec['year']) + str(rec['month']) + rec['client'] + rec['warehouse']
+        months_index_str = [str(i) for i in range(13)]
+        print 'aquiiiiiiiiiiiiiii'
+        print 'month', rec['month']
+        print 'type', type(rec['month'])
+
+        if type(rec['month']) is int or rec['month'] in months_index_str:
+            print 'entra a month con ', rec['month']
+            # locale.setlocale(locale.LC_TIME,'es_MX.utf-8')
+            # date_format = locale.nl_langinfo(locale.D_FMT)
+            # month = rec['month'].strftime('%B').upper()
+            month = MONTH_DIR[int(rec['month'])]
+            print 'sale con ', month
+        else:
+            month = rec['month']
+        db_id = currency + str(rec['year']) + month + rec['client'] + rec['warehouse']
         return db_id
     except KeyError:
         print 'fail-fail-fail--fail-fail-fail-fail-fail-fail===='
