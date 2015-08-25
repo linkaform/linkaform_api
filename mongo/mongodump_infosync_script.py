@@ -22,6 +22,7 @@ print mongodump
 print dotar
 print remove
 print '---------- on localhost------------'
+print 'cd /var/tmp/'
 print copy_tar
 print untar
 print restore

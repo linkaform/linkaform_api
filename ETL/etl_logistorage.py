@@ -3,10 +3,14 @@ from pymongo import MongoClient
 from pymongo.collection import Collection
 import json, re, locale
 from datetime import datetime
+from logistorage import *
 
 host = 'localhost'
 #port = 27020
 port = 27017
+
+MONTH_DIR = {1:'ENERO',2:'FERERO',3:'MARZO',4:'ABRIL',5:'MAYO',6:'JUNIO',
+7:'JULIO',8:'AGOSTO',9:'SEPTIEMBRE',10:'OCTUBRE',11:'NOVIEMBRE',12:'DICIEMBRE'}
 
 price_fields_ids = [
     #"5591a8b601a4de7bba8529b5",
@@ -155,6 +159,8 @@ other_field = {
 other_field_ids = [x['id'] for x in other_field.values()]
 
 filter_ids = service_price_json.keys() + other_field_ids
+
+file_path = '/var/tmp/logistorage/'
 
 def get_price_id_dict():
     select_fields = {}
@@ -518,3 +524,110 @@ def etl():
 
 PRICE_LIST = get_service_price()
 etl()
+
+def loop_query_update(cr_report_total, query_result, operation_type='update'):
+    count = 0
+    for record in query_result:
+        count += 1
+        insert_res = {}
+        _id = get_insert_id(record['_id'])
+        if _id:
+            insert_res.update(get_query_service_total(record))
+            has_id = cr_report_total.find({'_id':_id})
+            if has_id.count() > 0 and operation_type == 'update':
+                insert_res.update(has_id.next())
+                has_id.close()
+                print 'userting record : ', count
+                cr_report_total.update({'_id':_id}, insert_res, upsert=True )
+            else:
+                has_id.close()
+                insert_res['_id'] = _id
+                print 'inserting record : ', count
+                cr_report_total.insert(insert_res)
+                ###TODO READFILE THEN UPDATE IT
+    return True
+
+
+
+#loop_query_update(cr_report_total, space_unit_res['result'], operation_type='insert')
+def get_insert_id (rec):
+    #rec_id = rec['_id']
+    try:
+        try:
+            currency = rec['currency'].split('_')[0]
+        except:
+            #TODO CURRENCY
+            currency = 'mx'
+            if type(rec['month']) == type(1) or rec['month'] in range(13):
+                # locale.setlocale(locale.LC_TIME,'es_MX.utf-8')
+                # date_format = locale.nl_langinfo(locale.D_FMT)
+                # month = rec['month'].strftime('%B').upper()
+                month = MONTH_DIR[int(rec['month'])]
+            else:
+                month = rec['month']
+        db_id = currency + str(rec['year']) + str(rec['month']) + rec['client'] + rec['warehouse']
+        return db_id
+    except KeyError:
+        print 'fail-fail-fail--fail-fail-fail-fail-fail-fail===='
+        return False
+
+def get_query_service_total(record):
+    count = 0
+    res = {}
+    for key, value in record.iteritems():
+        count += 1
+        if key == '_id':
+            res.update(get_query_service_total(record[key]))
+        else:
+            if value:
+                res.update({key:value})
+            else:
+                res.update({key:0})
+    return res
+
+def insert_services(report_answer, cr_report_total):
+    service_query = services.get_query()
+    service_res = report_answer.aggregate(service_query)
+    loop_query_update(cr_report_total, service_res['result'], operation_type='insert')
+    return True
+
+def upsert_space_unit(report_answer, cr_report_total):
+    space_unit_query =space_unit.get_query()
+    space_unit_res = report_answer.aggregate(space_unit_query)
+    loop_query_update(cr_report_total, space_unit_res['result'])
+    return True
+
+def upsert_rent_service(report_answer, cr_report_total):
+    rent_service_query = rent_fixed.get_query()
+    rent_service_res = report_answer.aggregate(rent_service_query)
+    loop_query_update(cr_report_total, rent_service_res['result'])
+    rent_office_query = rent_office.get_query()
+    rent_office_res = report_answer.aggregate(rent_office_query)
+    loop_query_update(cr_report_total, rent_office_res['result'])
+    return True
+
+def set_services_total():
+    user_id = 516
+    user_conn = get_user_connection(user_id)
+    # Obtener coleccion de reportes si existe, crear si aún no existe
+    if 'report_answer' in user_conn['db'].collection_names():
+        report_answer = user_conn['db']['report_answer']
+    else:
+        print 'STOP NO COLLECTION'
+        print 'stoooooooooooooooooooooooooooop'
+    if 'report_total' in user_conn['db'].collection_names():
+        cr_report_total = user_conn['db']['report_total']
+        cr_report_total.drop()
+        #space
+    cr_report_total = Collection(user_conn['db'], "report_total", create=True)
+    print 'iiiiiiiinserting services'
+    insert_services(report_answer, cr_report_total)
+    print 'uuuuuuuuuuuuupsertng space unit'
+    upsert_space_unit(report_answer ,cr_report_total)
+    print 'uuuuuuupserint rentttt'
+    upsert_rent_service(report_answer, cr_report_total)
+    return True
+
+
+
+set_services_total()
