@@ -1,3 +1,4 @@
+db.report_answer.aggregate(
 [
   {$match:{
         "itype" : "space_unit",
@@ -13,10 +14,9 @@
         },
         UE_avg : {$avg:"$558d685701a4de7bba85289f.qty"},
         UE_unit_price : {$max:"$558d685701a4de7bba85289f.unit_price"},
-        UE_currency: {$first:"$558d685701a4de7bba85289f.currency"},
         UE_operator: {$first:"$558d685701a4de7bba85289f.condition.operator"},
         UE_agreed: {$max:"$558d685701a4de7bba85289f.condition.qty"},
-  UE_extra_price: {$max:"$558d685701a4de7bba85289f.extra_price"},
+        UE_extra_price: {$max:"$558d685701a4de7bba85289f.extra_price"},
 
         UEP_avg : {$avg:"$55a010c323d3fd2994ab74e8.qty"},
         UEP_unit_price : {$max:"$55a010c323d3fd2994ab74e8.unit_price"},
@@ -29,16 +29,15 @@
     UE_total : {
         $cond: {
             if: { $gt: [ { $add : ["$UE_avg", "$UEP_avg", "$UEE_avg"] }, "$UE_agreed"] },
-            then: { $add: [ { $multiply: [ { $subtract: [ { $add: ["$UE_avg", "$UEP_avg", "$UEE_avg"] }, "$UE_agreed" ] }, "$UE_extra_price" ] }, { $multiply: [ { $add: ["$UE_avg", "$UEP_avg", "$UEE_avg"]}, "$UE_unit_price" ]} ] },
-            else: { $multiply: [ { $add: ["$UE_avg", "$UEP_avg", "$UEE_avg"]}, "$UE_unit_price" ]}
+            then: { $multiply: [ { $subtract: [ { $add: ["$UE_avg", "$UEP_avg", "$UEE_avg"] }, "$UE_agreed" ] }, "$UE_extra_price" ] },
+            else: 0
         }
-    }
+    },
+    avreage_total : { $add : ["$UE_avg", "$UEP_avg", "$UEE_avg"] },
+    agreed_total : "$UE_agreed"
 }},
-
-
-
-
-    {$match:{
-        _id.year : 2015
-    }}
+{$match:{
+    '_id.year' : 2015
+}}
 ]
+)

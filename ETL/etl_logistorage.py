@@ -559,10 +559,6 @@ def get_insert_id (rec):
             #TODO CURRENCY
             currency = 'mx'
         months_index_str = [str(i) for i in range(13)]
-        print 'aquiiiiiiiiiiiiiii'
-        print 'month', rec['month']
-        print 'type', type(rec['month'])
-
         if type(rec['month']) is int or rec['month'] in months_index_str:
             print 'entra a month con ', rec['month']
             # locale.setlocale(locale.LC_TIME,'es_MX.utf-8')
