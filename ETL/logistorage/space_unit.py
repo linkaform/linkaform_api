@@ -32,13 +32,10 @@ def get_query():
             'UE_total' : {
                 '$cond': {
                     'if': { '$gt': [ { '$add' : ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed'] },
-                    'then': { '$multiply': [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] }, '$UE_extra_price' ] },
+                    'then': { '$multiply': [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] }, '$UE_unit_price' ] },
                     'else': 0
                 }
             }
-        }},
-        {'$match':{
-            '_id.year' : 2015
         }}
         ]
     return query

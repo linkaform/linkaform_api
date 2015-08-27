@@ -29,15 +29,12 @@ db.report_answer.aggregate(
     UE_total : {
         $cond: {
             if: { $gt: [ { $add : ["$UE_avg", "$UEP_avg", "$UEE_avg"] }, "$UE_agreed"] },
-            then: { $multiply: [ { $subtract: [ { $add: ["$UE_avg", "$UEP_avg", "$UEE_avg"] }, "$UE_agreed" ] }, "$UE_extra_price" ] },
+            then: { $multiply: [ { $subtract: [ { $add: ["$UE_avg", "$UEP_avg", "$UEE_avg"] }, "$UE_agreed" ] }, "$UE_unit_price" ] },
             else: 0
         }
     },
     avreage_total : { $add : ["$UE_avg", "$UEP_avg", "$UEE_avg"] },
     agreed_total : "$UE_agreed"
-}},
-{$match:{
-    '_id.year' : 2015
 }}
 ]
 )
