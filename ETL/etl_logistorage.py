@@ -525,12 +525,12 @@ def etl():
 #PRICE_LIST = get_service_price()
 #etl()
 
-def loop_query_update(cr_report_total, query_result, operation_type='update'):
+def loop_query_update(cr_report_total, query_result, itype, operation_type='update'):
     count = 0
     for record in query_result:
         count += 1
-        insert_res = {}
-        _id = get_insert_id(record['_id'])
+        insert_res = {'itype':itype}
+        _id = get_insert_id(record['_id'], itype)
         if _id:
             insert_res.update(get_query_service_total(record))
             has_id = cr_report_total.find({'_id':_id})
@@ -550,7 +550,7 @@ def loop_query_update(cr_report_total, query_result, operation_type='update'):
 
 
 #loop_query_update(cr_report_total, space_unit_res['result'], operation_type='insert')
-def get_insert_id (rec):
+def get_insert_id (rec, itype=''):
     #rec_id = rec['_id']
     try:
         try:
@@ -568,7 +568,10 @@ def get_insert_id (rec):
             print 'sale con ', month
         else:
             month = rec['month']
-        db_id = currency + str(rec['year']) + month + rec['client'] + rec['warehouse']
+        client = rec['client']
+        client = re.sub(' ', '_', rec['client']).lower()
+        warehouse = re.sub(' ', '_', rec['warehouse']).lower()
+        db_id = currency + str(rec['year']) + month + rec['client'] + rec['warehouse'] + itype
         return db_id
     except KeyError:
         print 'fail-fail-fail--fail-fail-fail-fail-fail-fail===='
@@ -591,22 +594,22 @@ def get_query_service_total(record):
 def insert_services(report_answer, cr_report_total):
     service_query = services.get_query()
     service_res = report_answer.aggregate(service_query)
-    loop_query_update(cr_report_total, service_res['result'], operation_type='insert')
+    loop_query_update(cr_report_total, service_res['result'], itype='service', operation_type='insert')
     return True
 
 def upsert_space_unit(report_answer, cr_report_total):
     space_unit_query =space_unit.get_query()
     space_unit_res = report_answer.aggregate(space_unit_query)
-    loop_query_update(cr_report_total, space_unit_res['result'])
+    loop_query_update(cr_report_total, space_unit_res['result'], itype='space_unit',operation_type='insert')
     return True
 
 def upsert_rent_service(report_answer, cr_report_total):
     rent_service_query = rent_fixed.get_query()
     rent_service_res = report_answer.aggregate(rent_service_query)
-    loop_query_update(cr_report_total, rent_service_res['result'])
+    loop_query_update(cr_report_total, rent_service_res['result'], itype='fixed_rent',operation_type='insert')
     rent_office_query = rent_office.get_query()
     rent_office_res = report_answer.aggregate(rent_office_query)
-    loop_query_update(cr_report_total, rent_office_res['result'])
+    loop_query_update(cr_report_total, rent_office_res['result'], itype='office_rent',operation_type='insert')
     return True
 
 def set_services_total():

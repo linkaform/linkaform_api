@@ -301,7 +301,7 @@ def get_query():
 
         'METROS_ACORDADOS_total': {'$multiply': ["$METROS_ACORDADOS_qty","$METROS_ACORDADOS_unit_price"]},
 
-        'Service_Total': {'$add': [ '$TCH_total',
+        'total': {'$add': [ '$TCH_total',
         '$PALLET_IN_total', '$KIT_PLAYERAS_total', '$MANO_OBRA_total', '$CROSS_DOCK_20_total',
         '$SAD_total', '$TARIMA_NEGRA_MILLER_total',  '$CROSS_DOCK_40_total',
          '$ENTRADA_DETALLE_total', '$PRECIO_RENTA_OFICINA_total', '$PICK_AND_PACK_total',
@@ -314,7 +314,7 @@ def get_query():
         '$CROSS_DOCK_total',
         '$SE_total', '$CROSS_DOCK_40_NOCTURNO_total',  '$TNL_total',  '$UNIDAD_ESPACIO_TEMPORAL_total',
         '$COSTO_MENSUAL_UE_EXTRA_total',  '$PALLET_OUT_total', '$MI_total', '$SEPONY_total',
-         '$SAP_total', '$TIEMPO_EXTRA_X_HORA_NOCTURNO_total', '$SAP_MAS_15_total', '$TERMO_total']}
+        '$SAP_total', '$TIEMPO_EXTRA_X_HORA_NOCTURNO_total', '$SAP_MAS_15_total', '$TERMO_total']}
 
     }}
     ]

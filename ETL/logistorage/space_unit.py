@@ -29,13 +29,14 @@ def get_query():
         }},
         {'$project': {
             '_id' : 1,
-            'UE_total' : {
-                '$cond': {
-                    'if': { '$gt': [ { '$add' : ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed'] },
-                    'then': { '$multiply': [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] }, '$UE_unit_price' ] },
-                    'else': 0
-                }
+            'total' : {
+                '$cond': [
+                     {'$gt': [ { '$add' : ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed'] },
+                     { '$multiply': [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] }, '$UE_unit_price' ] },
+                    0
+                #    'else': { '$multiply': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg']}, '$UE_unit_price' ]}
+                ]
             }
-        }}
+        }},
         ]
     return query
