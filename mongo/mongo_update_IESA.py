@@ -25,6 +25,18 @@ def get_mongo_collection(cur_db, collection_name ):
 	collection = cur_db[collection_name]
 	return collection
 
+def get_collection_objects(cur_col, query = None):
+	if query:
+		objects = cur_col.find(query)
+	else:
+		objects = cur_col.find()
+	try:
+		if len(objects) == 0:
+			print 'NO RECORDS FOUND'
+	except TypeError:
+		print 'NO RECORDS FOUND'
+	return objects
+
 def get_form_fields(host, port, form_id):
 	cur_infosync = connect_mongodb('infosync', host, port)
 	cur_is_col = get_mongo_collection(cur_infosync, 'form_data' )
@@ -75,6 +87,7 @@ def get_field_json(form_fields=[]):
 		field_json.update(json)
 	return field_json
 
+form_fields = get_form_fields(host, port, form_id)
 fields_json = get_field_json(form_fields)
 
 cur_db = connect_mongodb(dbname, host, port)
