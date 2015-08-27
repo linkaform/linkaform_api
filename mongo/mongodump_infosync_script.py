@@ -4,7 +4,7 @@
 #### This is the first draft.....
 
 
-client_id = 516
+client_id =96 
 
 
 mongodump ='mongodump -d infosync_answers_client_%s --out /var/tmp/mongo_back_client_%s'%(client_id,client_id)

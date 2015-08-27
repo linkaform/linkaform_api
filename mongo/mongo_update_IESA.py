@@ -159,74 +159,78 @@ def update_created_at(dbname, host, port, collection_name):
 						cur_col.update({'_id':record_id}, {"$set":{'created_at':new_date}})
 		print 'TOTAL',count
 
+
+update_landing_name(dbname, host, port, collection_name)
+
+
 update_created_at(dbname, host, port, collection_name)
 
-		for new_record in records:
-			record_id = new_record['_id']
-			print 'record_id', record_id
-			#new_record.update({'answers.5549395d01a4de0439331fd7':landing_name})
-			print 'lannnnding name', landing_name
-			cur_col.update({'_id':record_id}, {'answers':{'5549395d01a4de0439331fd7':landing_name}})
-	return True
-
-
-db.form_answer.aggregate([
-{"$match":{
-"form_id":2050,
-"answers.5549395d01a4de0439331fd7" :{"$exists":true},
-}},
-{"$project":
-{
-"year":{"$year" : "$created_at"},
-"month":{"$month" : "$created_at"},
-"landing":"$answers.5549395d01a4de0439331fd7"
-}
-},
-{"$group":
-{"_id":
-{"year":"$year", "month":"$month","landing":"$landing"},
-"total" : {"$sum" : 1}}}
-])
-
-{'type': u'group', 'id': '556490af01a4de4631a7fe3d', 'label': u'Seguimiento'}
-{'type': u'text', 'id': '54de97a201a4de283446c39a', 'label': u'Direcci\xf3n'}
-{'type': u'text', 'id': '554a60d901a4de0439332097', 'label': u'C\xf3digo Postal'}
-{'type': u'date', 'id': '556490f101a4de46326bb268', 'label': u'Fecha de Seguimiento'}
-{'type': u'email', 'id': '55660efe01a4de3fc850d10b', 'label': u'Correo Origen:'}
-{'type': u'radio', 'id': '555f47a901a4de47e4a9363d', 'label': u'Rep'}
-{'type': u'textarea', 'id': '556490f101a4de46326bb269', 'label': u'Comentario'}
-{'type': u'description', 'id': '555f499301a4de47e4a9363f', 'label': u'Equipos'}
-{'type': u'text', 'id': '54de97a201a4de283446c399', 'label': u'Compa\xf1\xeda'}
-{'type': u'textarea', 'id': '54de8d8a01a4de283446c397', 'label': u'Mensaje'}
-{'type': u'text', 'id': '5549395d01a4de0439331fd7', 'label': u'Contacto'}
-{'type': u'radio', 'id': '553abe9d01a4de236b938fd9', 'label': u'\xbfCu\xe1l de las siguientes opciones describe mejor su inter\xe9s en comprar un electrodom\xe9stico nuevo?'}
-{'type': u'text', 'id': '54de8d8a01a4de283446c390', 'label': u'Nombre'}
-{'type': u'text', 'id': '54de8d8a01a4de283446c391', 'label': u'Apellido'}
-{'type': u'text', 'id': '54de8d8a01a4de283446c392', 'label': u'Ciudad'}
-{'type': u'text', 'id': '54de8d8a01a4de283446c394', 'label': u'Tel\xe9fono'}
-{'type': u'email', 'id': '54de8d8a01a4de283446c395', 'label': u'Correo'}
-{'type': u'select', 'id': '54de8d8a01a4de283446c396', 'label': u'Asunto'}
-{'type': u'radio', 'id': '555f6a9f01a4de47e4a9364d', 'label': u'Estatus'}
-{'type': u'radio', 'id': '555f47a901a4de47e4a9363a', 'label': u'Marca'}
-{'type': u'text', 'id': '556f42a601a4de5a78839353', 'label': u'Dealer'}
-{'type': u'select', 'id': '5575d9a201a4de35862db079', 'label': u'Estado'}
-{'type': u'radio', 'id': '5547da1d01a4de0b614a01f7', 'label': u'\xbfActualmente posee alg\xfan producto?'}
-{'type': u'radio', 'id': '553abe9d01a4de236b938fda', 'label': u'\xbfEst\xe1 siendo asistido por alguno de los siguientes profesionales para su proyecto de cocina?'}
-{'type': u'textarea', 'id': '556490f101a4de46326bb26b', 'label': u'Siguiente Acci\xf3n'}
-{'type': u'date', 'id': '556f42a601a4de5a78839355', 'label': u'Contacto Dealer'}
-{'type': u'radio', 'id': '5547da1d01a4de0b614a01f8', 'label': u'\xbfQu\xe9 tan pronto piensa adquirir un producto?'}
-{'type': u'date', 'id': '555f47a901a4de47e4a9363c', 'label': u'Cat\xe1logo y asignaci\xf3n de rep'}
-{'type': u'date', 'id': '556490f101a4de46326bb26a', 'label': u'Fecha de Siguiente Acci\xf3n'}
-{'type': u'text', 'id': '556f42a601a4de5a78839354', 'label': u'Vendedor Dealer'}
-
-
-
-DEXA, http://www.Dexa.mx, http://www.dexa.mx = Dexa
-FACEBOOK = Facebook
-Frankemx.mx, http://www.frankemx.mx = Franke
-KINDRED.MX, KINDred.mx, http://www.kindred.mx, kindred.mx = Kindred
-Outlet, http://iesa.cc/outlet = iesa.cc/outlet
-adwords = Adwords
-http://www.lafamiliaperfecta.com = La Familia Perfecta
-http://www.smegmx.mx = smegmx.mx
-http://www.subzero-wolf.mx, subzero-wolf.mx = Subzero-Wolf
+# 	for new_record in records:
+# 			record_id = new_record['_id']
+# 			print 'record_id', record_id
+# 			#new_record.update({'answers.5549395d01a4de0439331fd7':landing_name})
+# 			print 'lannnnding name', landing_name
+# 			cur_col.update({'_id':record_id}, {'answers':{'5549395d01a4de0439331fd7':landing_name}})
+# 	return True
+#
+#
+# # db.form_answer.aggregate([
+# # {"$match":{
+# # "form_id":2050,
+# # "answers.5549395d01a4de0439331fd7" :{"$exists":true},
+# # }},
+# # {"$project":
+# # {
+# # "year":{"$year" : "$created_at"},
+# # "month":{"$month" : "$created_at"},
+# # "landing":"$answers.5549395d01a4de0439331fd7"
+# # }
+# # },
+# # {"$group":
+# # {"_id":
+# # {"year":"$year", "month":"$month","landing":"$landing"},
+# # "total" : {"$sum" : 1}}}
+# # ])
+# #
+# # {'type': u'group', 'id': '556490af01a4de4631a7fe3d', 'label': u'Seguimiento'}
+# # {'type': u'text', 'id': '54de97a201a4de283446c39a', 'label': u'Direcci\xf3n'}
+# # {'type': u'text', 'id': '554a60d901a4de0439332097', 'label': u'C\xf3digo Postal'}
+# # {'type': u'date', 'id': '556490f101a4de46326bb268', 'label': u'Fecha de Seguimiento'}
+# # {'type': u'email', 'id': '55660efe01a4de3fc850d10b', 'label': u'Correo Origen:'}
+# # {'type': u'radio', 'id': '555f47a901a4de47e4a9363d', 'label': u'Rep'}
+# # {'type': u'textarea', 'id': '556490f101a4de46326bb269', 'label': u'Comentario'}
+# # {'type': u'description', 'id': '555f499301a4de47e4a9363f', 'label': u'Equipos'}
+# # {'type': u'text', 'id': '54de97a201a4de283446c399', 'label': u'Compa\xf1\xeda'}
+# # {'type': u'textarea', 'id': '54de8d8a01a4de283446c397', 'label': u'Mensaje'}
+# # {'type': u'text', 'id': '5549395d01a4de0439331fd7', 'label': u'Contacto'}
+# # {'type': u'radio', 'id': '553abe9d01a4de236b938fd9', 'label': u'\xbfCu\xe1l de las siguientes opciones describe mejor su inter\xe9s en comprar un electrodom\xe9stico nuevo?'}
+# # {'type': u'text', 'id': '54de8d8a01a4de283446c390', 'label': u'Nombre'}
+# # {'type': u'text', 'id': '54de8d8a01a4de283446c391', 'label': u'Apellido'}
+# # {'type': u'text', 'id': '54de8d8a01a4de283446c392', 'label': u'Ciudad'}
+# # {'type': u'text', 'id': '54de8d8a01a4de283446c394', 'label': u'Tel\xe9fono'}
+# # {'type': u'email', 'id': '54de8d8a01a4de283446c395', 'label': u'Correo'}
+# # {'type': u'select', 'id': '54de8d8a01a4de283446c396', 'label': u'Asunto'}
+# # {'type': u'radio', 'id': '555f6a9f01a4de47e4a9364d', 'label': u'Estatus'}
+# # {'type': u'radio', 'id': '555f47a901a4de47e4a9363a', 'label': u'Marca'}
+# # {'type': u'text', 'id': '556f42a601a4de5a78839353', 'label': u'Dealer'}
+# # {'type': u'select', 'id': '5575d9a201a4de35862db079', 'label': u'Estado'}
+# # {'type': u'radio', 'id': '5547da1d01a4de0b614a01f7', 'label': u'\xbfActualmente posee alg\xfan producto?'}
+# # {'type': u'radio', 'id': '553abe9d01a4de236b938fda', 'label': u'\xbfEst\xe1 siendo asistido por alguno de los siguientes profesionales para su proyecto de cocina?'}
+# # {'type': u'textarea', 'id': '556490f101a4de46326bb26b', 'label': u'Siguiente Acci\xf3n'}
+# # {'type': u'date', 'id': '556f42a601a4de5a78839355', 'label': u'Contacto Dealer'}
+# # {'type': u'radio', 'id': '5547da1d01a4de0b614a01f8', 'label': u'\xbfQu\xe9 tan pronto piensa adquirir un producto?'}
+# # {'type': u'date', 'id': '555f47a901a4de47e4a9363c', 'label': u'Cat\xe1logo y asignaci\xf3n de rep'}
+# # {'type': u'date', 'id': '556490f101a4de46326bb26a', 'label': u'Fecha de Siguiente Acci\xf3n'}
+# # {'type': u'text', 'id': '556f42a601a4de5a78839354', 'label': u'Vendedor Dealer'}
+# #
+# #
+# #
+# # DEXA, http://www.Dexa.mx, http://www.dexa.mx = Dexa
+# # FACEBOOK = Facebook
+# # Frankemx.mx, http://www.frankemx.mx = Franke
+# # KINDRED.MX, KINDred.mx, http://www.kindred.mx, kindred.mx = Kindred
+# # Outlet, http://iesa.cc/outlet = iesa.cc/outlet
+# # adwords = Adwords
+# # http://www.lafamiliaperfecta.com = La Familia Perfecta
+# # http://www.smegmx.mx = smegmx.mx
+# # http://www.subzero-wolf.mx, subzero-wolf.mx = Subzero-Wolf
