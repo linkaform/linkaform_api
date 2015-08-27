@@ -6,11 +6,16 @@ from datetime import datetime
 from logistorage import *
 
 host = 'localhost'
-#port = 27020
 port = 27017
+port = 27020
+#port = 27019
+
 
 MONTH_DIR = {1:'ENERO',2:'FERERO',3:'MARZO',4:'ABRIL',5:'MAYO',6:'JUNIO',
 7:'JULIO',8:'AGOSTO',9:'SEPTIEMBRE',10:'OCTUBRE',11:'NOVIEMBRE',12:'DICIEMBRE'}
+
+service_names = {'service':'Servicios', 'space_unit':'Unidad de Espacio',
+                'fixed_rent':'Renta Fija', 'office_rent':'Renta Oficina'}
 
 price_fields_ids = [
     #"5591a8b601a4de7bba8529b5",
@@ -529,20 +534,24 @@ def loop_query_update(cr_report_total, query_result, itype, operation_type='upda
     count = 0
     for record in query_result:
         count += 1
-        insert_res = {'itype':itype}
+        try:
+            insert_res = {'itype':service_names[itype]}
+        except KeyError:
+            insert_res = {'itype':itype}
         _id = get_insert_id(record['_id'], itype)
         if _id:
             insert_res.update(get_query_service_total(record))
             has_id = cr_report_total.find({'_id':_id})
+            print 'count',count
             if has_id.count() > 0 and operation_type == 'update':
                 insert_res.update(has_id.next())
                 has_id.close()
                 print 'userting record : ', count
                 cr_report_total.update({'_id':_id}, insert_res, upsert=True )
-            else:
-                has_id.close()
+            elif has_id.count() == 0:
                 insert_res['_id'] = _id
-                print 'inserting record : ', count
+                has_id.close()
+                #print 'inserting record : ', count
                 cr_report_total.insert(insert_res)
                 ###TODO READFILE THEN UPDATE IT
     return True
@@ -550,7 +559,7 @@ def loop_query_update(cr_report_total, query_result, itype, operation_type='upda
 
 
 #loop_query_update(cr_report_total, space_unit_res['result'], operation_type='insert')
-def get_insert_id (rec, itype=''):
+def get_insert_id (rec, itype):
     #rec_id = rec['_id']
     try:
         try:
@@ -560,18 +569,26 @@ def get_insert_id (rec, itype=''):
             currency = 'mx'
         months_index_str = [str(i) for i in range(13)]
         if type(rec['month']) is int or rec['month'] in months_index_str:
-            print 'entra a month con ', rec['month']
             # locale.setlocale(locale.LC_TIME,'es_MX.utf-8')
             # date_format = locale.nl_langinfo(locale.D_FMT)
             # month = rec['month'].strftime('%B').upper()
             month = MONTH_DIR[int(rec['month'])]
-            print 'sale con ', month
         else:
-            month = rec['month']
-        client = rec['client']
+            month = str(rec['month'])
+        month = month.lower()
         client = re.sub(' ', '_', rec['client']).lower()
+        #print 'cliente ', client
+        if not client:
+            print 'aqui truena'
+            print fda
         warehouse = re.sub(' ', '_', rec['warehouse']).lower()
-        db_id = currency + str(rec['year']) + month + rec['client'] + rec['warehouse'] + itype
+        if not warehouse:
+            print 'aqui warehouse'
+            print fda
+        if not itype:
+            print 'truena type'
+            print fdsa
+        db_id = currency + str(rec['year']) + month + client + warehouse + itype
         return db_id
     except KeyError:
         print 'fail-fail-fail--fail-fail-fail-fail-fail-fail===='
@@ -589,7 +606,10 @@ def get_query_service_total(record):
                 res.update({key:value})
             else:
                 res.update({key:0})
+        if key == 'month' and type(value) == int:
+            res.update({key:MONTH_DIR[value]})
     return res
+
 
 def insert_services(report_answer, cr_report_total):
     service_query = services.get_query()
@@ -620,7 +640,7 @@ def set_services_total():
         report_answer = user_conn['db']['report_answer']
     else:
         print 'STOP NO COLLECTION'
-        print 'stoooooooooooooooooooooooooooop'
+        print 'driiiioooopstoooooooooooooooooooooooooooop'
     if 'report_total' in user_conn['db'].collection_names():
         cr_report_total = user_conn['db']['report_total']
         cr_report_total.drop()
