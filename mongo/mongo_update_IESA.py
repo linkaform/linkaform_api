@@ -173,7 +173,7 @@ def update_created_at(dbname, host, port, collection_name):
 		print 'TOTAL',count
 
 
-update_landing_name(dbname, host, port, collection_name)
+#update_landing_name(dbname, host, port, collection_name)
 
 
 update_created_at(dbname, host, port, collection_name)
