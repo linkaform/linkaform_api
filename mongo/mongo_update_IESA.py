@@ -134,7 +134,9 @@ def update_created_at(dbname, host, port, collection_name):
 	cur_db = connect_mongodb(dbname, host, port)
 	cur_col = get_mongo_collection(cur_db, collection_name )
 	load_file = get_file_to_import(file_path)
-	count = 0
+	count_phone = 0
+	count_email = 0
+	count_name = 0
 	update_records = []
 	for old_record in load_file:
 		records = cur_col.find({'answers.54de8d8a01a4de283446c394':old_record['phone']})
@@ -146,31 +148,40 @@ def update_created_at(dbname, host, port, collection_name):
 			rec_json = records.next()
 			record_id = rec_json['_id']
 			if rec_json['_id'].__str__() not in update_records:
-				count +=1
+				count_phone +=1
+				print 'updates by phone', count_phone
 				update_records.append(rec_json['_id'].__str__())
-				print 'records updated ...',record_id, 'date', new_date
+				print 'records updated ...',record_id, 'date', new_date, 'print count phone', count_phone
 				cur_col.update({'_id':record_id}, {"$set":{'created_at':new_date}})
-	else:
-		records2 = cur_col.find({'answers.54de8d8a01a4de283446c395':old_record['email']})
-		if records2.count() > 0:
-			rec_json2 = records2.next()
-			record_id = rec_json2['_id']
-			if rec_json2['_id'].__str__() not in update_records:
-				count +=1
-				update_records.append(rec_json2['_id'].__str__())
-				print 'records updated ...',record_id, 'date', new_date
-				cur_col.update({'_id':record_id}, {"$set":{'created_at':new_date}})
+		else:
+			records2 = cur_col.find({'answers.54de8d8a01a4de283446c395':old_record['email']})
+			if records2.count() > 0:
+				rec_json2 = records2.next()
+				record_id = rec_json2['_id']
+				if rec_json2['_id'].__str__() not in update_records:
+					count_email +=1
+					print 'updates by email', count_email
+					update_records.append(rec_json2['_id'].__str__())
+					print 'records updated ...',record_id, 'date', new_date
+					cur_col.update({'_id':record_id}, {"$set":{'created_at':new_date}})
 			else:
 				records3 = cur_col.find({'answers.54de8d8a01a4de283446c390':old_record['name'],'answers.54de8d8a01a4de283446c391':old_record['lastname'] })
 				if records3.count() > 0:
 					rec_json3 = records3.next()
 					record_id = rec_json3['_id'].__str__()
 					if rec_json3['_id'].__str__() not in update_records:
-						count +=1
+						count_name +=1
+						print 'updates by name', count_name
 						update_records.append(rec_json3['_id'].__str__())
 						print 'records updated ...',record_id, 'date', new_date
 						cur_col.update({'_id':record_id}, {"$set":{'created_at':new_date}})
-		print 'TOTAL',count
+	print 'TOTAL*****************'
+	print 'from ', len(load_file), ' fiels this where how the changes were distributed'
+	print 'by phone', count_phone
+	print 'by email', count_email
+	print 'by name ', count_name
+	print 'TOTAL = ', count_phone + count_email + count_name
+	print '**********************'
 
 
 #update_landing_name(dbname, host, port, collection_name)
