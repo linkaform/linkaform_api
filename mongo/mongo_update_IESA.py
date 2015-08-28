@@ -145,6 +145,9 @@ def update_created_at(dbname, host, port, collection_name):
 		except:
 			pass
 		if records.count() > 0:
+			print 'phone', old_record['phone']
+			if count_phone > 20:
+				print fds
 			rec_json = records.next()
 			record_id = rec_json['_id']
 			if rec_json['_id'].__str__() not in update_records:
@@ -174,7 +177,7 @@ def update_created_at(dbname, host, port, collection_name):
 						print 'updates by name', count_name
 						update_records.append(rec_json3['_id'].__str__())
 						print 'records updated ...',record_id, 'date', new_date
-						cur_col.update({'_id':record_id}, {"$set":{'created_at':new_date}})
+						cur_col.update({'_id':record_id}, {"$set":{'created_at':new_date,'updated_at':new_date}})
 	print 'TOTAL*****************'
 	print 'from ', len(load_file), ' fiels this where how the changes were distributed'
 	print 'by phone', count_phone
