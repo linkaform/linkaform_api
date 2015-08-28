@@ -6,13 +6,17 @@ from datetime import datetime
 from logistorage import *
 
 host = 'localhost'
-port = 27017
-#port = 27020
-#port = 27019
+#port = 27017
+port = 27020
+port = 27019
 
 
-MONTH_DIR = {1:'ENERO',2:'FERERO',3:'MARZO',4:'ABRIL',5:'MAYO',6:'JUNIO',
-7:'JULIO',8:'AGOSTO',9:'SEPTIEMBRE',10:'OCTUBRE',11:'NOVIEMBRE',12:'DICIEMBRE'}
+MONTH_DIR = {1:'2015/01',2:'2015/02',3:'2015/03',4:'2015/04',5:'2015/05',6:'2015/06',
+7:'2015/07',8:'2015/08',9:'2015/09',10:'2015/10',11:'2015/11',12:'2015/12'}
+
+MONTH_DIR_TEXT = {'ENERO':'2015/01','FERERO':'2015/02','MARZO':'2015/03','ABRIL':'2015/04','MAYO':'2015/05','JUNIO':'2015/06',
+'JULIO':'2015/07','AGOSTO':'2015/08','SEPTIEMBRE':'2015/09','OCTUBRE':'2015/10','NOVIEMBRE':'2015/11','DICIEMBRE':'2015/12'}
+
 
 service_names = {'service':'Servicios', 'space_unit':'Unidad de Espacio',
                 'fixed_rent':'Renta Fija', 'office_rent':'Renta Oficina'}
@@ -568,13 +572,12 @@ def get_insert_id (rec, itype):
             #TODO CURRENCY
             currency = 'mx'
         months_index_str = [str(i) for i in range(13)]
+        #Checks if the month comes on a numeric format even if its consider a str
+        #And it converts it to the given format ad MONTH_DIR
         if type(rec['month']) is int or rec['month'] in months_index_str:
-            # locale.setlocale(locale.LC_TIME,'es_MX.utf-8')
-            # date_format = locale.nl_langinfo(locale.D_FMT)
-            # month = rec['month'].strftime('%B').upper()
             month = MONTH_DIR[int(rec['month'])]
         else:
-            month = str(rec['month'])
+            month = MONTH_DIR_TEXT[rec['month']]
         month = month.lower()
         client = re.sub(' ', '_', rec['client']).lower()
         #print 'cliente ', client
@@ -588,17 +591,15 @@ def get_insert_id (rec, itype):
         if not itype:
             print 'truena type'
             print fdsa
-        db_id = currency + str(rec['year']) + month + client + warehouse + itype
+        db_id = currency + month + client + warehouse + itype
         return db_id
     except KeyError:
         print 'fail-fail-fail--fail-fail-fail-fail-fail-fail===='
         return False
 
 def get_query_service_total(record):
-    count = 0
     res = {}
     for key, value in record.iteritems():
-        count += 1
         if key == '_id':
             res.update(get_query_service_total(record[key]))
         else:
