@@ -7,7 +7,7 @@ from logistorage import *
 
 host = 'localhost'
 port = 27017
-port = 27020
+#port = 27020
 #port = 27019
 
 
