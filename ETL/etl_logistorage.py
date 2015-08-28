@@ -1,15 +1,19 @@
 #coding: utf-8
 from pymongo import MongoClient
 from pymongo.collection import Collection
-import json, re, locale
+import json, re, locale, requests, simplejson
 from datetime import datetime
 from logistorage import *
 
-host = 'localhost'
+host ='localhost'
 port = 27017
 #port = 27020
 #port = 27019
 
+LOGIN_URL = "https://www.info-sync.com/api/infosync/user_admin/login/"
+USERNAME = 'logistorage.infosync@gmail.com'
+PASS = '654321'
+GET_PARENT_ID_FORMS = "https://www.info-sync.com/api/infosync/item/?parent="
 
 MONTH_DIR = {1:'2015/01',2:'2015/02',3:'2015/03',4:'2015/04',5:'2015/05',6:'2015/06',
 7:'2015/07',8:'2015/08',9:'2015/09',10:'2015/10',11:'2015/11',12:'2015/12'}
@@ -61,32 +65,22 @@ price_fields_ids = [
 #every time logistoage creates a new services form
 #we have to add it here
 
-mty = [3428, 3431,  3449,  3450,  3451,  3452,  3453,
-    3454,  3455,  3456,  3457,  3458,  3459,  3460,  3461,
-    3462,  3463,  3464,  3465,  3466,  3467,  3468,  3469,
-    3470,  3483,  3484,  3583,  4291 ]
+mty = [3749]
+mex = [3893]
+gdl = [3758]
+tij = [3918]
+vsa = [3935]
+juarez = [4192]
 
+service_folders = mty + mex + gdl + tij + vsa + juarez
 
-#mty_mex = [3484,3428,3452,3456,3468,3466,3463,3431,3461,3483,3470,3465,3469,3464,3451,3462,3467,3450,3460,3449,3459,3458,3457,3455,3454,3583,3453,3963,3964,3965,3966,4009,3967,3968,3969,4008,3970,4010,4007,3972,3981,3971,3973,3974,3975,3976,3977,3978,3979,3980]
-
-juarez =  [  4193, 4194, 4195]
-
-mex =[ 3428, 3431,  3449,  3450,  3451,  3452,  3453,  3454,  3455,  3456,
-3457,  3458,  3459,  3460,  3461,  3462,  3463,  3464,  3465,  3466,  3467,
-3468,  3469,  3470,  3483,  3484,  3583,  4291]
-
-gdl =[ 3945, 3948, 3949, 3950, 3951, 3952, 3954, 3955, 3956, 3957, 3958, 3959, 3960, 3962, 4057, 4058, 4238, 4296]
-
-tij = [ 4170, 4171,  4172,  4173,  4174,  4175,  4176,  4177,  4178,  4179,  4180,  4181,  4182,  4183,  4184,  4185,  4196,  4197,  4199,  4239]
-
-vsa = [4186, 4187,  4188,  4189,  4190,  4191,  4198,  4295]
-
-service_forms = mty + mex + gdl + tij + vsa + juarez
+#service_forms = get_all_forms(service_folders)
 
 #This are all the forms related to space unit,
 #every time logistoage creates a new related to space unit form
 #we have to add it here
-space_forms = [3448,3486]
+space_unit_folder= [4339]
+#space_forms = get_all_forms(space_unit_folder)
 
 #service_id:price_id
 #everytime we add a new price
@@ -171,6 +165,25 @@ filter_ids = service_price_json.keys() + other_field_ids
 
 file_path = '/var/tmp/logistorage/'
 
+def login(session, username, password):
+    r = session.post(LOGIN_URL, data = simplejson.dumps({"password": PASS, "username": USERNAME}))
+    return r.status_code == 200
+
+def get_all_forms(folders_id):
+    forms_ids = []
+    session = requests.Session()
+    if login(session, USERNAME, PASS):
+        for folder_id in folders_id:
+            get_forms = GET_PARENT_ID_FORMS + str(folder_id)
+            r = session.get(get_forms, headers={'Content-type': 'application/json'}, verify=False)
+            if r.status_code == 200:
+                response = simplejson.loads(r.content)
+                objects = response['objects']
+                for obj in objects:
+                    if obj['itype'] == 'form':
+                        forms_ids.append(obj['id'])
+    return forms_ids
+
 def get_price_id_dict():
     select_fields = {}
     for price_id in price_fields_ids:
@@ -232,7 +245,7 @@ def set_price_service(price_line, service_list):
     return service_list
 
 def get_service_price():
-    all_forms = service_forms + space_forms
+    all_forms = get_all_forms(service_folders) + get_all_forms(space_unit_folder)
     etl_model = FakeETLModel(
     **{
         'name': 'Reporte', 'item_id':  all_forms[0], 'user_id': 516,
@@ -442,6 +455,8 @@ def get_meta_answer_with_rules(record):
     return {other_field['Fecha_de_Captura']['id']:res}
 
 def etl():
+    service_forms = get_all_forms(service_folders)
+    space_forms = get_all_forms(space_unit_folder)
     all_forms = service_forms + space_forms
     items_to_search  = all_forms
     if True:
@@ -531,8 +546,8 @@ def etl():
         verify_one_record_per_company(report_answer)
         return True
 
-#PRICE_LIST = get_service_price()
-#etl()
+PRICE_LIST = get_service_price()
+etl()
 
 def loop_query_update(cr_report_total, query_result, itype, operation_type='update'):
     count = 0
