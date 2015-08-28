@@ -6,9 +6,9 @@ from datetime import datetime
 from logistorage import *
 
 host = 'localhost'
-#port = 27017
-port = 27020
-port = 27019
+port = 27017
+#port = 27020
+#port = 27019
 
 
 MONTH_DIR = {1:'2015/01',2:'2015/02',3:'2015/03',4:'2015/04',5:'2015/05',6:'2015/06',
@@ -560,8 +560,6 @@ def loop_query_update(cr_report_total, query_result, itype, operation_type='upda
                 ###TODO READFILE THEN UPDATE IT
     return True
 
-
-
 #loop_query_update(cr_report_total, space_unit_res['result'], operation_type='insert')
 def get_insert_id (rec, itype):
     #rec_id = rec['_id']
@@ -609,6 +607,8 @@ def get_query_service_total(record):
                 res.update({key:0})
         if key == 'month' and type(value) == int:
             res.update({key:MONTH_DIR[value]})
+        elif key == 'month' and type(value) in (str, unicode):
+            res.update({key:MONTH_DIR_TEXT[value]})
     return res
 
 
