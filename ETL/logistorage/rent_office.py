@@ -4,7 +4,7 @@ def get_query():
     query = [
       {'$match':{
             "itype" : "rent",
-            "office_rent": {'$exists':True}
+            "office_rent": {'$exists':True},
         }},
       {'$group':{
             '_id': {
@@ -15,7 +15,7 @@ def get_query():
                 'month': {'$month':"$created_at"}
 
             },
-            'total' : {'$sum':"$office_rent.unit_price"},
+            'total_office_rent' : {'$sum':"$office_rent.unit_price"},
         }},
         ]
     return query

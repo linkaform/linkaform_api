@@ -15,7 +15,8 @@ def get_query():
                 'month': {'$month':"$created_at"}
 
             },
-            'total' : {'$sum':"$fixed_rent.unit_price"},
+            'total_fixed_rent' : {'$sum':"$fixed_rent.unit_price"},
+
         }},
         ]
     return query

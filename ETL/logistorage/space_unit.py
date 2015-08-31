@@ -29,7 +29,7 @@ def get_query():
         }},
         {'$project': {
             '_id' : 1,
-            'total' : {
+            'total_space_unit' : {
                 '$cond': [
                      {'$gt': [ { '$add' : ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed'] },
                      { '$multiply': [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] }, '$UE_unit_price' ] },
