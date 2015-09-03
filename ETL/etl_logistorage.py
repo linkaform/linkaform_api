@@ -1,14 +1,21 @@
 #coding: utf-8
 from pymongo import MongoClient
 from pymongo.collection import Collection
-import json, re, locale, requests, simplejson
+
 from datetime import datetime
+from random import randint
 from logistorage import *
 
-host ='localhost'
-port = 27017
-#port = 27020
-#port = 27019
+from sys import stderr
+
+import json, re, locale, requests, simplejson
+
+
+
+host = 'localhost'
+local_port = 27017
+testing_port = 27019
+production_port = 27020
 
 LOGIN_URL = "https://www.info-sync.com/api/infosync/user_admin/login/"
 USERNAME = 'logistorage.infosync@gmail.com'
@@ -165,6 +172,14 @@ filter_ids = service_price_json.keys() + other_field_ids
 
 file_path = '/var/tmp/logistorage/'
 
+
+def warning(*objs):
+    '''
+    To print stuff at stderr
+    '''
+    output = "warning:%s\n" % objs
+    stderr.write(output)
+
 def login(session, username, password):
     r = session.post(LOGIN_URL, data = simplejson.dumps({"password": PASS, "username": USERNAME}))
     return r.status_code == 200
@@ -200,9 +215,18 @@ def set_dict_service():
         res.update({service_id:{'qty':qty,'unit_price':price, 'total':qty*price}})
     return res
 
-def get_user_connection(user_id):
+def get_user_local_connection(user_id):
     connection = {}
-    connection['client'] = MongoClient(host, port)
+    connection['client'] = MongoClient(host, local_port)
+    user_db_name = "infosync_answers_client_{0}".format(user_id)
+    if not user_db_name:
+        return None
+    connection['db'] = connection['client'][user_db_name]
+    return connection
+
+def get_user_production_connection(user_id):
+    connection = {}
+    connection['client'] = MongoClient(host, production_port)
     user_db_name = "infosync_answers_client_{0}".format(user_id)
     if not user_db_name:
         return None
@@ -253,7 +277,7 @@ def get_service_price():
         'group_filters': []
         }
     )
-    user_conn = get_user_connection(etl_model.user_id)
+    user_conn = get_user_production_connection(etl_model.user_id)
     form_answer = user_conn['db']['form_answer']
     price_list = {}
     for price_line in form_answer.find({"form_id": 3447}):
@@ -287,21 +311,48 @@ def get_service_answer_json(answer, field, meta_answers):
     price_id = service_price_json[field['field_id']['id']]
     client = re.sub(' ', '_', meta_answers['5591627901a4de7bb8eb1ad5']).lower()
     warehouse = re.sub(' ', '_', meta_answers['5591627901a4de7bb8eb1ad4']).lower()
-    #TODO get real price depending on the date
-    unit_price = PRICE_LIST[client][warehouse][price_id][0]['price']
-    qty = float(answer)
-    currency = PRICE_LIST[client][warehouse][price_id][0]['currency']
+    created_at = meta_answers['created_at']
+    price_list =  PRICE_LIST[client][warehouse][price_id]
+
+    offset = '05'
+    index_price = -1
+    index_prices = 0
+
+    last_from_delta = 1000
+    last_to_delta = 1000
+
+    for price in price_list:
+        if not price['from'] or not price['to']:
+            continue
+        to_price = datetime.strptime(price['to']+'T%s'%offset, "%Y-%m-%dT%H")
+        to_created_at_delta = to_price - created_at
+        if to_created_at_delta.days <= 0 or (index_prices == 0 and to_created_at_delta.days >= 0):
+            index_price = index_prices
+        last_to_delta = to_created_at_delta.days
+        index_prices = index_prices + 1  
+
+    try:
+        current_price = price_list[index_price]
+        unit_price = current_price['price']
+        qty = float(answer)
+        currency = current_price['currency']
+    except:
+        unit_price = 0.0
+        qty = 0
+        currency = ''
+    
     service_json = {
-    'qty':qty,
-    'unit_price': unit_price,
-    'total': unit_price * qty,
-    'currency': currency,
+        'qty':qty,
+        'unit_price': unit_price,
+        'total': unit_price * qty,
+        'currency': currency,
     }
+
     if field['field_id']['id'] in extra_price_json.keys():
         price_id = extra_price_json[field['field_id']['id']]
-        unit_price = PRICE_LIST[client][warehouse][price_id][0]['price']
+        unit_price = current_price['price']
         contition_id = extra_price_condition_json[price_id]
-        contition_qty = PRICE_LIST[client][warehouse][contition_id][0]['price']
+        contition_qty = current_price['price']
         extra_json = {
         'extra_price':unit_price,
         'condition':{'operator':'>','qty':contition_qty}
@@ -347,7 +398,7 @@ def get_answer(answer, field, meta_answers= {}):
             return datetime.strptime(date,'%Y-%m-%dT%H')
         elif field_id in service_price_json.keys():
             try:
-                return get_service_answer_json(answer, field, meta_answers)
+                return get_service_answer_json(answer, field, meta_answers)            
             except KeyError:
                 return {
                 'qty':float(answer),
@@ -467,14 +518,16 @@ def etl():
             'group_filters': []
             }
         )
-        user_conn = get_user_connection(etl_model.user_id)
+        user_production_conn = get_user_production_connection(etl_model.user_id)
         # Form answer collection
-        form_answer = user_conn['db']['form_answer']
+        form_answer = user_production_conn['db']['form_answer']
+
+        user_local_conn = get_user_local_connection(etl_model.user_id)        
         # Obtener coleccion de reportes si existe, crear si aún no existe
-        if 'report_answer' in user_conn['db'].collection_names():
-            report_answer = user_conn['db']['report_answer']
+        if 'report_answer' in user_local_conn['db'].collection_names():
+            report_answer = user_local_conn['db']['report_answer']
             report_answer.drop()
-        report_answer = Collection(user_conn['db'], "report_answer", create=True)
+        report_answer = Collection(user_local_conn['db'], "report_answer", create=True)
         report = { "form_id": etl_model.item_id }
         count = 0
         all_forms_find = {"form_id": {"$in":all_forms}}
@@ -483,7 +536,7 @@ def etl():
         ###replace alter_find with all_forms_find
         for record in form_answer.find(all_forms_find):
             count +=1
-            print 'records', count
+            print 'records ', count
             record_answer = {}
             pass_all = False
             fields = {}
@@ -542,7 +595,7 @@ def etl():
             except KeyError:
                 print 'COULD NOT INSERT RENT, NO PRICE LIST FOR...',meta_answers
                 pass
-            report_answer.update({'_id':rent_service['_id']}, rent_service, upsert=True)
+            report_answer.update({'_id':rent_service['_id']}, rent_service, upsert=True)                                
         verify_one_record_per_company(report_answer)
         return True
 
@@ -650,18 +703,18 @@ def upsert_rent_service(report_answer, cr_report_total):
 
 def set_services_total():
     user_id = 516
-    user_conn = get_user_connection(user_id)
+    user_local_conn = get_user_local_connection(user_id)
     # Obtener coleccion de reportes si existe, crear si aún no existe
-    if 'report_answer' in user_conn['db'].collection_names():
-        report_answer = user_conn['db']['report_answer']
+    if 'report_answer' in user_local_conn['db'].collection_names():
+        report_answer = user_local_conn['db']['report_answer']
     else:
         print 'STOP NO COLLECTION'
         print 'driiiioooopstoooooooooooooooooooooooooooop'
-    if 'report_total' in user_conn['db'].collection_names():
-        cr_report_total = user_conn['db']['report_total']
+    if 'report_total' in user_local_conn['db'].collection_names():
+        cr_report_total = user_local_conn['db']['report_total']
         cr_report_total.drop()
         #space
-    cr_report_total = Collection(user_conn['db'], "report_total", create=True)
+    cr_report_total = Collection(user_local_conn['db'], "report_total", create=True)
     print 'iiiiiiiinserting services'
     insert_services(report_answer, cr_report_total)
     print 'uuuuuuuuuuuuupsertng space unit'
@@ -669,7 +722,6 @@ def set_services_total():
     print 'uuuuuuupserint rentttt'
     upsert_rent_service(report_answer, cr_report_total)
     return True
-
 
 
 set_services_total()
