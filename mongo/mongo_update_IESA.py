@@ -146,8 +146,6 @@ def update_created_at(dbname, host, port, collection_name):
 			pass
 		if records.count() > 0:
 			print 'phone', old_record['phone']
-			if count_phone > 20:
-				print fds
 			rec_json = records.next()
 			record_id = rec_json['_id']
 			if rec_json['_id'].__str__() not in update_records:
@@ -155,7 +153,7 @@ def update_created_at(dbname, host, port, collection_name):
 				print 'updates by phone', count_phone
 				update_records.append(rec_json['_id'].__str__())
 				print 'records updated ...',record_id, 'date', new_date, 'print count phone', count_phone
-				cur_col.update({'_id':record_id}, {"$set":{'created_at':new_date}})
+				cur_col.update({'_id':record_id}, {"$set":{'created_at':new_date, 'updated_at':new_date}})
 		else:
 			records2 = cur_col.find({'answers.54de8d8a01a4de283446c395':old_record['email']})
 			if records2.count() > 0:
@@ -166,7 +164,7 @@ def update_created_at(dbname, host, port, collection_name):
 					print 'updates by email', count_email
 					update_records.append(rec_json2['_id'].__str__())
 					print 'records updated ...',record_id, 'date', new_date
-					cur_col.update({'_id':record_id}, {"$set":{'created_at':new_date}})
+					cur_col.update({'_id':record_id}, {"$set":{'created_at':new_date, 'updated_at':new_date}})
 			else:
 				records3 = cur_col.find({'answers.54de8d8a01a4de283446c390':old_record['name'],'answers.54de8d8a01a4de283446c391':old_record['lastname'] })
 				if records3.count() > 0:
@@ -187,7 +185,7 @@ def update_created_at(dbname, host, port, collection_name):
 	print '**********************'
 
 
-#update_landing_name(dbname, host, port, collection_name)
+update_landing_name(dbname, host, port, collection_name)
 
 
 update_created_at(dbname, host, port, collection_name)
