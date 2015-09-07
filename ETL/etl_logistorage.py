@@ -570,7 +570,6 @@ def loop_query_update(cr_report_total, query_result, itype, operation_type='upda
             elif has_id.count() == 0:
                 insert_res['_id'] = _id
                 has_id.close()
-                #print 'inserting record : ', count
                 cr_report_total.insert(insert_res)
                 ###TODO READFILE THEN UPDATE IT
     return True
@@ -657,6 +656,7 @@ def set_services_total():
     else:
         print 'STOP NO COLLECTION'
         print 'driiiioooopstoooooooooooooooooooooooooooop'
+        print fdas
     if 'report_total' in user_conn['db'].collection_names():
         cr_report_total = user_conn['db']['report_total']
         cr_report_total.drop()

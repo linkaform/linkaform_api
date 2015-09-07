@@ -6,11 +6,12 @@ import simplejson
 import os, re
 from datetime import datetime
 
-
 FORM_ANSWER_URL = "https://grover.info-sync.com/api/infosync/form_answer/"
 LOGIN_URL = "http://grover.info-sync.com/api/infosync/user_admin/login/"
 USERNAME = 'logistorage.infosync@gmail.com'
 PASS = '654321'
+#USERNAME = 'importaciones@infosync.mx'
+#PASS = '123456'
 
 #forms_to_pass = [ 4177,4239, 4178, 4184, 4172, 4197, 4170, 4171, 4181, 4176, 4182, 4196, 4174, 4175, 4199, 4180, 4173, 4179, 4185]
 forms_to_pass = []
@@ -19,7 +20,7 @@ KEYS_POSITION = {}
 #IMPORT SANFANDILA
 #Form Producción Sanfandila
 #Forma Clasificadora
-file_path_dir = '/var/tmp/logistorage/new/'
+file_path_dir = '/var/tmp/logistorage/ue/'
 files = os.popen('ls %s'%file_path_dir)
 all_files = files.read().split('\n')
 
@@ -38,14 +39,13 @@ def post_answers(session, answers):
     POST_CORRECTLY=0
     errors_json = []
     for index, answer in enumerate(answers):
-        #print 'sending answer number ', index
-        #print 'answer', answer
         #continue
+        #print 'answer', answer
         r = session.post(FORM_ANSWER_URL, data = simplejson.dumps(answer), headers={'Content-type': 'application/json'}, verify=False)
         #print '... time ....', int(time.time() - TIME_STARTED)
         #print dsa
         if r.status_code == 201:
-            #print "Answer %s saved."%(index + 1)
+            print "Answer %s saved."%(index + 1)
             POST_CORRECTLY += 1
         else:
             print "Answer %s was rejected."%(index + 1)
@@ -73,7 +73,8 @@ def get_file_to_import(file_path):
         line = line.split(',')
         line_answer = {}
         for position in range(len(field_ids)):
-            line_answer.update({'%s_'%position+field_ids[position]:line[position]})
+            #line_answer.update({'%s_'%position+field_ids[position]:line[position]})
+            line_answer.update({field_ids[position].replace('\r',''):line[position].replace('\r','')})
         answer.append(line_answer)
     return answer
 
@@ -94,6 +95,15 @@ def get_group_list(group_fields, answer, answer_keys):
             group_list.append(group)
     return group_list
 
+def convert_to_sting_date(strisodate):
+    strisodate2 = re.sub(' ','',strisodate)
+    strisodate2 = strisodate2.split(' ')[0]
+    try:
+        date_object = datetime.strptime(strisodate2, '%Y-%m-%d')
+    except ValueError:
+        date_object = datetime.strptime(strisodate2[:8],  '%d/%m/%y')
+    return date_object.strftime('%Y-%m-%d')
+
 def get_answer_for_field_id(answer_keys, answer, field_id, field_type=''):
     records = [ids for ids in answer_keys if field_id in ids]
     if len(records) == 1:
@@ -103,6 +113,11 @@ def get_answer_for_field_id(answer_keys, answer, field_id, field_type=''):
             except ValueError:
                 return answer[records[0]]
         elif field_type=='float':
+            try:
+                return float(answer[records[0]])
+            except ValueError:
+                return answer[records[0]]
+        elif field_type=='date':
             try:
                 return float(answer[records[0]])
             except ValueError:
@@ -159,7 +174,7 @@ def form_file_config_control_salidas(metadata, answer):
     "end_timestamp":metadata['start_time'],
     "created_at": convert_to_epoch(get_answer_for_field_id(answer_keys, answer,'created_at')),
     "answers":{
-        "5591627901a4de7bb8eb1ad4":get_answer_for_field_id(answer_keys, answer,'5591627901a4de7bb8eb1ad4'),
+        "5591627901a4de7bb8eb1ad4":get_answer_for_field_id(answer_keys, answer,'5591627901a4de7bb8eb1ad4').decode("ISO-8859-1"),
         "5591627901a4de7bb8eb1ad5":get_answer_for_field_id(answer_keys, answer,'5591627901a4de7bb8eb1ad5'),
         "55917c1701a4de7bb94f87ef":get_answer_for_field_id(answer_keys, answer,'55917c1701a4de7bb94f87ef'),
         "5591627901a4de7bb8eb1ad7":get_answer_for_field_id(answer_keys, answer,'5591627901a4de7bb8eb1ad7'),
@@ -200,18 +215,21 @@ def form_file_config_control_salidas(metadata, answer):
 
 def form_file_config_unidad_espacio_miller(metadata, answer):
     answer_keys = answer.keys()
+    created_at = get_answer_for_field_id(answer_keys, answer,'created_at')
+    if not created_at:
+        created_at = get_answer_for_field_id(answer_keys, answer,'55b7f41623d3fd41daa1c414')
     file_structure = {
     "form_id": metadata['form_id'],
     "geolocation":[metadata['lat'],metadata['glong']],
     "start_timestamp":metadata['start_time'],
     "end_timestamp":metadata['start_time'],
-    "created_at": convert_to_epoch(get_answer_for_field_id(answer_keys, answer,'created_at')),
+    "created_at": convert_to_epoch(created_at),
     "answers":{
-        "5591627901a4de7bb8eb1ad4":get_answer_for_field_id(answer_keys, answer,'5591627901a4de7bb8eb1ad4'),
+        "5591627901a4de7bb8eb1ad4":get_answer_for_field_id(answer_keys, answer,'5591627901a4de7bb8eb1ad4').decode("ISO-8859-1"),
         "5591627901a4de7bb8eb1ad5":get_answer_for_field_id(answer_keys, answer,'5591627901a4de7bb8eb1ad5'),
         "559a966d23d3fd7010c63053":get_answer_for_field_id(answer_keys, answer,'559a966d23d3fd7010c63053'),
         "558d685701a4de7bba85289f":get_answer_for_field_id(answer_keys, answer,'558d685701a4de7bba85289f', 'float'),
-        '55b7f41623d3fd41daa1c414':get_answer_for_field_id(answer_keys, answer,'created_at','date')
+        '55b7f41623d3fd41daa1c414':convert_to_sting_date(get_answer_for_field_id(answer_keys, answer,'55b7f41623d3fd41daa1c414','date'))
         }
     }
     return clean_file_structure(file_structure)

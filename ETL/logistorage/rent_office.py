@@ -1,10 +1,14 @@
 #coding: utf-8
 
 def get_query():
-    query = [
+    query =
+
+    db.report_answer.aggregate([
       {'$match':{
             "itype" : "rent",
-            "office_rent": {'$exists':True},
+            '5591627901a4de7bb8eb1ad5':'PLENLIFE',
+            '5591627901a4de7bb8eb1ad4':'Monterrey',
+            "office_rent": {'$exists':true},
         }},
       {'$group':{
             '_id': {
