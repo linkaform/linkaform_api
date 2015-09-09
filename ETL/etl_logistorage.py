@@ -101,7 +101,7 @@ service_price_json = {
         "5591627901a4de7bb8eb1ada":"558b01dd01a4de7bba851399",
         "559167ed01a4de7bba852992":"558b01dd01a4de7bba85139a",
 #Old record testing        "5591627901a4de7bb8eb1adb":"558b01dd01a4de7bba85139b",
-        "558b01dd01a4de7bba85139b":"558b01dd01a4de7bba85139b",
+        "5591627901a4de7bb8eb1adb":"558b01dd01a4de7bba85139b",
         "5591627901a4de7bb8eb1adc":"558b01dd01a4de7bba85139c",
         "559167ed01a4de7bba852993":"558b01dd01a4de7bba85139d",
         "559167ed01a4de7bba852994":"558b01dd01a4de7bba85139e",
@@ -316,49 +316,56 @@ class FakeETLModel(object):
         #expiration = kwargs["expiration"]
         #active = True
 
+def get_price_from_dates(answer, price_list, created_at):
+        offset = '05'
+        index_price = -1
+        index_prices = 0
+        last_from_delta = 1000
+        last_to_delta = 1000
+        for price in price_list:
+            if not price['from'] or not price['to']:
+                continue
+            to_price = datetime.strptime(price['to']+'T%s'%offset, "%Y-%m-%dT%H")
+            to_created_at_delta = to_price - created_at
+            if to_created_at_delta.days <= 0 or (index_prices == 0 and to_created_at_delta.days >= 0):
+                index_price = index_prices
+            last_to_delta = to_created_at_delta.days
+            index_prices = index_prices + 1
+        try:
+            current_price = price_list[index_price]
+            unit_price = current_price['price']
+            qty = float(answer)
+            currency = current_price['currency']
+        except:
+            unit_price = 0.0
+            qty = 0
+            currency = ''
+        service_json = {
+            'qty':qty,
+            'unit_price': unit_price,
+            'total': unit_price * qty,
+            'currency': currency,
+        }
+        return service_json
+
 def get_service_answer_json(answer, field, meta_answers):
     price_id = service_price_json[field['field_id']['id']]
     client = re.sub(' ', '_', meta_answers['5591627901a4de7bb8eb1ad5']).lower()
     warehouse = re.sub(' ', '_', meta_answers['5591627901a4de7bb8eb1ad4']).lower()
     created_at = meta_answers['created_at']
     price_list =  PRICE_LIST[client][warehouse][price_id]
-    offset = '05'
-    index_price = -1
-    index_prices = 0
-    last_from_delta = 1000
-    last_to_delta = 1000
-    for price in price_list:
-        if not price['from'] or not price['to']:
-            continue
-        to_price = datetime.strptime(price['to']+'T%s'%offset, "%Y-%m-%dT%H")
-        to_created_at_delta = to_price - created_at
-        if to_created_at_delta.days <= 0 or (index_prices == 0 and to_created_at_delta.days >= 0):
-            index_price = index_prices
-        last_to_delta = to_created_at_delta.days
-        index_prices = index_prices + 1
-    try:
-        current_price = price_list[index_price]
-        unit_price = current_price['price']
-        qty = float(answer)
-        currency = current_price['currency']
-    except:
-        unit_price = 0.0
-        qty = 0
-        currency = ''
-    service_json = {
-        'qty':qty,
-        'unit_price': unit_price,
-        'total': unit_price * qty,
-        'currency': currency,
-    }
+    service_json = get_price_from_dates(answer, price_list, created_at)
     if field['field_id']['id'] in extra_price_json.keys():
         price_id = extra_price_json[field['field_id']['id']]
-        unit_price = current_price['price']
-        contition_id = extra_price_condition_json[price_id]
-        contition_qty = current_price['price']
+        extra_price_list = PRICE_LIST[client][warehouse][price_id]
+        extra_unit_price =  get_price_from_dates(answer, extra_price_list, created_at)['unit_price']
+        #unit_price = current_price['price']
+        condition_id = extra_price_condition_json[price_id]
+        condition_price_list = PRICE_LIST[client][warehouse][condition_id]
+        condition_qty = get_price_from_dates(answer, condition_price_list, created_at)['unit_price']
         extra_json = {
-        'extra_price':unit_price,
-        'condition':{'operator':'>','qty':contition_qty}
+        'extra_price':extra_unit_price,
+        'condition':{'operator':'>','qty':condition_qty}
         }
         service_json.update(extra_json)
     return service_json
