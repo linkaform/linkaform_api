@@ -14,8 +14,8 @@ import json, re, locale, requests, simplejson
 
 host = 'localhost'
 local_port = 27017
-testing_port = 27019
-production_port = 27020
+#testing_port = 27019
+production_port = 27017
 
 LOGIN_URL = "https://www.info-sync.com/api/infosync/user_admin/login/"
 USERNAME = 'logistorage.infosync@gmail.com'
@@ -31,42 +31,42 @@ MONTH_DIR_TEXT = {'ENERO':'2015/01','FERERO':'2015/02','MARZO':'2015/03','ABRIL'
 
 service_names = {'service':'Servicios', 'space_unit':'Unidad de Espacio',
                 'fixed_rent':'Renta Fija', 'office_rent':'Renta Oficina'}
-
-price_fields_ids = [
-    #"5591a8b601a4de7bba8529b5",
-    #"558b248901a4de7bb94f7cfc",
-    "558d6a3c01a4de7bba8528a1",
-    "558b01dd01a4de7bba851397",
-    "558b01dd01a4de7bba851398",
-    "558b01dd01a4de7bba851399",
-    "558b01dd01a4de7bba85139c",
-    "558b01dd01a4de7bba85139d",
-    "558b01dd01a4de7bba85139e",
-    "558b01dd01a4de7bba8513af",
-    "558b01dd01a4de7bba85139f",
-    "559168bd01a4de7bba852996",
-    "558b01dd01a4de7bba8513a0",
-    "558b01dd01a4de7bba8513a1",
-    "558b01dd01a4de7bba8513a2",
-    "558b01dd01a4de7bba8513a3",
-    "558b01dd01a4de7bba8513a4",
-    "558b01dd01a4de7bba8513a5",
-    "558b01dd01a4de7bba8513a6",
-    "558b01dd01a4de7bba8513a7",
-    "558b01dd01a4de7bba8513a8",
-    "558b01dd01a4de7bba8513a9",
-    "558b01dd01a4de7bba85139a",
-    "558b01dd01a4de7bba8513aa",
-    "558b01dd01a4de7bba8513ab",
-    "558b01dd01a4de7bba8513ac",
-    "558b01dd01a4de7bba8513ad",
-    "558b01dd01a4de7bba8513ae",
-    "558db23301a4de7bba8528e5",
-    "5594677423d3fd7d311a4580",
-    "5595a5ae23d3fd7d304980c3",
-    "5594688623d3fd7d311a4583",
-    "5594688623d3fd7d311a4584",
-    "55c5392c23d3fd4817ed01d0"]
+#
+# price_fields_ids = [
+#     #"5591a8b601a4de7bba8529b5",
+#     #"558b248901a4de7bb94f7cfc",
+#     "558d6a3c01a4de7bba8528a1",
+#     "558b01dd01a4de7bba851397",
+#     "558b01dd01a4de7bba851398",
+#     "558b01dd01a4de7bba851399",
+#     "558b01dd01a4de7bba85139c",
+#     "558b01dd01a4de7bba85139d",
+#     "558b01dd01a4de7bba85139e",
+#     "558b01dd01a4de7bba8513af",
+#     "558b01dd01a4de7bba85139f",
+#     "559168bd01a4de7bba852996",
+#     "558b01dd01a4de7bba8513a0",
+#     "558b01dd01a4de7bba8513a1",
+#     "558b01dd01a4de7bba8513a2",
+#     "558b01dd01a4de7bba8513a3",
+#     "558b01dd01a4de7bba8513a4",
+#     "558b01dd01a4de7bba8513a5",
+#     "558b01dd01a4de7bba8513a6",
+#     "558b01dd01a4de7bba8513a7",
+#     "558b01dd01a4de7bba8513a8",
+#     "558b01dd01a4de7bba8513a9",
+#     "558b01dd01a4de7bba85139a",
+#     "558b01dd01a4de7bba8513aa",
+#     "558b01dd01a4de7bba8513ab",
+#     "558b01dd01a4de7bba8513ac",
+#     "558b01dd01a4de7bba8513ad",
+#     "558b01dd01a4de7bba8513ae",
+#     "558db23301a4de7bba8528e5",
+#     "5594677423d3fd7d311a4580",
+#     "5595a5ae23d3fd7d304980c3",
+#     "5594688623d3fd7d311a4583",
+#     "5594688623d3fd7d311a4584",
+#     "55c5392c23d3fd4817ed01d0"]
 
 #This are all the forms related to service,
 #every time logistoage creates a new services form
@@ -100,7 +100,8 @@ service_price_json = {
         "559167ed01a4de7bba852991":"558b01dd01a4de7bba851398",
         "5591627901a4de7bb8eb1ada":"558b01dd01a4de7bba851399",
         "559167ed01a4de7bba852992":"558b01dd01a4de7bba85139a",
-        "5591627901a4de7bb8eb1adb":"558b01dd01a4de7bba85139b",
+#Old record testing        "5591627901a4de7bb8eb1adb":"558b01dd01a4de7bba85139b",
+        "558b01dd01a4de7bba85139b":"558b01dd01a4de7bba85139b",
         "5591627901a4de7bb8eb1adc":"558b01dd01a4de7bba85139c",
         "559167ed01a4de7bba852993":"558b01dd01a4de7bba85139d",
         "559167ed01a4de7bba852994":"558b01dd01a4de7bba85139e",
@@ -140,6 +141,10 @@ service_price_json = {
         "558d685701a4de7bba85289f":"558db23301a4de7bba8528e5",
         "55a010c323d3fd2994ab74e8":"558db23301a4de7bba8528e5",
         "55a010c323d3fd2994ab74e9":"558db23301a4de7bba8528e5",
+        "5595a5ae23d3fd7d304980c3":"5595a5ae23d3fd7d304980c3",
+        "5594688623d3fd7d311a4583":"5594688623d3fd7d311a4583",
+        "558d6a3c01a4de7bba8528a1":"558d6a3c01a4de7bba8528a1",
+        "5594677423d3fd7d311a4580":"5594677423d3fd7d311a4580"
 }
 
 #service_id:price_id
@@ -154,6 +159,9 @@ extra_price_json = {
 extra_price_condition_json = {
         "55c5392c23d3fd4817ed01d0":"5594688623d3fd7d311a4584",
 }
+
+#new price_fields_ids ids,
+price_fields_ids = service_price_json.values() + extra_price_json.values() + extra_price_condition_json.values()
 
 meta = ["_id", "version","folio", "created_at", "updated_at", "end_date", "start_date"]
 
@@ -201,6 +209,7 @@ def get_all_forms(folders_id):
 
 def get_price_id_dict():
     select_fields = {}
+    #for price_id in price_fields_ids:
     for price_id in price_fields_ids:
         select_fields.update({"answers.%s"%price_id:1})
     for meta_field in meta:
@@ -313,14 +322,11 @@ def get_service_answer_json(answer, field, meta_answers):
     warehouse = re.sub(' ', '_', meta_answers['5591627901a4de7bb8eb1ad4']).lower()
     created_at = meta_answers['created_at']
     price_list =  PRICE_LIST[client][warehouse][price_id]
-
     offset = '05'
     index_price = -1
     index_prices = 0
-
     last_from_delta = 1000
     last_to_delta = 1000
-
     for price in price_list:
         if not price['from'] or not price['to']:
             continue
@@ -329,8 +335,7 @@ def get_service_answer_json(answer, field, meta_answers):
         if to_created_at_delta.days <= 0 or (index_prices == 0 and to_created_at_delta.days >= 0):
             index_price = index_prices
         last_to_delta = to_created_at_delta.days
-        index_prices = index_prices + 1  
-
+        index_prices = index_prices + 1
     try:
         current_price = price_list[index_price]
         unit_price = current_price['price']
@@ -340,14 +345,12 @@ def get_service_answer_json(answer, field, meta_answers):
         unit_price = 0.0
         qty = 0
         currency = ''
-    
     service_json = {
         'qty':qty,
         'unit_price': unit_price,
         'total': unit_price * qty,
         'currency': currency,
     }
-
     if field['field_id']['id'] in extra_price_json.keys():
         price_id = extra_price_json[field['field_id']['id']]
         unit_price = current_price['price']
@@ -398,7 +401,7 @@ def get_answer(answer, field, meta_answers= {}):
             return datetime.strptime(date,'%Y-%m-%dT%H')
         elif field_id in service_price_json.keys():
             try:
-                return get_service_answer_json(answer, field, meta_answers)            
+                return get_service_answer_json(answer, field, meta_answers)
             except KeyError:
                 return {
                 'qty':float(answer),
@@ -521,8 +524,7 @@ def etl():
         user_production_conn = get_user_production_connection(etl_model.user_id)
         # Form answer collection
         form_answer = user_production_conn['db']['form_answer']
-
-        user_local_conn = get_user_local_connection(etl_model.user_id)        
+        user_local_conn = get_user_local_connection(etl_model.user_id)
         # Obtener coleccion de reportes si existe, crear si aún no existe
         if 'report_answer' in user_local_conn['db'].collection_names():
             report_answer = user_local_conn['db']['report_answer']
@@ -594,8 +596,8 @@ def etl():
                 rent_service = insert_rent_services(meta_answers)
             except KeyError:
                 print 'COULD NOT INSERT RENT, NO PRICE LIST FOR...',meta_answers
-                pass
-            report_answer.update({'_id':rent_service['_id']}, rent_service, upsert=True)                                
+                continue
+            report_answer.update({'_id':rent_service['_id']}, rent_service, upsert=True)
         verify_one_record_per_company(report_answer)
         return True
 
@@ -714,12 +716,12 @@ def set_services_total():
         cr_report_total.drop()
         #space
     cr_report_total = Collection(user_local_conn['db'], "report_total", create=True)
-    print 'iiiiiiiinserting services'
-    insert_services(report_answer, cr_report_total)
     print 'uuuuuuuuuuuuupsertng space unit'
     upsert_space_unit(report_answer ,cr_report_total)
     print 'uuuuuuupserint rentttt'
     upsert_rent_service(report_answer, cr_report_total)
+    print 'iiiiiiiinserting services'
+    insert_services(report_answer, cr_report_total)
     return True
 
 
