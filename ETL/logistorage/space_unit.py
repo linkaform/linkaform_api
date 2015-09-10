@@ -5,7 +5,7 @@ def get_query():
       {'$match':{
             'itype' : 'space_unit',
             '558d685701a4de7bba85289f':{'$exists':True},
-            '558d685701a4de7bba85289f.currency' : 'mx_pesos'
+            #'558d685701a4de7bba85289f.currency' : 'mx_pesos'
         }},
         {'$group':{
             '_id': {
