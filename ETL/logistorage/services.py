@@ -5,7 +5,7 @@ def get_query():
 
             {"$group": {
            "_id": {
-
+                     'currency': "$currency",
                      'client': "$5591627901a4de7bb8eb1ad5",
                      'warehouse': "$5591627901a4de7bb8eb1ad4",
                      'year': {"$year": "$created_at"},
@@ -302,19 +302,19 @@ def get_query():
         'METROS_ACORDADOS_total': {'$multiply': ["$METROS_ACORDADOS_qty","$METROS_ACORDADOS_unit_price"]},
 
         'total_services': {'$add': [ '$TCH_total',
-        '$PALLET_IN_total', '$KIT_PLAYERAS_total', '$MANO_OBRA_total', '$CROSS_DOCK_20_total',
-        '$SAD_total', '$TARIMA_NEGRA_MILLER_total',  '$CROSS_DOCK_40_total',
-         '$ENTRADA_DETALLE_total', '$PRECIO_RENTA_OFICINA_total', '$PICK_AND_PACK_total',
-        '$SERVICIO_REEMPACADO_total', '$STD_total', '$SPY_total', '$SAC_total',  '$CROSS_DOCK_20_NOCTURNO_total',
-        '$TIEMPO_EXTRA_X_HORA_total', '$SERVICIO_ARMADO_CARRETES_total', '$CROSS_DOCK_40_2_total',
-        '$SERVICIO_ARMADO_CARRETES_URGENTES_total', '$ALMACENAJE_TARIMA_total', '$SAT_total', '$SERVICIO_REETIQUETADO_total',
-         '$SAE_total',
-         '$FLEJE_VENTA_total', '$TCOSTCO_total', '$SD_total',  '$PRECIO_TIEMPO_EXTRA_X_DIA_total',
-        '$RM_total', '$SAEXH_total',
-        '$CROSS_DOCK_total',
-        '$SE_total', '$CROSS_DOCK_40_NOCTURNO_total',  '$TNL_total',  '$UNIDAD_ESPACIO_TEMPORAL_total',
-        '$COSTO_MENSUAL_UE_EXTRA_total',  '$PALLET_OUT_total', '$MI_total', '$SEPONY_total',
-        '$SAP_total', '$TIEMPO_EXTRA_X_HORA_NOCTURNO_total', '$SAP_MAS_15_total', '$TERMO_total']}
+                '$PALLET_IN_total', '$KIT_PLAYERAS_total', '$MANO_OBRA_total', '$CROSS_DOCK_20_total',
+                '$SAD_total', '$TARIMA_NEGRA_MILLER_total',  '$CROSS_DOCK_40_total',
+                 '$ENTRADA_DETALLE_total', '$PRECIO_RENTA_OFICINA_total', '$PICK_AND_PACK_total',
+                '$SERVICIO_REEMPACADO_total', '$STD_total', '$SPY_total', '$SAC_total',  '$CROSS_DOCK_20_NOCTURNO_total',
+                '$TIEMPO_EXTRA_X_HORA_total', '$SERVICIO_ARMADO_CARRETES_total', '$CROSS_DOCK_40_2_total',
+                '$SERVICIO_ARMADO_CARRETES_URGENTES_total', '$ALMACENAJE_TARIMA_total', '$SAT_total', '$SERVICIO_REETIQUETADO_total',
+                 '$SAE_total',
+                 '$FLEJE_VENTA_total', '$TCOSTCO_total', '$SD_total',  '$PRECIO_TIEMPO_EXTRA_X_DIA_total',
+                '$RM_total', '$SAEXH_total',
+                '$CROSS_DOCK_total',
+                '$SE_total', '$CROSS_DOCK_40_NOCTURNO_total',  '$TNL_total',  '$UNIDAD_ESPACIO_TEMPORAL_total',
+                '$COSTO_MENSUAL_UE_EXTRA_total',  '$PALLET_OUT_total', '$MI_total', '$SEPONY_total',
+                '$SAP_total', '$TIEMPO_EXTRA_X_HORA_NOCTURNO_total', '$SAP_MAS_15_total', '$TERMO_total']}
 
     }}
     ]

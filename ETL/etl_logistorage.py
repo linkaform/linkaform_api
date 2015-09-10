@@ -339,7 +339,7 @@ def get_price_from_dates(answer, price_list, created_at):
         except:
             unit_price = 0.0
             qty = 0
-            currency = ''
+            currency = 'mx_pesos'
         service_json = {
             'qty':qty,
             'unit_price': unit_price,
@@ -413,7 +413,8 @@ def get_answer(answer, field, meta_answers= {}):
                 return {
                 'qty':float(answer),
                 'unit_price': 0.0,
-                'total': 0.0
+                'total': 0.0,
+                'currency':'mx_pesos'
                 }
         # Demás tipos
         else:
@@ -515,6 +516,22 @@ def get_meta_answer_with_rules(record):
     res =  datetime.strptime(date,'%Y-%m-%dT%H')
     return {other_field['Fecha_de_Captura']['id']:res}
 
+def get_record_currency(record_answer):
+    currency = False
+    if record_answer.has_key('currency') and record_answer['currency']:
+        print 'ya tenia -------------------------------------------------------------'
+        return record_answer['currency']
+    for answer in record_answer.values():
+        try:
+            currency = answer['currency']
+        except:
+            continue
+        if currency:
+            return currency
+    print '******************************* no pudo ****fuerza a pesos*******************************'
+    print 'record_answer='  ,record_answer
+    return 'mx_pesos'
+
 def etl():
     service_forms = get_all_forms(service_folders)
     space_forms = get_all_forms(space_unit_folder)
@@ -596,8 +613,12 @@ def etl():
                     service_answers.update({'itype':'service'})
                 if answer_field_id in etl_model.filters:
                     service_answers.update({answer_field_id:get_answer(record["answers"][answer_field_id], fields[answer_field_id], meta_answers)})
+            #print 'service_answers',service_answers
             record_answer.update(service_answers)
             #report_answer.replace_one(record_answer, upsert=True)
+            #print 'record_answer',record_answer
+            currency = get_record_currency(record_answer)
+            record_answer.update({'currency':currency})
             report_answer.update({'_id':record_answer['_id']}, record_answer, upsert=True)
             try:
                 rent_service = insert_rent_services(meta_answers)
@@ -624,6 +645,8 @@ def loop_query_update(cr_report_total, query_result, itype, operation_type='upda
             insert_res.update(get_query_service_total(record))
             has_id = cr_report_total.find({'_id':_id})
             print 'count',count
+            #if count == 30:
+            #    print stop
             if has_id.count() > 0 and operation_type == 'update':
                 insert_res.update(has_id.next())
                 has_id.close()
@@ -657,14 +680,14 @@ def get_insert_id (rec, itype):
         #print 'cliente ', client
         if not client:
             print 'aqui truena'
-            print fda
+            print truena_get_insert_id
         warehouse = re.sub(' ', '_', rec['warehouse']).lower()
         if not warehouse:
             print 'aqui warehouse'
-            print fda
+            print truena_get_insert_id
         if not itype:
             print 'truena type'
-            print fdsa
+            print truena_get_insert_id
         db_id = currency + month + client + warehouse + itype
         return db_id
     except KeyError:
