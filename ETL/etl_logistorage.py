@@ -337,6 +337,7 @@ def get_price_from_dates(answer, price_list, created_at):
             qty = float(answer)
             currency = current_price['currency']
         except:
+            print 'except ==================================================',fda
             unit_price = 0.0
             qty = 0
             currency = 'mx_pesos'
@@ -410,6 +411,7 @@ def get_answer(answer, field, meta_answers= {}):
             try:
                 return get_service_answer_json(answer, field, meta_answers)
             except KeyError:
+                print '========================================================================='
                 return {
                 'qty':float(answer),
                 'unit_price': 0.0,
@@ -519,7 +521,6 @@ def get_meta_answer_with_rules(record):
 def get_record_currency(record_answer):
     currency = False
     if record_answer.has_key('currency') and record_answer['currency']:
-        print 'ya tenia -------------------------------------------------------------'
         return record_answer['currency']
     for answer in record_answer.values():
         try:
@@ -528,8 +529,6 @@ def get_record_currency(record_answer):
             continue
         if currency:
             return currency
-    print '******************************* no pudo ****fuerza a pesos*******************************'
-    print 'record_answer='  ,record_answer
     return 'mx_pesos'
 
 def etl():
@@ -622,10 +621,10 @@ def etl():
             report_answer.update({'_id':record_answer['_id']}, record_answer, upsert=True)
             try:
                 rent_service = insert_rent_services(meta_answers)
+                report_answer.update({'_id':rent_service['_id']}, rent_service, upsert=True)
             except KeyError:
                 print 'COULD NOT INSERT RENT, NO PRICE LIST FOR...',meta_answers
                 continue
-            report_answer.update({'_id':rent_service['_id']}, rent_service, upsert=True)
         verify_one_record_per_company(report_answer)
         return True
 

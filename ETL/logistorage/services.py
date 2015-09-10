@@ -300,7 +300,6 @@ def get_query():
         'PRECIO_RENTA_OFICINA_total': {'$multiply': ["$PRECIO_RENTA_OFICINA_qty","$PRECIO_RENTA_OFICINA_unit_price"]},
 
         'METROS_ACORDADOS_total': {'$multiply': ["$METROS_ACORDADOS_qty","$METROS_ACORDADOS_unit_price"]},
-
         'total_services': {'$add': [ '$TCH_total',
                 '$PALLET_IN_total', '$KIT_PLAYERAS_total', '$MANO_OBRA_total', '$CROSS_DOCK_20_total',
                 '$SAD_total', '$TARIMA_NEGRA_MILLER_total',  '$CROSS_DOCK_40_total',
@@ -315,6 +314,11 @@ def get_query():
                 '$SE_total', '$CROSS_DOCK_40_NOCTURNO_total',  '$TNL_total',  '$UNIDAD_ESPACIO_TEMPORAL_total',
                 '$COSTO_MENSUAL_UE_EXTRA_total',  '$PALLET_OUT_total', '$MI_total', '$SEPONY_total',
                 '$SAP_total', '$TIEMPO_EXTRA_X_HORA_NOCTURNO_total', '$SAP_MAS_15_total', '$TERMO_total']}
+
+        }},
+        {'$project':{
+        '_id':1,
+        'total_services':'$total_services'
 
     }}
     ]
