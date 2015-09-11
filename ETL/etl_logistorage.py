@@ -470,31 +470,47 @@ def get_all_months(db_form_answer):
     return year_month
 
 def verify_one_record_per_company(report_answer):#, one_record_json):
+    #agregar mondea
     all_client = report_answer.distinct('5591627901a4de7bb8eb1ad5')
     all_warehouse = report_answer.distinct('5591627901a4de7bb8eb1ad4')
     all_types = report_answer.distinct('itype')
-    for client_upper in all_client:
-        client = re.sub(' ', '_', client_upper ).lower()
-        for warehouse_upper in all_warehouse:
-            warehouse = re.sub(' ', '_', warehouse_upper).lower()
-            for year_month in get_all_months(report_answer):
-                year = year_month['_id']['year']
-                month = year_month['_id']['month']
-                offset = '05'
-                date = '%s-%s-01T%s:00:00'%(year, month, offset)
-                created_at = datetime.strptime(date,'%Y-%m-%dT%H:%M:%S')
-                for itype in all_types:
-                    one_record_json = {}
-                    one_record_id = str(year) + str(month) + client + warehouse + '_' + itype
-                    one_record_json.update({
-                        '_id':one_record_id,
-                        'itype':itype,
-                        'created_at': created_at,
-                        '55b7f41623d3fd41daa1c414':created_at,
-                        '5591627901a4de7bb8eb1ad5':client_upper,
-                        '5591627901a4de7bb8eb1ad4':warehouse_upper })
-                    one_record_json.update(invoicing_month(one_record_json))
-                    report_answer.update({'_id':one_record_id}, one_record_json, upsert=True)
+    all_currency = ['mx_pesos', 'us_dolar']
+    for currency in all_currency:
+        for client_upper in all_client:
+            client = re.sub(' ', '_', client_upper ).lower()
+            if client == 'boreas':
+                print 'boreas',client_upper
+                client = client_upper
+            for warehouse_upper in all_warehouse:
+                warehouse = re.sub(' ', '_', warehouse_upper).lower()
+                for year_month in get_all_months(report_answer):
+                    year = year_month['_id']['year']
+                    month = year_month['_id']['month']
+                    offset = '05'
+                    date = '%s-%s-01T%s:00:00'%(year, month, offset)
+                    created_at = datetime.strptime(date,'%Y-%m-%dT%H:%M:%S')
+                    for itype in all_types:
+                        one_record_json = {}
+                        one_record_id = currency.split('_')[0] + str(year) + str(month) + client + warehouse + '_' + itype
+                        if itype == 'space_unit':
+                            currency_id = {'558d685701a4de7bba85289f':{'currency':currency}}
+                        elif itype == 'rent_office':
+                            currency_id = {'558d685701a4de7bba85289f':{'currency':currency}}
+                        elif itype == 'fixed_rent':
+                            currency_id = {'558d685701a4de7bba85289f':{'currency':currency}}
+                        else:
+                            currency_id = {'currency':currency}
+                        one_record_json.update(currency_id)
+                        one_record_json.update({
+                            '_id':one_record_id,
+                            'itype':itype,
+                            'created_at': created_at,
+                            '55b7f41623d3fd41daa1c414':created_at,
+                            '5591627901a4de7bb8eb1ad5':client_upper,
+                            '5591627901a4de7bb8eb1ad4':warehouse_upper })
+                        one_record_json.update(invoicing_month(one_record_json))
+                        report_answer.update({'_id':one_record_id}, one_record_json, upsert=True)
+                        #print 'one_record_json',one_record_json
     return True
 
 #TODO AGREGAR LISTA DE PRECIOS EN PESOS Y DLLS
@@ -561,7 +577,7 @@ def etl():
         ###replace alter_find with all_forms_find
         for record in form_answer.find(all_forms_find):
             count +=1
-            print 'records ', count
+            #print 'records ', count
             record_answer = {}
             pass_all = False
             fields = {}
@@ -623,7 +639,10 @@ def etl():
                 rent_service = insert_rent_services(meta_answers)
                 report_answer.update({'_id':rent_service['_id']}, rent_service, upsert=True)
             except KeyError:
-                print 'COULD NOT INSERT RENT, NO PRICE LIST FOR...',meta_answers
+                print 'COULD NOT INSERT RENT, NO PRICE LIST FOR...',
+                print 'warehouse', meta_answers['5591627901a4de7bb8eb1ad4']
+                print 'client',  meta_answers['5591627901a4de7bb8eb1ad5']
+                print 'month',meta_answers['created_at']
                 continue
         verify_one_record_per_company(report_answer)
         return True
@@ -643,7 +662,7 @@ def loop_query_update(cr_report_total, query_result, itype, operation_type='upda
         if _id:
             insert_res.update(get_query_service_total(record))
             has_id = cr_report_total.find({'_id':_id})
-            print 'count',count
+            #print 'count',count
             #if count == 30:
             #    print stop
             if has_id.count() > 0 and operation_type == 'update':
@@ -675,6 +694,7 @@ def get_insert_id (rec, itype):
         else:
             month = MONTH_DIR_TEXT[rec['month']]
         month = month.lower()
+        #tratar de desnormailzar a ver si mejora Boreas
         client = re.sub(' ', '_', rec['client']).lower()
         #print 'cliente ', client
         if not client:
