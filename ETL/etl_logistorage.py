@@ -598,7 +598,7 @@ def etl():
                     meta_answers.update({raw_meta:meta_answer})
                 else:
                     print 'NOT FOUND THE the metadata ', raw_meta
-                    print 'meta_answer',meta_answer
+                    #print 'meta_answer',meta_answer
                     pass_all = True
                     continue
             ### Metadata form fields
@@ -640,9 +640,9 @@ def etl():
                 report_answer.update({'_id':rent_service['_id']}, rent_service, upsert=True)
             except KeyError:
                 print 'COULD NOT INSERT RENT, NO PRICE LIST FOR...',
-                print 'warehouse', meta_answers['5591627901a4de7bb8eb1ad4']
-                print 'client',  meta_answers['5591627901a4de7bb8eb1ad5']
-                print 'month',meta_answers['created_at']
+                #print 'warehouse', meta_answers['5591627901a4de7bb8eb1ad4']
+                #print 'client',  meta_answers['5591627901a4de7bb8eb1ad5']
+                #print 'month',meta_answers['created_at']
                 continue
         verify_one_record_per_company(report_answer)
         return True
@@ -766,9 +766,10 @@ def set_services_total():
         #space
     cr_report_total = Collection(user_local_conn['db'], "report_total", create=True)
     print 'uuuuuuuuuuuuupsertng space unit'
+    upsert_rent_service(report_answer, cr_report_total)
     upsert_space_unit(report_answer ,cr_report_total)
     print 'uuuuuuupserint rentttt'
-    upsert_rent_service(report_answer, cr_report_total)
+    #upsert_rent_service(report_answer, cr_report_total)
     print 'iiiiiiiinserting services'
     insert_services(report_answer, cr_report_total)
     return True
