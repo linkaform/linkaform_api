@@ -318,7 +318,10 @@ def get_query():
         }},
         {'$project':{
         '_id':1,
-        'total_services':'$total_services'
+        'total_services':'$total_services',
+        'total_office_rent' : 0.0,
+        'total_fixed_rent':0.0,
+        'total_space_unit' : 0.0
 
     }}
     ]
