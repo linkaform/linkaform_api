@@ -119,9 +119,10 @@ def get_query():
         'FLEJE_VENTA_unit_price': {'$max': "$55cb86f423d3fd09737bcc1a.unit_price"},
         'FLEJE_VENTA_total': {'$sum': "$55cb86f423d3fd09737bcc1a.total"},
 
-        'PERSONAL_DEDICADO_PROYECTO_qty': {'$sum': "$55cb786023d3fd4818dd21b7.qty"},
-        'PERSONAL_DEDICADO_PROYECTO_unit_price': {'$max': "$55cb786023d3fd4818dd21b7.unit_price"},
-        'PERSONAL_DEDICADO_PROYECTO_total': {'$sum': "$55cb786023d3fd4818dd21b7.total"},
+#        "55cb692523d3fd4818dd2195":"55cb786023d3fd4818dd21b7",
+        'PERSONAL_DEDICADO_PROYECTO_qty': {'$sum': "$55cb692523d3fd4818dd2195.qty"},
+        'PERSONAL_DEDICADO_PROYECTO_unit_price': {'$max': "$55cb692523d3fd4818dd2195.unit_price"},
+        'PERSONAL_DEDICADO_PROYECTO_total': {'$sum': "$55cb692523d3fd4818dd2195.total"},
 
         'CROSS_DOCK_qty': {'$sum': "$55c5389623d3fd4818dd1dad.qty"},
         'CROSS_DOCK_unit_price': {'$max': "$55c5389623d3fd4818dd1dad.unit_price"},
@@ -201,7 +202,40 @@ def get_query():
 
         'METROS_ACORDADOS_qty': {'$sum': "$5594688623d3fd7d311a4584.qty"},
         'METROS_ACORDADOS_unit_price': {'$max': "$5594688623d3fd7d311a4584.unit_price"},
-        'METROS_ACORDADOS_total': {'$sum': "$5594688623d3fd7d311a4584.total"}
+        'METROS_ACORDADOS_total': {'$sum': "$5594688623d3fd7d311a4584.total"},
+        #Nuevos Servicios
+        'SD_DESCARGA_35_qty': {'$sum': "$55db956d23d3fd30f2ce9dec.qty"},
+        'SD_DESCARGA_35_unit_price': {'$max': "$55db956d23d3fd30f2ce9dec.unit_price"},
+        'SD_DESCARGA_35_total': {'$sum': "$55db956d23d3fd30f2ce9dec.total"},
+
+        'SD_DESCARGA_TORTON_qty': {'$sum': "$55db956d23d3fd30f2ce9ded.qty"},
+        'SD_DESCARGA_TORTON_unit_price': {'$max': "$55db956d23d3fd30f2ce9ded.unit_price"},
+        'SD_DESCARGA_TORTON_total': {'$sum': "$55db956d23d3fd30f2ce9ded.total"},
+
+        'SD_DESCARGA_TRAILER_qty': {'$sum': "$55db956d23d3fd30f2ce9dee.qty"},
+        'SD_DESCARGA_TRAILER_unit_price': {'$max': "$55db956d23d3fd30f2ce9dee.unit_price"},
+        'SD_DESCARGA_TRAILER_total': {'$sum': "$55db956d23d3fd30f2ce9dee.total"},
+
+        'CM_CARGA_MATERIAL_35_qty': {'$sum': "$55db956d23d3fd30f2ce9def.qty"},
+        'CM_CARGA_MATERIAL_35_unit_price': {'$max': "$55db956d23d3fd30f2ce9def.unit_price"},
+        'CM_CARGA_MATERIAL_35_total': {'$sum': "$55db956d23d3fd30f2ce9def.total"},
+
+        'CM_CARGA_MATERIAL_TORTON_qty': {'$sum': "$55db956d23d3fd30f2ce9df0.qty"},
+        'CM_CARGA_MATERIAL_TORTON_unit_price': {'$max': "$55db956d23d3fd30f2ce9df0.unit_price"},
+        'CM_CARGA_MATERIAL_TORTON_total': {'$sum': "$55db956d23d3fd30f2ce9df0.total"},
+
+        'CM_CARGA_MATERIAL_TRAILER_qty': {'$sum': "$55db956d23d3fd30f2ce9df1.qty"},
+        'CM_CARGA_MATERIAL_TRAILER_unit_price': {'$max': "$55db956d23d3fd30f2ce9df1.unit_price"},
+        'CM_CARGA_MATERIAL_TRAILER_total': {'$sum': "$55db956d23d3fd30f2ce9df1.total"},
+
+        'TARIFA_GUIA_qty': {'$sum': "$55db5bd923d3fd157a97dfd6.qty"},
+        'TARIFA_GUIA_unit_price': {'$max': "$55db5bd923d3fd157a97dfd6.unit_price"},
+        'TARIFA_GUIA_total': {'$sum': "$55db5bd923d3fd157a97dfd6.total"},
+
+        'TARIMAS_NEGRAS_FLEJADAS_qty': {'$sum': "$55fb84cf23d3fd7817c11955.qty"},
+        'TARIMAS_NEGRAS_FLEJADAS_unit_price': {'$max': "$55fb84cf23d3fd7817c11955.unit_price"},
+        'TARIMAS_NEGRAS_FLEJADAS_total': {'$sum': "$55fb84cf23d3fd7817c11955.total"},
+
     }},
 
     {'$project': {
@@ -300,6 +334,16 @@ def get_query():
         'PRECIO_RENTA_OFICINA_total': {'$multiply': ["$PRECIO_RENTA_OFICINA_qty","$PRECIO_RENTA_OFICINA_unit_price"]},
 
         'METROS_ACORDADOS_total': {'$multiply': ["$METROS_ACORDADOS_qty","$METROS_ACORDADOS_unit_price"]},
+
+        'SD_DESCARGA_35_total': {'$multiply': ["$SD_DESCARGA_35_qty","$SD_DESCARGA_35_unit_price"]},
+        'SD_DESCARGA_TORTON_total': {'$multiply': ["$SD_DESCARGA_TORTON_qty","$SD_DESCARGA_TORTON_unit_price"]},
+        'SD_DESCARGA_TRAILER_total': {'$multiply': ["$SD_DESCARGA_TRAILER_qty","$SD_DESCARGA_TRAILER_unit_price"]},
+        'CM_CARGA_MATERIAL_35_total': {'$multiply': ["$CM_CARGA_MATERIAL_35_qty","$CM_CARGA_MATERIAL_35_unit_price"]},
+        'CM_CARGA_MATERIAL_TORTON_total': {'$multiply': ["$CM_CARGA_MATERIAL_TORTON_qty","$CM_CARGA_MATERIAL_TORTON_unit_price"]},
+        'CM_CARGA_MATERIAL_TRAILER_total': {'$multiply': ["$CM_CARGA_MATERIAL_TRAILER_qty","$CM_CARGA_MATERIAL_TRAILER_unit_price"]},
+        'TARIFA_GUIA_total': {'$multiply': ["$TARIFA_GUIA_qty","$TARIFA_GUIA_unit_price"]},
+        'TARIMAS_NEGRAS_FLEJADAS_total': {'$multiply': ["$TARIMAS_NEGRAS_FLEJADAS_qty","$TARIMAS_NEGRAS_FLEJADAS_unit_price"]},
+
         'total_services': {'$add': [ '$TCH_total',
                 '$PALLET_IN_total', '$KIT_PLAYERAS_total', '$MANO_OBRA_total', '$CROSS_DOCK_20_total',
                 '$SAD_total', '$TARIMA_NEGRA_MILLER_total',  '$CROSS_DOCK_40_total',
@@ -313,7 +357,10 @@ def get_query():
                 '$CROSS_DOCK_total',
                 '$SE_total', '$CROSS_DOCK_40_NOCTURNO_total',  '$TNL_total',  '$UNIDAD_ESPACIO_TEMPORAL_total',
                 '$COSTO_MENSUAL_UE_EXTRA_total',  '$PALLET_OUT_total', '$MI_total', '$SEPONY_total',
-                '$SAP_total', '$TIEMPO_EXTRA_X_HORA_NOCTURNO_total', '$SAP_MAS_15_total', '$TERMO_total']}
+                '$SAP_total', '$TIEMPO_EXTRA_X_HORA_NOCTURNO_total', '$SAP_MAS_15_total', '$TERMO_total',
+                '$SD_DESCARGA_35_total', '$SD_DESCARGA_TORTON_total', '$SD_DESCARGA_TRAILER_total'
+                '$CM_CARGA_MATERIAL_35_total', '$CM_CARGA_MATERIAL_TORTON_total', '$CM_CARGA_MATERIAL_TRAILER_total',
+                '$TARIFA_GUIA_total', '$TARIMAS_NEGRAS_FLEJADAS_total']}
 
         }},
         {'$project':{

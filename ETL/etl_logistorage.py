@@ -15,7 +15,7 @@ import json, re, locale, requests, simplejson
 host = 'localhost'
 local_port = 27017
 #testing_port = 27019
-production_port = 27017
+production_port = 27019
 
 LOGIN_URL = "https://www.info-sync.com/api/infosync/user_admin/login/"
 USERNAME = 'logistorage.infosync@gmail.com'
@@ -31,42 +31,7 @@ MONTH_DIR_TEXT = {'ENERO':'2015/01','FERERO':'2015/02','MARZO':'2015/03','ABRIL'
 
 service_names = {'service':'Servicios', 'space_unit':'Unidad de Espacio',
                 'fixed_rent':'Renta Fija', 'office_rent':'Renta Oficina'}
-#
-# price_fields_ids = [
-#     #"5591a8b601a4de7bba8529b5",
-#     #"558b248901a4de7bb94f7cfc",
-#     "558d6a3c01a4de7bba8528a1",
-#     "558b01dd01a4de7bba851397",
-#     "558b01dd01a4de7bba851398",
-#     "558b01dd01a4de7bba851399",
-#     "558b01dd01a4de7bba85139c",
-#     "558b01dd01a4de7bba85139d",
-#     "558b01dd01a4de7bba85139e",
-#     "558b01dd01a4de7bba8513af",
-#     "558b01dd01a4de7bba85139f",
-#     "559168bd01a4de7bba852996",
-#     "558b01dd01a4de7bba8513a0",
-#     "558b01dd01a4de7bba8513a1",
-#     "558b01dd01a4de7bba8513a2",
-#     "558b01dd01a4de7bba8513a3",
-#     "558b01dd01a4de7bba8513a4",
-#     "558b01dd01a4de7bba8513a5",
-#     "558b01dd01a4de7bba8513a6",
-#     "558b01dd01a4de7bba8513a7",
-#     "558b01dd01a4de7bba8513a8",
-#     "558b01dd01a4de7bba8513a9",
-#     "558b01dd01a4de7bba85139a",
-#     "558b01dd01a4de7bba8513aa",
-#     "558b01dd01a4de7bba8513ab",
-#     "558b01dd01a4de7bba8513ac",
-#     "558b01dd01a4de7bba8513ad",
-#     "558b01dd01a4de7bba8513ae",
-#     "558db23301a4de7bba8528e5",
-#     "5594677423d3fd7d311a4580",
-#     "5595a5ae23d3fd7d304980c3",
-#     "5594688623d3fd7d311a4583",
-#     "5594688623d3fd7d311a4584",
-#     "55c5392c23d3fd4817ed01d0"]
+
 
 #This are all the forms related to service,
 #every time logistoage creates a new services form
@@ -144,7 +109,16 @@ service_price_json = {
         "5595a5ae23d3fd7d304980c3":"5595a5ae23d3fd7d304980c3",
         "5594688623d3fd7d311a4583":"5594688623d3fd7d311a4583",
         "558d6a3c01a4de7bba8528a1":"558d6a3c01a4de7bba8528a1",
-        "5594677423d3fd7d311a4580":"5594677423d3fd7d311a4580"
+        "5594677423d3fd7d311a4580":"5594677423d3fd7d311a4580",
+        #Nuevos Servicios
+        "55db956d23d3fd30f2ce9dec":"55db943d23d3fd30f15ce384",
+        "55db956d23d3fd30f2ce9ded":"55db943d23d3fd30f15ce385",
+        "55db956d23d3fd30f2ce9dee":"55db943d23d3fd30f15ce386",
+        "55db956d23d3fd30f2ce9def":"55db943d23d3fd30f15ce387",
+        "55db956d23d3fd30f2ce9df0":"55db943d23d3fd30f15ce388",
+        "55db956d23d3fd30f2ce9df1":"55db943d23d3fd30f15ce389",
+        "55db5bd923d3fd157a97dfd6":"55d5050a23d3fd5787d8a97b",
+        "55fb84cf23d3fd7817c11955":"55fb83f623d3fd78190aa80e",
 }
 
 #service_id:price_id
