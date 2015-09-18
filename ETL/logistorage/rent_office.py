@@ -16,6 +16,9 @@ def get_query():
 
             },
             'total_office_rent' : {'$sum':"$office_rent.unit_price"},
+            'total_fixed_rent':{'$sum': 0.0},
+            'total_services': {'$sum': 0.0},
+            'total_space_unit' : {'$sum': 0.0}
         }},
         ]
     return query

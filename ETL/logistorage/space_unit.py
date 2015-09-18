@@ -29,6 +29,9 @@ def get_query():
         }},
         {'$project': {
             '_id' : 1,
+            'total_fixed_rent' :{'$add':[0.0]},
+            'total_office_rent':{'$add':[0.0]},
+            'total_services': {'$add': [0.0]},
             'total_space_unit' : {
                 '$cond': [
                      {'$gt': [ { '$add' : ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed'] },
