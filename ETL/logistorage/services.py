@@ -15,6 +15,9 @@ def get_query():
         'SAC_unit_price': {'$max': "$5591627901a4de7bb8eb1ad9.unit_price"},
         'SAC_total': {'$sum': "$5591627901a4de7bb8eb1ad9.total"},
 
+        'SAC_no_charge_qty':{'$multiply': ["$5591627901a4de7bb8eb1ad9.qty","$55fb84cf23d3fd7817c11955.qty"]}
+        'SAC_no_charge_unit_price': {'$multiply': [-1,{'$max': "$5591627901a4de7bb8eb1ad9.unit_price"}],
+
         'SAE_qty': {'$sum': "$559167ed01a4de7bba852991.qty"},
         'SAE_unit_price': {'$max': "$559167ed01a4de7bba852991.unit_price"},
         'SAE_total': {'$sum': "$559167ed01a4de7bba852991.total"},
@@ -243,6 +246,8 @@ def get_query():
 
         'SAC_total': {'$multiply': ["$SAC_qty","$SAC_unit_price"]},
 
+        'SAC_no_charge_total' : {'$multiply': ["$SAC_no_charge_qty","$SAC_no_charge_unit_price"]},
+
         'SAE_total' : {'$multiply': ["$SAE_qty","$SAE_unit_price"]},
 
         'SAD_total': {'$multiply': ["$SAD_qty","$SAD_unit_price"]},
@@ -348,7 +353,7 @@ def get_query():
                 '$PALLET_IN_total', '$KIT_PLAYERAS_total', '$MANO_OBRA_total', '$CROSS_DOCK_20_total',
                 '$SAD_total', '$TARIMA_NEGRA_MILLER_total',  '$CROSS_DOCK_40_total',
                  '$ENTRADA_DETALLE_total', '$PRECIO_RENTA_OFICINA_total', '$PICK_AND_PACK_total',
-                '$SERVICIO_REEMPACADO_total', '$STD_total', '$SPY_total', '$SAC_total',  '$CROSS_DOCK_20_NOCTURNO_total',
+                '$SERVICIO_REEMPACADO_total', '$STD_total', '$SPY_total', '$SAC_total', '$SAC_no_charge_total',  '$CROSS_DOCK_20_NOCTURNO_total',
                 '$TIEMPO_EXTRA_X_HORA_total', '$SERVICIO_ARMADO_CARRETES_total', '$CROSS_DOCK_40_2_total',
                 '$SERVICIO_ARMADO_CARRETES_URGENTES_total', '$ALMACENAJE_TARIMA_total', '$SAT_total', '$SERVICIO_REETIQUETADO_total',
                  '$SAE_total',
@@ -358,7 +363,7 @@ def get_query():
                 '$SE_total', '$CROSS_DOCK_40_NOCTURNO_total',  '$TNL_total',  '$UNIDAD_ESPACIO_TEMPORAL_total',
                 '$COSTO_MENSUAL_UE_EXTRA_total',  '$PALLET_OUT_total', '$MI_total', '$SEPONY_total',
                 '$SAP_total', '$TIEMPO_EXTRA_X_HORA_NOCTURNO_total', '$SAP_MAS_15_total', '$TERMO_total',
-                '$SD_DESCARGA_35_total', '$SD_DESCARGA_TORTON_total', '$SD_DESCARGA_TRAILER_total'
+                '$SD_DESCARGA_35_total', '$SD_DESCARGA_TORTON_total', '$SD_DESCARGA_TRAILER_total',
                 '$CM_CARGA_MATERIAL_35_total', '$CM_CARGA_MATERIAL_TORTON_total', '$CM_CARGA_MATERIAL_TRAILER_total',
                 '$TARIFA_GUIA_total', '$TARIMAS_NEGRAS_FLEJADAS_total']}
 
