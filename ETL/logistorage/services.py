@@ -1,7 +1,7 @@
 #coding: utf-8
 
 def get_query():
-    query = [{"$match": {"itype":"service"}},
+    query = [{"$match": {"itype":"service"}},# ,"559174f601a4de7bb94f87ed" : "SEPTIEMBRE",'5591627901a4de7bb8eb1ad4':'Monterrey' }},
 
             {"$group": {
            "_id": {
@@ -17,7 +17,6 @@ def get_query():
 
         'SAC_no_charge_qty': { '$sum':{'$multiply': ["$5591627901a4de7bb8eb1ad9.qty",{ '$cond': [
                      {'$gt': ["$5591627901a4de7bb8eb1ae1.qty",0] }, 1, 0 ]}]}},
-        'SAC_no_charge_unit_price': { '$sum':{'$multiply': [-1, "$5591627901a4de7bb8eb1ad9.unit_price" ]}},
 
         'SAE_qty': {'$sum': "$559167ed01a4de7bba852991.qty"},
         'SAE_unit_price': {'$max': "$559167ed01a4de7bba852991.unit_price"},
@@ -245,10 +244,16 @@ def get_query():
     {'$project': {
         '_id' : 1,
 
-        'SAC_total': {'$multiply': ["$SAC_qty","$SAC_unit_price"]},
+        'SAC_total_org':{'$multiply': ["$SAC_qty","$SAC_unit_price"]},
+        'SAC_total': {'$add':[
+                                {'$multiply': ["$SAC_qty","$SAC_unit_price"]},
+                                {'$multiply': ["$SAC_no_charge_qty", -1, { '$cond': [{'$gt': ["$SAC_unit_price",0] },'$SAC_unit_price' , 0 ]}]}
+                            ]
+                        },
+        'SAC_no_charge_total':  {'$multiply': ["$SAC_no_charge_qty", -1, { '$cond': [{'$gt': ["$SAC_unit_price",0] },'$SAC_unit_price' , 0 ]}]},
 
-        'SAC_no_charge_total' : {'$multiply': ["$SAC_no_charge_qty","$SAC_no_charge_unit_price"]},
-
+        #'SAC_no_charge_total' : {'$multiply': ["$SAC_no_charge_qty","$SAC_unit_price"]},
+        'SAC_total2': {'$multiply': ["$SAE_qty","$SAE_unit_price"]},
         'SAE_total' : {'$multiply': ["$SAE_qty","$SAE_unit_price"]},
 
         'SAD_total': {'$multiply': ["$SAD_qty","$SAD_unit_price"]},
@@ -354,9 +359,9 @@ def get_query():
                 '$PALLET_IN_total', '$KIT_PLAYERAS_total', '$MANO_OBRA_total', '$CROSS_DOCK_20_total',
                 '$SAD_total', '$TARIMA_NEGRA_MILLER_total',  '$CROSS_DOCK_40_total',
                  '$ENTRADA_DETALLE_total', '$PRECIO_RENTA_OFICINA_total', '$PICK_AND_PACK_total',
-                '$SERVICIO_REEMPACADO_total', '$STD_total', '$SPY_total', '$SAC_total', '$SAC_no_charge_total',  '$CROSS_DOCK_20_NOCTURNO_total',
+                '$SERVICIO_REEMPACADO_total', '$STD_total', '$SPY_total',   '$CROSS_DOCK_20_NOCTURNO_total',
                 '$TIEMPO_EXTRA_X_HORA_total', '$SERVICIO_ARMADO_CARRETES_total', '$CROSS_DOCK_40_2_total',
-                '$SERVICIO_ARMADO_CARRETES_URGENTES_total', '$ALMACENAJE_TARIMA_total', '$SAT_total', '$SERVICIO_REETIQUETADO_total',
+                '$SERVICIO_ARMADO_CARRETES_URGENTES_total', '$ALMACENAJE_TARIMA_total', '$SERVICIO_REETIQUETADO_total',
                  '$SAE_total',
                  '$FLEJE_VENTA_total', '$TCOSTCO_total', '$SD_total',  '$PRECIO_TIEMPO_EXTRA_X_DIA_total',
                 '$RM_total', '$SAEXH_total',
@@ -366,11 +371,11 @@ def get_query():
                 '$SAP_total', '$TIEMPO_EXTRA_X_HORA_NOCTURNO_total', '$SAP_MAS_15_total', '$TERMO_total',
                 '$SD_DESCARGA_35_total', '$SD_DESCARGA_TORTON_total', '$SD_DESCARGA_TRAILER_total',
                 '$CM_CARGA_MATERIAL_35_total', '$CM_CARGA_MATERIAL_TORTON_total', '$CM_CARGA_MATERIAL_TRAILER_total',
-                '$TARIFA_GUIA_total', '$TARIMAS_NEGRAS_FLEJADAS_total']}
+                '$TARIFA_GUIA_total', '$TARIMAS_NEGRAS_FLEJADAS_total'  ]}
         }},
         {'$project':{
         '_id':1,
-        'total_services':'$total_services',
+        'total_services':{'$add':["$total_services", { '$cond': [{'$gt': ["$SAC_total",0] },"$SAC_total" , 0 ]}]},
         'total_office_rent' : {'$add':[0.0]},
         'total_fixed_rent':{'$add':[0.0]},
         'total_space_unit' : {'$add':[0.0]}
