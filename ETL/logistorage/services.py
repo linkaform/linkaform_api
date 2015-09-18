@@ -15,8 +15,9 @@ def get_query():
         'SAC_unit_price': {'$max': "$5591627901a4de7bb8eb1ad9.unit_price"},
         'SAC_total': {'$sum': "$5591627901a4de7bb8eb1ad9.total"},
 
-        'SAC_no_charge_qty': { '$sum':{'$multiply': ["$SAC_qty","$TARIMAS_NEGRAS_FLEJADAS_qty"]}},
-        'SAC_no_charge_unit_price': { '$sum':{'$multiply': [-1, "$SAC_unit_price" ]}},
+        'SAC_no_charge_qty': { '$sum':{'$multiply': ["$5591627901a4de7bb8eb1ad9.qty",{ '$cond': [
+                     {'$gt': ["$5591627901a4de7bb8eb1ae1.qty",0] }, 1, 0 ]}]}},
+        'SAC_no_charge_unit_price': { '$sum':{'$multiply': [-1, "$5591627901a4de7bb8eb1ad9.unit_price" ]}},
 
         'SAE_qty': {'$sum': "$559167ed01a4de7bba852991.qty"},
         'SAE_unit_price': {'$max': "$559167ed01a4de7bba852991.unit_price"},
