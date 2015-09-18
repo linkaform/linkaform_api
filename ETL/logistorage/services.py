@@ -15,8 +15,8 @@ def get_query():
         'SAC_unit_price': {'$max': "$5591627901a4de7bb8eb1ad9.unit_price"},
         'SAC_total': {'$sum': "$5591627901a4de7bb8eb1ad9.total"},
 
-        'SAC_no_charge_qty':{'$multiply': ["$5591627901a4de7bb8eb1ad9.qty","$55fb84cf23d3fd7817c11955.qty"]}
-        'SAC_no_charge_unit_price': {'$multiply': [-1,{'$max': "$5591627901a4de7bb8eb1ad9.unit_price"}],
+        'SAC_no_charge_qty': { '$sum':{'$multiply': ["$SAC_qty","$TARIMAS_NEGRAS_FLEJADAS_qty"]}},
+        'SAC_no_charge_unit_price': { '$sum':{'$multiply': [-1, "$SAC_unit_price" ]}},
 
         'SAE_qty': {'$sum': "$559167ed01a4de7bba852991.qty"},
         'SAE_unit_price': {'$max': "$559167ed01a4de7bba852991.unit_price"},
@@ -366,7 +366,6 @@ def get_query():
                 '$SD_DESCARGA_35_total', '$SD_DESCARGA_TORTON_total', '$SD_DESCARGA_TRAILER_total',
                 '$CM_CARGA_MATERIAL_35_total', '$CM_CARGA_MATERIAL_TORTON_total', '$CM_CARGA_MATERIAL_TRAILER_total',
                 '$TARIFA_GUIA_total', '$TARIMAS_NEGRAS_FLEJADAS_total']}
-
         }},
         {'$project':{
         '_id':1,
