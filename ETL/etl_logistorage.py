@@ -295,20 +295,25 @@ class FakeETLModel(object):
 def get_price_from_dates(answer, price_list, created_at):
         offset = '05'
         index_price = -1
-        index_prices = 0
+        price_index = 0
         last_from_delta = 1000
-        last_to_delta = 1000
+        last_to_delta = -100000
         for price in price_list:
+            index_price += 1
             if not price['from'] or not price['to']:
                 continue
+            from_price = datetime.strptime(price['from']+'T%s'%offset, "%Y-%m-%dT%H")
             to_price = datetime.strptime(price['to']+'T%s'%offset, "%Y-%m-%dT%H")
+            from_created_at_delta = from_price - created_at
             to_created_at_delta = to_price - created_at
-            if to_created_at_delta.days <= 0 or (index_prices == 0 and to_created_at_delta.days >= 0):
-                index_price = index_prices
-            last_to_delta = to_created_at_delta.days
-            index_prices = index_prices + 1
+            if from_created_at_delta.days <= 0 and to_created_at_delta.days >= 0:
+                price_index = index_price
+                break
+            if to_created_at_delta.days <= 0 and to_created_at_delta.days > last_to_delta :
+                price_index = index_price
+                last_to_delta = to_created_at_delta.days
         try:
-            current_price = price_list[index_price]
+            current_price = price_list[price_index]
             unit_price = current_price['price']
             qty = float(answer)
             currency = current_price['currency']
@@ -625,9 +630,9 @@ def etl():
                 report_answer.update({'_id':rent_service['_id']}, rent_service, upsert=True)
             except KeyError:
                 print 'COULD NOT INSERT RENT, NO PRICE LIST FOR...',
-                #print 'warehouse', meta_answers['5591627901a4de7bb8eb1ad4']
-                #print 'client',  meta_answers['5591627901a4de7bb8eb1ad5']
-                #print 'month',meta_answers['created_at']
+                print 'warehouse', meta_answers['5591627901a4de7bb8eb1ad4']
+                print 'client',  meta_answers['5591627901a4de7bb8eb1ad5']
+                print 'month',meta_answers['created_at']
                 continue
         verify_one_record_per_company(report_answer)
         return True
