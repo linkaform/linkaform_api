@@ -72,6 +72,7 @@ service_price_json = {
         "559167ed01a4de7bba852994":"558b01dd01a4de7bba85139e",
         "5591627901a4de7bb8eb1add":"558b01dd01a4de7bba85139f",
         "5591627901a4de7bb8eb1ade":"559168bd01a4de7bba852996",
+        #id de fleje
         "55916a6f01a4de7bba852997":"558b01dd01a4de7bba8513a0",
         "5591627901a4de7bb8eb1adf":"558b01dd01a4de7bba8513a1",
         "5591627901a4de7bb8eb1ae0":"558b01dd01a4de7bba8513a2",
@@ -93,6 +94,7 @@ service_price_json = {
         "55cb692523d3fd4818dd2197":"55cb786023d3fd4818dd21b8",
         "55cb692523d3fd4818dd2198":"55cb786023d3fd4818dd21b9",
         "55cb692523d3fd4818dd2199":"55cb786023d3fd4818dd21ba",
+        #id de tiempo extra
         "55cb692523d3fd4818dd219a":"55cb786023d3fd4818dd21bb",
         "55cb692523d3fd4818dd219b":"55cb786023d3fd4818dd21bc",
         "55cb692523d3fd4818dd219c":"55cb786023d3fd4818dd21bd",
@@ -311,6 +313,9 @@ def get_price_from_dates(answer, price_list, created_at):
             qty = float(answer)
             currency = current_price['currency']
         except:
+            print 'answer', answer
+            print 'price_list', price_list
+            print 'created_at', created_at
             print 'except ==================================================',fda
             unit_price = 0.0
             qty = 0
@@ -408,15 +413,21 @@ def insert_rent_services(meta_answer):
     created_at = rent_json['created_at']
     rent_id = str(created_at.year) + str(created_at.month) + client + warehouse
     #TODO get real price depending on the date
-    fixed_rent_uprice = PRICE_LIST[client][warehouse]['5595a5ae23d3fd7d304980c3'][0]['price']
-    fixed_rent_currency = PRICE_LIST[client][warehouse]['5595a5ae23d3fd7d304980c3'][0]['currency']
-    office_rent_uprice = PRICE_LIST[client][warehouse]['5594688623d3fd7d311a4583'][0]['price']
-    office_rent_currency = PRICE_LIST[client][warehouse]['5594688623d3fd7d311a4583'][0]['currency']
+    fixed_rent_json = get_price_from_dates(1, PRICE_LIST[client][warehouse]['5595a5ae23d3fd7d304980c3'], created_at)
+    #fixed_rent_uprice = PRICE_LIST[client][warehouse]['5595a5ae23d3fd7d304980c3'][0]['price']
+    #fixed_rent_currency = PRICE_LIST[client][warehouse]['5595a5ae23d3fd7d304980c3'][0]['currency']
+    fixed_rent_price = fixed_rent_json['total']
+    fixed_rent_currency = fixed_rent_json['currency']
+    office_rent_json = get_price_from_dates(1, PRICE_LIST[client][warehouse]['5594688623d3fd7d311a4583'], created_at)
+    #office_rent_uprice = PRICE_LIST[client][warehouse]['5594688623d3fd7d311a4583'][0]['price']
+    #office_rent_currency = PRICE_LIST[client][warehouse]['5594688623d3fd7d311a4583'][0]['currency']
+    office_rent_price = office_rent_json['total']
+    office_rent_currency = office_rent_json['currency']
     rent_json.update({
     '_id':rent_id,
     'itype':'rent',
-    'fixed_rent':{'unit_price':fixed_rent_uprice,'currency':fixed_rent_currency},
-    'office_rent':{'unit_price':office_rent_uprice,'currency':office_rent_currency},
+    'fixed_rent':{'unit_price':fixed_rent_price,'currency':fixed_rent_currency},
+    'office_rent':{'unit_price':office_rent_price,'currency':office_rent_currency},
     })
     return rent_json
 
@@ -707,6 +718,19 @@ def get_query_service_total(record):
 def insert_services(report_answer, cr_report_total):
     service_query = services.get_query()
     service_res = report_answer.aggregate(service_query)
+    tt = 0
+    tts = 0
+    for a in service_res['result']:
+         if a['total_services'] != 0 :
+    #         tt += a['total_services']
+             print  'service=', a['total_services']
+             print 'a',a
+    #     #if a['sac_total2'] != 0:
+    #     #    print 'sac_total2',a['sac_total2']
+    #     #    tts += a['sac_total2']
+    # print 'asi queda tt= ', tt
+    # print 'asi queda ts=', tts
+    # print tt+tts
     loop_query_update(cr_report_total, service_res['result'], itype='service', operation_type='insert')
     return True
 
