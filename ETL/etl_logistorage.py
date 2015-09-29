@@ -15,7 +15,7 @@ import json, re, locale, requests, simplejson
 host = 'localhost'
 local_port = 27017
 #testing_port = 27019
-production_port = 27017
+production_port = 27019
 
 LOGIN_URL = "https://www.info-sync.com/api/infosync/user_admin/login/"
 USERNAME = 'logistorage.infosync@gmail.com'
@@ -31,42 +31,7 @@ MONTH_DIR_TEXT = {'ENERO':'2015/01','FERERO':'2015/02','MARZO':'2015/03','ABRIL'
 
 service_names = {'service':'Servicios', 'space_unit':'Unidad de Espacio',
                 'fixed_rent':'Renta Fija', 'office_rent':'Renta Oficina'}
-#
-# price_fields_ids = [
-#     #"5591a8b601a4de7bba8529b5",
-#     #"558b248901a4de7bb94f7cfc",
-#     "558d6a3c01a4de7bba8528a1",
-#     "558b01dd01a4de7bba851397",
-#     "558b01dd01a4de7bba851398",
-#     "558b01dd01a4de7bba851399",
-#     "558b01dd01a4de7bba85139c",
-#     "558b01dd01a4de7bba85139d",
-#     "558b01dd01a4de7bba85139e",
-#     "558b01dd01a4de7bba8513af",
-#     "558b01dd01a4de7bba85139f",
-#     "559168bd01a4de7bba852996",
-#     "558b01dd01a4de7bba8513a0",
-#     "558b01dd01a4de7bba8513a1",
-#     "558b01dd01a4de7bba8513a2",
-#     "558b01dd01a4de7bba8513a3",
-#     "558b01dd01a4de7bba8513a4",
-#     "558b01dd01a4de7bba8513a5",
-#     "558b01dd01a4de7bba8513a6",
-#     "558b01dd01a4de7bba8513a7",
-#     "558b01dd01a4de7bba8513a8",
-#     "558b01dd01a4de7bba8513a9",
-#     "558b01dd01a4de7bba85139a",
-#     "558b01dd01a4de7bba8513aa",
-#     "558b01dd01a4de7bba8513ab",
-#     "558b01dd01a4de7bba8513ac",
-#     "558b01dd01a4de7bba8513ad",
-#     "558b01dd01a4de7bba8513ae",
-#     "558db23301a4de7bba8528e5",
-#     "5594677423d3fd7d311a4580",
-#     "5595a5ae23d3fd7d304980c3",
-#     "5594688623d3fd7d311a4583",
-#     "5594688623d3fd7d311a4584",
-#     "55c5392c23d3fd4817ed01d0"]
+
 
 #This are all the forms related to service,
 #every time logistoage creates a new services form
@@ -107,6 +72,7 @@ service_price_json = {
         "559167ed01a4de7bba852994":"558b01dd01a4de7bba85139e",
         "5591627901a4de7bb8eb1add":"558b01dd01a4de7bba85139f",
         "5591627901a4de7bb8eb1ade":"559168bd01a4de7bba852996",
+        #id de fleje
         "55916a6f01a4de7bba852997":"558b01dd01a4de7bba8513a0",
         "5591627901a4de7bb8eb1adf":"558b01dd01a4de7bba8513a1",
         "5591627901a4de7bb8eb1ae0":"558b01dd01a4de7bba8513a2",
@@ -128,6 +94,7 @@ service_price_json = {
         "55cb692523d3fd4818dd2197":"55cb786023d3fd4818dd21b8",
         "55cb692523d3fd4818dd2198":"55cb786023d3fd4818dd21b9",
         "55cb692523d3fd4818dd2199":"55cb786023d3fd4818dd21ba",
+        #id de tiempo extra
         "55cb692523d3fd4818dd219a":"55cb786023d3fd4818dd21bb",
         "55cb692523d3fd4818dd219b":"55cb786023d3fd4818dd21bc",
         "55cb692523d3fd4818dd219c":"55cb786023d3fd4818dd21bd",
@@ -144,7 +111,16 @@ service_price_json = {
         "5595a5ae23d3fd7d304980c3":"5595a5ae23d3fd7d304980c3",
         "5594688623d3fd7d311a4583":"5594688623d3fd7d311a4583",
         "558d6a3c01a4de7bba8528a1":"558d6a3c01a4de7bba8528a1",
-        "5594677423d3fd7d311a4580":"5594677423d3fd7d311a4580"
+        "5594677423d3fd7d311a4580":"5594677423d3fd7d311a4580",
+        #Nuevos Servicios
+        "55db956d23d3fd30f2ce9dec":"55db943d23d3fd30f15ce384",
+        "55db956d23d3fd30f2ce9ded":"55db943d23d3fd30f15ce385",
+        "55db956d23d3fd30f2ce9dee":"55db943d23d3fd30f15ce386",
+        "55db956d23d3fd30f2ce9def":"55db943d23d3fd30f15ce387",
+        "55db956d23d3fd30f2ce9df0":"55db943d23d3fd30f15ce388",
+        "55db956d23d3fd30f2ce9df1":"55db943d23d3fd30f15ce389",
+        "55db5bd923d3fd157a97dfd6":"55d5050a23d3fd5787d8a97b",
+        "55fb84cf23d3fd7817c11955":"55fb83f623d3fd78190aa80e",
 }
 
 #service_id:price_id
@@ -319,24 +295,32 @@ class FakeETLModel(object):
 def get_price_from_dates(answer, price_list, created_at):
         offset = '05'
         index_price = -1
-        index_prices = 0
+        price_index = 0
         last_from_delta = 1000
-        last_to_delta = 1000
+        last_to_delta = -100000
         for price in price_list:
+            index_price += 1
             if not price['from'] or not price['to']:
                 continue
+            from_price = datetime.strptime(price['from']+'T%s'%offset, "%Y-%m-%dT%H")
             to_price = datetime.strptime(price['to']+'T%s'%offset, "%Y-%m-%dT%H")
+            from_created_at_delta = from_price - created_at
             to_created_at_delta = to_price - created_at
-            if to_created_at_delta.days <= 0 or (index_prices == 0 and to_created_at_delta.days >= 0):
-                index_price = index_prices
-            last_to_delta = to_created_at_delta.days
-            index_prices = index_prices + 1
+            if from_created_at_delta.days <= 0 and to_created_at_delta.days >= 0:
+                price_index = index_price
+                break
+            if to_created_at_delta.days <= 0 and to_created_at_delta.days > last_to_delta :
+                price_index = index_price
+                last_to_delta = to_created_at_delta.days
         try:
-            current_price = price_list[index_price]
+            current_price = price_list[price_index]
             unit_price = current_price['price']
             qty = float(answer)
             currency = current_price['currency']
         except:
+            print 'answer', answer
+            print 'price_list', price_list
+            print 'created_at', created_at
             print 'except ==================================================',fda
             unit_price = 0.0
             qty = 0
@@ -434,15 +418,21 @@ def insert_rent_services(meta_answer):
     created_at = rent_json['created_at']
     rent_id = str(created_at.year) + str(created_at.month) + client + warehouse
     #TODO get real price depending on the date
-    fixed_rent_uprice = PRICE_LIST[client][warehouse]['5595a5ae23d3fd7d304980c3'][0]['price']
-    fixed_rent_currency = PRICE_LIST[client][warehouse]['5595a5ae23d3fd7d304980c3'][0]['currency']
-    office_rent_uprice = PRICE_LIST[client][warehouse]['5594688623d3fd7d311a4583'][0]['price']
-    office_rent_currency = PRICE_LIST[client][warehouse]['5594688623d3fd7d311a4583'][0]['currency']
+    fixed_rent_json = get_price_from_dates(1, PRICE_LIST[client][warehouse]['5595a5ae23d3fd7d304980c3'], created_at)
+    #fixed_rent_uprice = PRICE_LIST[client][warehouse]['5595a5ae23d3fd7d304980c3'][0]['price']
+    #fixed_rent_currency = PRICE_LIST[client][warehouse]['5595a5ae23d3fd7d304980c3'][0]['currency']
+    fixed_rent_price = fixed_rent_json['total']
+    fixed_rent_currency = fixed_rent_json['currency']
+    office_rent_json = get_price_from_dates(1, PRICE_LIST[client][warehouse]['5594688623d3fd7d311a4583'], created_at)
+    #office_rent_uprice = PRICE_LIST[client][warehouse]['5594688623d3fd7d311a4583'][0]['price']
+    #office_rent_currency = PRICE_LIST[client][warehouse]['5594688623d3fd7d311a4583'][0]['currency']
+    office_rent_price = office_rent_json['total']
+    office_rent_currency = office_rent_json['currency']
     rent_json.update({
     '_id':rent_id,
     'itype':'rent',
-    'fixed_rent':{'unit_price':fixed_rent_uprice,'currency':fixed_rent_currency},
-    'office_rent':{'unit_price':office_rent_uprice,'currency':office_rent_currency},
+    'fixed_rent':{'unit_price':fixed_rent_price,'currency':fixed_rent_currency},
+    'office_rent':{'unit_price':office_rent_price,'currency':office_rent_currency},
     })
     return rent_json
 
@@ -640,9 +630,9 @@ def etl():
                 report_answer.update({'_id':rent_service['_id']}, rent_service, upsert=True)
             except KeyError:
                 print 'COULD NOT INSERT RENT, NO PRICE LIST FOR...',
-                #print 'warehouse', meta_answers['5591627901a4de7bb8eb1ad4']
-                #print 'client',  meta_answers['5591627901a4de7bb8eb1ad5']
-                #print 'month',meta_answers['created_at']
+                print 'warehouse', meta_answers['5591627901a4de7bb8eb1ad4']
+                print 'client',  meta_answers['5591627901a4de7bb8eb1ad5']
+                print 'month',meta_answers['created_at']
                 continue
         verify_one_record_per_company(report_answer)
         return True
@@ -733,6 +723,19 @@ def get_query_service_total(record):
 def insert_services(report_answer, cr_report_total):
     service_query = services.get_query()
     service_res = report_answer.aggregate(service_query)
+    tt = 0
+    tts = 0
+    for a in service_res['result']:
+         if a['total_services'] != 0 :
+    #         tt += a['total_services']
+             print  'service=', a['total_services']
+             print 'a',a
+    #     #if a['sac_total2'] != 0:
+    #     #    print 'sac_total2',a['sac_total2']
+    #     #    tts += a['sac_total2']
+    # print 'asi queda tt= ', tt
+    # print 'asi queda ts=', tts
+    # print tt+tts
     loop_query_update(cr_report_total, service_res['result'], itype='service', operation_type='insert')
     return True
 
