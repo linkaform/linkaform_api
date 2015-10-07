@@ -15,7 +15,7 @@ import json, re, locale, requests, simplejson
 host = 'localhost'
 local_port = 27017
 #testing_port = 27019
-production_port = 27017
+production_port = 27019
 
 LOGIN_URL = "https://www.info-sync.com/api/infosync/user_admin/login/"
 USERNAME = 'logistorage.infosync@gmail.com'
@@ -423,6 +423,7 @@ def insert_rent_services(meta_answer):
         #asures with 6 hrs the time zone
         #to do , insert timezone
         new_created_at = '%s-%s-%02d'%(record_date.year, record_date.month, record_date.day)+'T06:00:00'
+        created_at = record_date
         rent_json['created_at'] = datetime.strptime(new_created_at, '%Y-%m-%dT%H:%M:%S')
     except:
         print 'HAY QUE VERIFICAR EL PROBLEMA DE RENTA DOBLE'
@@ -584,7 +585,7 @@ def etl():
         report = { "form_id": etl_model.item_id }
         count = 0
         all_forms_find = {"form_id": {"$in":all_forms}}
-        #alter_find = {'answers.5591627901a4de7bb8eb1ad5':'wfq','form_id': {"$in":all_forms}}
+        #alter_find = {'answers.5591627901a4de7bb8eb1ad5':'palacio_de_hierro','form_id': {"$in":all_forms}}
         #all_forms_find = alter_find
         #alter_find =  {"answers.55b7f41623d3fd41daa1c414":{"$gte": 'ISODate("2015-05-01T00:00:00Z")', '$lt':'ISODate("2015-08-01T00:00:00Z")'}}
         ###replace alter_find with all_forms_find
