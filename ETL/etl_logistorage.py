@@ -15,7 +15,7 @@ import json, re, locale, requests, simplejson
 host = 'localhost'
 local_port = 27017
 #testing_port = 27019
-production_port = 27019
+production_port = 27017
 
 LOGIN_URL = "https://www.info-sync.com/api/infosync/user_admin/login/"
 USERNAME = 'logistorage.infosync@gmail.com'
@@ -121,6 +121,8 @@ service_price_json = {
         "55db956d23d3fd30f2ce9df1":"55db943d23d3fd30f15ce389",
         "55db5bd923d3fd157a97dfd6":"55d5050a23d3fd5787d8a97b",
         "55fb84cf23d3fd7817c11955":"55fb83f623d3fd78190aa80e",
+        "00000000000000000000a100":"00000000000000000000b100",
+        "00000000000000000000a101":"00000000000000000000b101"
 }
 
 #service_id:price_id
@@ -308,7 +310,8 @@ def get_price_from_dates(answer, price_list, created_at):
             to_created_at_delta = to_price - created_at
             if from_created_at_delta.days <= 0 and to_created_at_delta.days >= 0:
                 price_index = index_price
-                break
+                if price_index != 0:
+                    break
             if to_created_at_delta.days <= 0 and to_created_at_delta.days > last_to_delta :
                 price_index = index_price
                 last_to_delta = to_created_at_delta.days
@@ -422,7 +425,7 @@ def insert_rent_services(meta_answer):
         rent_id = str(record_date.year) + str(record_date.month) + client + warehouse
         #asures with 6 hrs the time zone
         #to do , insert timezone
-        new_created_at = '%s-%s-%02d'%(record_date.year, record_date.month, record_date.day)+'T06:00:00'
+        new_created_at = '%s-%s-%02d'%(record_date.year, record_date.month, record_date.day)+'T05:00:00'
         created_at = record_date
         rent_json['created_at'] = datetime.strptime(new_created_at, '%Y-%m-%dT%H:%M:%S')
     except:

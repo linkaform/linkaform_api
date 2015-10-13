@@ -239,6 +239,14 @@ def get_query():
         'TARIMAS_NEGRAS_FLEJADAS_unit_price': {'$max': "$55fb84cf23d3fd7817c11955.unit_price"},
         'TARIMAS_NEGRAS_FLEJADAS_total': {'$sum': "$55fb84cf23d3fd7817c11955.total"},
 
+        'RENTA_GRUA_qty': {'$sum': "$00000000000000000000a100.qty"},
+        'RENTA_GRUA_unit_price': {'$max': "$00000000000000000000a100.unit_price"},
+        'RENTA_GRUA_total': {'$sum': "$00000000000000000000a100.total"},
+
+        'OTROS_qty': {'$sum': "$00000000000000000000a101.qty"},
+        'OTROS_unit_price': {'$max': "$00000000000000000000a101.unit_price"},
+        'OTROS_total': {'$sum': "$00000000000000000000a101.total"},
+
     }},
 
     {'$project': {
@@ -354,6 +362,8 @@ def get_query():
         'CM_CARGA_MATERIAL_TRAILER_total': {'$multiply': ["$CM_CARGA_MATERIAL_TRAILER_qty","$CM_CARGA_MATERIAL_TRAILER_unit_price"]},
         'TARIFA_GUIA_total': {'$multiply': ["$TARIFA_GUIA_qty","$TARIFA_GUIA_unit_price"]},
         'TARIMAS_NEGRAS_FLEJADAS_total': {'$multiply': ["$TARIMAS_NEGRAS_FLEJADAS_qty","$TARIMAS_NEGRAS_FLEJADAS_unit_price"]},
+        'RENTA_GRUA_total': {'$multiply': ["$RENTA_GRUA_qty","$RENTA_GRUA_unit_price"]},
+        'OTROS_total': {'$multiply': ["$OTROS_qty","$OTROS_unit_price"]},
 
         'total_services': {'$add': [ '$SAE_total' , '$SAD_total', '$SAP_total', '$SE_total', '$SEPONY_total','$SAT_total', '$SPY_total', '$TCH_total',
         '$TCOSTCO_total', '$STD_total','$TNL_total','$TERMO_total', '$SD_total','$RM_total','$PALLET_IN_total','$PALLET_OUT_total',
@@ -366,7 +376,7 @@ def get_query():
         '$COSTO_MENSUAL_UE_EXTRA_total','$PRECIO_TIEMPO_EXTRA_X_DIA_total','$PRECIO_RENTA_FIJA_total',
         '$PRECIO_RENTA_OFICINA_total','$METROS_ACORDADOS_total','$SD_DESCARGA_35_total','$SD_DESCARGA_TORTON_total',
         '$SD_DESCARGA_TRAILER_total','$CM_CARGA_MATERIAL_35_total', '$CM_CARGA_MATERIAL_TORTON_total',
-        '$CM_CARGA_MATERIAL_TRAILER_total','$TARIFA_GUIA_total','$TARIMAS_NEGRAS_FLEJADAS_total'  ]}
+        '$CM_CARGA_MATERIAL_TRAILER_total','$TARIFA_GUIA_total','$TARIMAS_NEGRAS_FLEJADAS_total','RENTA_GRUA_total','OTROS_total'  ]}
         }},
         {'$project':{
         '_id':1,
