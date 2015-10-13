@@ -376,7 +376,7 @@ def get_query():
         '$COSTO_MENSUAL_UE_EXTRA_total','$PRECIO_TIEMPO_EXTRA_X_DIA_total','$PRECIO_RENTA_FIJA_total',
         '$PRECIO_RENTA_OFICINA_total','$METROS_ACORDADOS_total','$SD_DESCARGA_35_total','$SD_DESCARGA_TORTON_total',
         '$SD_DESCARGA_TRAILER_total','$CM_CARGA_MATERIAL_35_total', '$CM_CARGA_MATERIAL_TORTON_total',
-        '$CM_CARGA_MATERIAL_TRAILER_total','$TARIFA_GUIA_total','$TARIMAS_NEGRAS_FLEJADAS_total','RENTA_GRUA_total','OTROS_total'  ]}
+        '$CM_CARGA_MATERIAL_TRAILER_total','$TARIFA_GUIA_total','$TARIMAS_NEGRAS_FLEJADAS_total','$RENTA_GRUA_total','$OTROS_total'  ]}
         }},
         {'$project':{
         '_id':1,
