@@ -15,7 +15,7 @@ import json, re, locale, requests, simplejson
 host = 'localhost'
 local_port = 27017
 #testing_port = 27019
-production_port = 27017
+production_port = 27019
 
 LOGIN_URL = "https://www.info-sync.com/api/infosync/user_admin/login/"
 USERNAME = 'logistorage.infosync@gmail.com'
