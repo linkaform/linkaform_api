@@ -121,6 +121,8 @@ service_price_json = {
         "55db956d23d3fd30f2ce9df1":"55db943d23d3fd30f15ce389",
         "55db5bd923d3fd157a97dfd6":"55d5050a23d3fd5787d8a97b",
         "55fb84cf23d3fd7817c11955":"55fb83f623d3fd78190aa80e",
+        "00000000000000000000a100":"00000000000000000000b100",
+        "00000000000000000000a101":"00000000000000000000b101"
 }
 
 #service_id:price_id
@@ -308,7 +310,8 @@ def get_price_from_dates(answer, price_list, created_at):
             to_created_at_delta = to_price - created_at
             if from_created_at_delta.days <= 0 and to_created_at_delta.days >= 0:
                 price_index = index_price
-                break
+                if price_index != 0:
+                    break
             if to_created_at_delta.days <= 0 and to_created_at_delta.days > last_to_delta :
                 price_index = index_price
                 last_to_delta = to_created_at_delta.days
@@ -416,7 +419,19 @@ def insert_rent_services(meta_answer):
     client = re.sub(' ', '_', rent_json['5591627901a4de7bb8eb1ad5']).lower()
     warehouse = re.sub(' ', '_', rent_json['5591627901a4de7bb8eb1ad4']).lower()
     created_at = rent_json['created_at']
-    rent_id = str(created_at.year) + str(created_at.month) + client + warehouse
+    rent_json.pop('created_at')
+    try:
+        record_date = rent_json['55b7f41623d3fd41daa1c414']
+        rent_id = str(record_date.year) + str(record_date.month) + client + warehouse
+        #asures with 6 hrs the time zone
+        #to do , insert timezone
+        new_created_at = '%s-%s-%02d'%(record_date.year, record_date.month, record_date.day)+'T05:00:00'
+        created_at = record_date
+        rent_json['created_at'] = datetime.strptime(new_created_at, '%Y-%m-%dT%H:%M:%S')
+    except:
+        print 'HAY QUE VERIFICAR EL PROBLEMA DE RENTA DOBLE'
+        print 'rent_json', rent_json
+        rent_id = str(created_at.year) + str(created_at.month) + client + warehouse
     #TODO get real price depending on the date
     fixed_rent_json = get_price_from_dates(1, PRICE_LIST[client][warehouse]['5595a5ae23d3fd7d304980c3'], created_at)
     #fixed_rent_uprice = PRICE_LIST[client][warehouse]['5595a5ae23d3fd7d304980c3'][0]['price']
@@ -428,12 +443,24 @@ def insert_rent_services(meta_answer):
     #office_rent_currency = PRICE_LIST[client][warehouse]['5594688623d3fd7d311a4583'][0]['currency']
     office_rent_price = office_rent_json['total']
     office_rent_currency = office_rent_json['currency']
+    try:
+        ww = warehouse.split('_')[0]
+    except:
+        pass
+    #if client == 'wfq' and created_at.month >= 10 and warehouse in ('guadalajara', 'monterrey'):
     rent_json.update({
     '_id':rent_id,
     'itype':'rent',
     'fixed_rent':{'unit_price':fixed_rent_price,'currency':fixed_rent_currency},
     'office_rent':{'unit_price':office_rent_price,'currency':office_rent_currency},
     })
+    # if rent_json['created_at'].month ==9:
+    #     print 'rent_json', rent_json
+    #     print 'client', client
+    #     print 'warehouse', warehouse
+    #     print 'rent_id', rent_id
+    #     print 'created_at', created_at
+    #     print '--------------------------------------'
     return rent_json
 
 def invoicing_month(one_record_json):
@@ -469,7 +496,6 @@ def verify_one_record_per_company(report_answer):#, one_record_json):
         for client_upper in all_client:
             client = re.sub(' ', '_', client_upper ).lower()
             if client == 'boreas':
-                print 'boreas',client_upper
                 client = client_upper
             for warehouse_upper in all_warehouse:
                 warehouse = re.sub(' ', '_', warehouse_upper).lower()
@@ -562,7 +588,8 @@ def etl():
         report = { "form_id": etl_model.item_id }
         count = 0
         all_forms_find = {"form_id": {"$in":all_forms}}
-        #alter_find = {'answers.5591627901a4de7bb8eb1ad5':'celer','form_id': {"$in":space_forms}}
+        #alter_find = {'answers.5591627901a4de7bb8eb1ad5':'palacio_de_hierro','form_id': {"$in":all_forms}}
+        #all_forms_find = alter_find
         #alter_find =  {"answers.55b7f41623d3fd41daa1c414":{"$gte": 'ISODate("2015-05-01T00:00:00Z")', '$lt':'ISODate("2015-08-01T00:00:00Z")'}}
         ###replace alter_find with all_forms_find
         for record in form_answer.find(all_forms_find):
@@ -629,10 +656,6 @@ def etl():
                 rent_service = insert_rent_services(meta_answers)
                 report_answer.update({'_id':rent_service['_id']}, rent_service, upsert=True)
             except KeyError:
-                print 'COULD NOT INSERT RENT, NO PRICE LIST FOR...',
-                print 'warehouse', meta_answers['5591627901a4de7bb8eb1ad4']
-                print 'client',  meta_answers['5591627901a4de7bb8eb1ad5']
-                print 'month',meta_answers['created_at']
                 continue
         verify_one_record_per_company(report_answer)
         return True
@@ -652,13 +675,9 @@ def loop_query_update(cr_report_total, query_result, itype, operation_type='upda
         if _id:
             insert_res.update(get_query_service_total(record))
             has_id = cr_report_total.find({'_id':_id})
-            #print 'count',count
-            #if count == 30:
-            #    print stop
             if has_id.count() > 0 and operation_type == 'update':
                 insert_res.update(has_id.next())
                 has_id.close()
-                print 'userting record : ', count
                 cr_report_total.update({'_id':_id}, insert_res, upsert=True )
             elif has_id.count() == 0:
                 insert_res['_id'] = _id
@@ -700,7 +719,7 @@ def get_insert_id (rec, itype):
         db_id = currency + month + client + warehouse + itype
         return db_id
     except KeyError:
-        print 'fail-fail-fail--fail-fail-fail-fail-fail-fail===='
+        print 'fail-fail-fail--fail-fail-fail-fail-fail-fail====',rec
         return False
 
 def get_query_service_total(record):
