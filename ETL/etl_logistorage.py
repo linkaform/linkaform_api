@@ -310,7 +310,9 @@ def get_price_from_dates(answer, price_list, created_at):
             to_created_at_delta = to_price - created_at
             if from_created_at_delta.days <= 0 and to_created_at_delta.days >= 0:
                 price_index = index_price
-                if price_index != 0:
+                current_price = price_list[price_index]
+                unit_price = current_price['price']
+                if unit_price != 0:
                     break
             if to_created_at_delta.days <= 0 and to_created_at_delta.days > last_to_delta :
                 price_index = index_price
