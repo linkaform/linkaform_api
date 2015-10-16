@@ -1,6 +1,5 @@
 #coding: utf-8
 
-         "space_unit": {'$exists':True}
 def get_query():
     query = [
       {'$match':{
