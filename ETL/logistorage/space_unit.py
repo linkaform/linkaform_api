@@ -3,11 +3,7 @@
 def get_query():
     query = [
       {'$match':{
-          'itype' : { '$in' :['space_unit', 'rent', 'service']},
-          'fixed_rent' : { '$exists' : True },
-          '558d685701a4de7bba85289f':{'$exists':True},
-          
-            #'558d685701a4de7bba85289f.currency' : 'mx_pesos'
+          'itype' : { '$in' :['space_unit', 'rent']},
         }},
         {'$group':{
             '_id': {
@@ -28,62 +24,34 @@ def get_query():
 
             'UEE_avg' : {'$avg':'$55a010c323d3fd2994ab74e9.qty'},
             'UEE_unit_price' : {'$max':'$55a010c323d3fd2994ab74e9.unit_price'},
-            
-            'fixed_rent' : { '$sum' : '$fixed_rent.unit_price' },
-            'meters_agreed' : { '$max' : '$$5594688623d3fd7d311a4584.unit_price' }
+
+            'fixed_rent' : { '$sum' : '$fixed_rent.unit_price' }
         }},
         {'$project': {
             '_id' : 1,
             'total_fixed_rent' :{'$add':[0.0]},
             'total_office_rent':{'$add':[0.0]},
             'total_services': {'$add': [0.0]},
+            'fixed_rent2': {'$add':['$fixed_rent']},
+            'UE_agreed2':{'$add':['$UE_agreed']},
+            'UE_avg2':{'$add':['$UE_avg']},
             'total_space_unit' : {
-                '$cond': [                    
-                    {'$or': [{'$lte': ['$fixed_rent', 0] }, {'$lte': ['$meters_agreed', 0] }]},
+                '$cond': [
+                    {'$and': [{'$lte': ['$fixed_rent', 0] }, {'$gt': ['$UE_agreed', 0] }]},
                     { '$cond' : [
-                        {'$gt' : [{ '$multiply': [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] }, '$UE_unit_price' ] }, 0]},
-                        {'$add' : [{ '$multiply': [ { '$add': ['$UE_agreed', '$UEP_agreed', '$UEE_agreed']}, '$UE_unit_price' ]}, { '$multiply': [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] }, '$UE_extra_unit_price' ] }]},
-                        { '$cond' : [
-                            {'$lte' : [{ '$multiply': [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] }, '$UE_unit_price' ] }, 0]},
-                            { '$multiply': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg']}, '$UE_unit_price']},
-                            0
-                        ]}
+                        {'$gt' : [{ '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ]}, 0 ]},
+                        {'$add' : [{ '$multiply': [ '$UE_agreed','$UE_unit_price' ]}, { '$multiply': [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] }, '$UE_extra_price' ] }]},
+                        { '$multiply': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg']}, '$UE_unit_price']},
                     ]},
                     { '$cond' : [
-                        {'$or': [{'$gt': ['$fixed_rent', 0] }, {'$gt': ['$meters_agreed', 0] }]},
+                        {'$and': [{'$gt': ['$fixed_rent', 0] }, {'$gt': ['$UE_agreed', 0] }]},
                         {'$multiply': [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] }, '$UE_unit_price' ] },
-                        0
+                        { '$cond' : [
+                            {'$gt':[{ '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg']},0]},
+                            {'$multiply': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_unit_price' ] },
+                            0]}
                     ]}
                 ]},
 
             }}]
     return query
-
-
-# '$cond': [                    
-#     {'$gt': [ { '$add' : ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed'] },
-#     { '$multiply': [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] }, '$UE_unit_price' ] },
-#     0
-#     #    'else': { '$multiply': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg']}, '$UE_unit_price' ]}
-# ]
-
-
-
-                # '$cond': [                    
-                #     {'$or': [{'$lte': ['$fixed_rent', 0] }, {'$lte': ['$meters_agreed', 0] }]},
-                #     { '$cond' : [
-                #         {'$gt' : [{ '$multiply': [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] }, '$UE_unit_price' ] }, 0]},
-                #         {'$add' : [{ '$multiply': [ { '$add': ['$UE_agreed', '$UEP_agreed', '$UEE_agreed']}, '$UE_unit_price' ]}, { '$multiply': [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] }, '$UE_extra_unit_price' ] }]},
-                #         { '$cond' : [
-                #             {'$lte' : [{ '$multiply': [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] }, '$UE_unit_price' ] }, 0]},
-                #             { '$multiply': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg']}, '$UE_unit_price']},
-                #             0
-                #         ]}
-                #     ]},
-                #     { '$cond' : [
-                #         {'$or': [{'$gt': ['$fixed_rent', 0] }, {'$gt': ['$meters_agreed', 0] }]},
-                #         {'$multiply': [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] }, '$UE_unit_price' ] },
-                #         0
-                #     ]}
-                # ]},
- 
