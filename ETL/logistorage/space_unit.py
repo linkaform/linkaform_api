@@ -3,7 +3,7 @@
 def get_query():
     query = [
       {'$match':{
-              "itype" : "rent"
+          'itype' : 'space_unit',
         }},
         {'$group':{
             '_id': {
@@ -24,7 +24,7 @@ def get_query():
             'UEP_unit_price' : {'$max':'$55a010c323d3fd2994ab74e8.unit_price'},
 
             'UEE_avg' : {'$avg':'$55a010c323d3fd2994ab74e9.qty'},
-            'UEE_unit_price' : {'$max':'$55a010c323d3fd2994ab74e9.unit_price'}
+            'UEE_unit_price' : {'$max':'$55a010c323d3fd2994ab74e9.unit_price'},
 
         }},
         {'$project': {
@@ -46,7 +46,10 @@ def get_query():
                     ]},
                     { '$cond' : [
                         {'$and': [{'$gt': ['$fixed_rent', 0] }, {'$gt': ['$UE_agreed', 0] }]},
-                        {'$multiply': [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] }, '$UE_unit_price' ] },
+                        { '$cond' : [
+                            {'$gt' : [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] },0]},
+                            {'$multiply': [ { '$subtract': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_agreed' ] }, '$UE_unit_price' ] },
+                            0]},
                         { '$cond' : [
                             {'$gt':[{ '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg']},0]},
                             {'$multiply': [ { '$add': ['$UE_avg', '$UEP_avg', '$UEE_avg'] }, '$UE_unit_price' ] },
