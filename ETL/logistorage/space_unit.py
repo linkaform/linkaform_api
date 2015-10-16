@@ -4,10 +4,7 @@
 def get_query():
     query = [
       {'$match':{
-          'itype' : { '$in' :['space_unit', 'rent']},
-          '5591627901a4de7bb8eb1ad5':'BOREAS',
-          '5591627901a4de7bb8eb1ad4':'Monterrey',
-          '558d685701a4de7bba85289f.currency':'mx_pesos'
+              "itype" : "rent"
         }},
         {'$group':{
             '_id': {
