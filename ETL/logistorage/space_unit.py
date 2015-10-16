@@ -1,9 +1,13 @@
 #coding: utf-8
 
+         "space_unit": {'$exists':True}
 def get_query():
     query = [
       {'$match':{
           'itype' : { '$in' :['space_unit', 'rent']},
+          '5591627901a4de7bb8eb1ad5':'BOREAS',
+          '5591627901a4de7bb8eb1ad4':'Monterrey',
+          '558d685701a4de7bba85289f.currency':'mx_pesos'
         }},
         {'$group':{
             '_id': {
@@ -18,14 +22,14 @@ def get_query():
             'UE_operator': {'$first':'$558d685701a4de7bba85289f.condition.operator'},
             'UE_agreed': {'$max':'$558d685701a4de7bba85289f.condition.qty'},
             'UE_extra_price': {'$max':'$558d685701a4de7bba85289f.extra_price'},
+            'fixed_rent' : { '$max' : '$558d685701a4de7bba85289f.fixed_rent' },
 
             'UEP_avg' : {'$avg':'$55a010c323d3fd2994ab74e8.qty'},
             'UEP_unit_price' : {'$max':'$55a010c323d3fd2994ab74e8.unit_price'},
 
             'UEE_avg' : {'$avg':'$55a010c323d3fd2994ab74e9.qty'},
-            'UEE_unit_price' : {'$max':'$55a010c323d3fd2994ab74e9.unit_price'},
+            'UEE_unit_price' : {'$max':'$55a010c323d3fd2994ab74e9.unit_price'}
 
-            'fixed_rent' : { '$sum' : '$fixed_rent.unit_price' }
         }},
         {'$project': {
             '_id' : 1,
@@ -35,6 +39,7 @@ def get_query():
             'fixed_rent2': {'$add':['$fixed_rent']},
             'UE_agreed2':{'$add':['$UE_agreed']},
             'UE_avg2':{'$add':['$UE_avg']},
+            'UE_unit_price2':{'$add':['$UE_unit_price']},
             'total_space_unit' : {
                 '$cond': [
                     {'$and': [{'$lte': ['$fixed_rent', 0] }, {'$gt': ['$UE_agreed', 0] }]},

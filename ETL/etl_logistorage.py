@@ -25,7 +25,7 @@ GET_PARENT_ID_FORMS = "https://www.info-sync.com/api/infosync/item/?parent="
 MONTH_DIR = {1:'2015/01',2:'2015/02',3:'2015/03',4:'2015/04',5:'2015/05',6:'2015/06',
 7:'2015/07',8:'2015/08',9:'2015/09',10:'2015/10',11:'2015/11',12:'2015/12'}
 
-MONTH_DIR_TEXT = {'ENERO':'2015/01','FERERO':'2015/02','MARZO':'2015/03','ABRIL':'2015/04','MAYO':'2015/05','JUNIO':'2015/06',
+MONTH_DIR_TEXT = {'ENERO':'2015/01','FEBRERO':'2015/02','MARZO':'2015/03','ABRIL':'2015/04','MAYO':'2015/05','JUNIO':'2015/06',
 'JULIO':'2015/07','AGOSTO':'2015/08','SEPTIEMBRE':'2015/09','OCTUBRE':'2015/10','NOVIEMBRE':'2015/11','DICIEMBRE':'2015/12'}
 
 
@@ -353,9 +353,11 @@ def get_service_answer_json(answer, field, meta_answers):
         condition_id = extra_price_condition_json[price_id]
         condition_price_list = PRICE_LIST[client][warehouse][condition_id]
         condition_qty = get_price_from_dates(answer, condition_price_list, created_at)['unit_price']
+        fixed_rent_json = get_price_from_dates(1, PRICE_LIST[client][warehouse]['5595a5ae23d3fd7d304980c3'], created_at)
         extra_json = {
         'extra_price':extra_unit_price,
-        'condition':{'operator':'>','qty':condition_qty}
+        'condition':{'operator':'>','qty':condition_qty},
+        'fixed_rent':fixed_rent_json['total']
         }
         service_json.update(extra_json)
     return service_json
