@@ -15,7 +15,7 @@ import json, re, locale, requests, simplejson
 host = 'localhost'
 local_port = 27017
 #testing_port = 27019
-production_port = 27019
+production_port = 27017
 
 LOGIN_URL = "https://www.info-sync.com/api/infosync/user_admin/login/"
 USERNAME = 'logistorage.infosync@gmail.com'
@@ -295,7 +295,7 @@ class FakeETLModel(object):
         #active = True
 
 def get_price_from_dates(answer, price_list, created_at):
-        offset = '05'
+        offset = '06'
         index_price = -1
         price_index = 0
         last_from_delta = 1000
@@ -396,7 +396,7 @@ def get_answer(answer, field, meta_answers= {}):
                     return answer
         elif field["field_type"] == "date":
             #TODO get time offset
-            date = answer + 'T05'
+            date = answer + 'T06'
             return datetime.strptime(date,'%Y-%m-%dT%H')
         elif field_id in service_price_json.keys():
             try:
@@ -429,7 +429,7 @@ def insert_rent_services(meta_answer):
         rent_id = str(record_date.year) + str(record_date.month) + client + warehouse
         #asures with 6 hrs the time zone
         #to do , insert timezone
-        new_created_at = '%s-%s-%02d'%(record_date.year, record_date.month, record_date.day)+'T05:00:00'
+        new_created_at = '%s-%s-%02d'%(record_date.year, record_date.month, record_date.day)+'T06:00:00'
         created_at = record_date
         rent_json['created_at'] = datetime.strptime(new_created_at, '%Y-%m-%dT%H:%M:%S')
     except:
@@ -506,7 +506,7 @@ def verify_one_record_per_company(report_answer):#, one_record_json):
                 for year_month in get_all_months(report_answer):
                     year = year_month['_id']['year']
                     month = year_month['_id']['month']
-                    offset = '05'
+                    offset = '06'
                     date = '%s-%s-01T%s:00:00'%(year, month, offset)
                     created_at = datetime.strptime(date,'%Y-%m-%dT%H:%M:%S')
                     for itype in all_types:
@@ -545,7 +545,7 @@ def get_meta_answer_with_rules(record):
     #var now = new Date();
     #now.getTimezoneOffset()
     #this will give you the offset in munuts
-    offset = '05'
+    offset = '06'
     if not res:
         res = record['answers'].get(other_field['Fecha_de_Captura']['old_id'], False)
     if not res:
