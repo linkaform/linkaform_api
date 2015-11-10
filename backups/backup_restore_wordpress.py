@@ -10,6 +10,7 @@ from cuisine import *
 from fabric.api import env, execute, task
 from fabric import operations
 from sys import argv
+from datetime import datetime
 
 testing_server = 'www.linkaform.com'
 production_server = 'test.linkaform.com'
@@ -26,7 +27,7 @@ def backup_mysqldb():
     env.host_string = testing_server
     env.user = 'infosync'
     env.key_filename = '/home/josepato/.ssh/id_rsa_goddady'
-    print 'starting....'
+    print 'starting... to backup remote db'
     db_backup_name = 'infosync_wp1.sql'
     run ("mysqldump -uinfosync_wp1 -pB*tD7dMZIv16.~9   infosync_wp1 > %s"%(db_backup_name))
     print 'Backup done....'
@@ -41,9 +42,12 @@ def backup_public_html():
     env.host_string = testing_server
     env.user = 'infosync'
     env.key_filename = '/home/josepato/.ssh/id_rsa_goddady'
-    print 'starting....'
-    tar_name = 'linkaform_bakup.tar.gz'
-    #run("tar cfz %s public_html/ %s"%(tar_name,dbname))
+    print 'starting to do backup of all folders...'
+    date = datetime.now()
+    date = date.strftime("%Y_%m_%d")
+    tar_name = 'linkaform_bakup_%s.tar.gz'%date
+    run("tar cfz %s public_html/ %s"%(tar_name,dbname))
+    print 'backup compleated',tar_name
     return tar_name
 
 @task
@@ -69,7 +73,7 @@ FLUSH PRIVILEGES;"""
     db_name = backup_mysqldb()
     #copies dbs
     print 'Coping files...'
-    run_local("scp -i .ssh/id_rsa_goddady infosync@%s:%s ./"%(testing_server,db_name))
+    run_local("scp -i /home/josepato/.ssh/id_rsa_goddady infosync@%s:%s ./"%(testing_server,db_name))
     print 'droping db . . .'
     run_local("mysql -uroot -pdirector infosync_wp1 < /tmp/sql_drop.sql")
     print 'Restoring . . .'
@@ -88,15 +92,18 @@ def restores_remote_wordpress():
     env.host_string = 'localhost' #production_server
     env.user = 'josepato'
     env.key_filename = '/home/josepato/.ssh/id_rsa'
-    run_local("scp -i .ssh/id_rsa_goddady infosync@%s:%s ./"%(testing_server, backup_name))
+    run_local("scp -i /home/josepato/.ssh/id_rsa_goddady infosync@%s:%s /var/backups/"%(testing_server, backup_name))
     print 'Restoring ',backup_name
-    print 'Files Ready'
     with mode_local():
         with mode_sudo():
             dir_attribs("/srv/wordpress/linkaform.com", mode=777, owner='www-data', group='www-data', recursive=True)
     with mode_local():
+        with cd('/var/backups/'):
+            run_local("tar xfz /var/backups/%s "%(backup_name))
         with mode_sudo():
-            run_local("tar xfz %s -C /srv/wordpress/linkaform.com/ --strip-components=1"%(backup_name))
+            run_local('rm -rf /srv/wordpress/linkaform/*')
+            run_local('mv /var/backups/public_html/* /srv/wordpress/linkaform.com/')
+            run_local('cp /home/josepato/wp-config.php /srv/wordpress/linkaform.com/')
             dir_attribs("/srv/wordpress/linkaform.com", mode=774, owner='www-data', group='www-data', recursive=True)
     print 'restores_remote_wordpress = Done'
 
