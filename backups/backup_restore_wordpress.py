@@ -12,8 +12,8 @@ from fabric import operations
 from sys import argv
 from datetime import datetime
 
-testing_server = 'www.linkaform.com'
-production_server = 'test.linkaform.com'
+testing_server = 'test.linkaform.com'
+production_server = 'www.linkaform.com'
 
 #TODO:
 #PUT PASSWORDS ON FIELS
