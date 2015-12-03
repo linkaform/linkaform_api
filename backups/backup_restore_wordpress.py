@@ -39,7 +39,7 @@ front_servers = ['ernie.linkaform.com', 'ernie2.linkaform.com']
 
 
 @task
-def backup_mysqldb(key_filename='/home/josepato/.ssh/id_rsa'):
+def backup_mysqldb(key_filename='/home/infosync/.ssh/id_rsa'):
     """
     Crear un archivo tar de directorio remoto
     """
@@ -53,7 +53,7 @@ def backup_mysqldb(key_filename='/home/josepato/.ssh/id_rsa'):
     return db_backup_name
 
 @task
-def backup_public_html(key_filename='/home/josepato/.ssh/id_rsa'):
+def backup_public_html(key_filename='/home/infosync/.ssh/id_rsa'):
     """
     Crear un archivo tar de directorio remoto
     """
@@ -74,29 +74,22 @@ def restores_remote_db():
     """
     Copies and restores the databse form the remote server
     """
-    with mode_local():
-        #env.host_string = production_server
-        #env.user = 'infosync'
-        #env.key_filename = '/home/josepato/.ssh/id_rsa_goddady'
-        #setups scripts
-        script = """use infosync_wp1;
+    script = """use infosync_wp1;
 drop database infosync_wp1;
 create database infosync_wp1;
 use infosync_wp1;
 GRANT ALL PRIVILEGES ON infosync_wp1.* TO "infosync"@"hostname"  IDENTIFIED BY "director";
 FLUSH PRIVILEGES;"""
-        update_script ="update infosync_wp1.wp_options set option_value ='http://%s' where option_id=1 or option_id=37;"%(production_server)
-        file_write('/tmp/sql_drop.sql', script)
-        file_write('/tmp/update_script.sql', update_script )
-        #makes remote backup
+    update_script ="update infosync_wp1.wp_options set option_value ='http://%s' where option_id=1 or option_id=37;"%(production_server)
     db_name = backup_mysqldb()
-    #copies dbs
     print 'Coping files...'
     for server in front_servers:
         env.host_string = server
         env.user = 'infosync'
         env.key_filename = '/home/infosync/.ssh/id_rsa'
-        run("scp -i /home/josepato/.ssh/id_rsa infosync@%s:%s ./"%(testing_server,db_name))
+        file_write('/tmp/sql_drop.sql', script)
+        file_write('/tmp/update_script.sql', update_script )
+        run("scp  infosync@%s:%s ./"%(testing_server,db_name))
         print 'droping db . . .'
         run("mysql -uroot -pdirector infosync_wp1 < %s"%"/tmp/sql_drop.sql")
         print 'Restoring . . .'
@@ -106,7 +99,7 @@ FLUSH PRIVILEGES;"""
         print 'restores_remote_db DONE'
     return True
 
-def git_commit_delete_files(server, home_dir, port=22, branch='master', user='infosync', key_filename='/home/josepato/.ssh/id_rsa'):
+def git_commit_delete_files(server, home_dir, port=22, branch='master', user='infosync', key_filename='/home/infosync/.ssh/id_rsa'):
     env.host_string = server
     env.user = user
     env.port = port
@@ -130,7 +123,7 @@ def git_commit_delete_files(server, home_dir, port=22, branch='master', user='in
             return False
         return True
 
-def git_commit_add_all_files(server, home_dir, port=22, branch='master', user = 'infosync', key_filename = '/home/josepato/.ssh/id_rsa'):
+def git_commit_add_all_files(server, home_dir, port=22, branch='master', user = 'infosync', key_filename = '/home/infosync/.ssh/id_rsa'):
     env.host_string = server
     env.user = user
     env.key_filename = key_filename
@@ -142,7 +135,7 @@ def git_commit_add_all_files(server, home_dir, port=22, branch='master', user = 
         git_commit = run('git commit -m "Auto commit made by jvote on %s the %s"'%(hostname, date))
         return True
 
-def git_status(server, home_dir, port=22, branch='master', user = 'infosync', key_filename = '/home/josepato/.ssh/id_rsa'):
+def git_status(server, home_dir, port=22, branch='master', user = 'infosync', key_filename = '/home/infosync/.ssh/id_rsa'):
     env.host_string = server
     env.user = user
     env.key_filename = key_filename
@@ -150,7 +143,7 @@ def git_status(server, home_dir, port=22, branch='master', user = 'infosync', ke
         status = run('git status')
     return status
 
-def git_push(server, home_dir, port=22, branch='master', user = 'infosync', key_filename = '/home/josepato/.ssh/id_rsa'):
+def git_push(server, home_dir, port=22, branch='master', user = 'infosync', key_filename = '/home/infosync/.ssh/id_rsa'):
     env.host_string = server
     env.user = user
     env.key_filename = key_filename
@@ -158,7 +151,7 @@ def git_push(server, home_dir, port=22, branch='master', user = 'infosync', key_
         status = run('git push -u origin %s'%(branch))
     return status
 
-def git_pull(server, home_dir, port=22, branch='master', sys_user = 'infosync', key_filename = '/home/josepato/.ssh/id_rsa'):
+def git_pull(server, home_dir, port=22, branch='master', sys_user = 'infosync', key_filename = '/home/infosync/.ssh/id_rsa'):
     env.host_string = server
     env.user = sys_user
     env.key_filename = key_filename
@@ -178,7 +171,7 @@ def git_wordpress_backup():
     home_dir = '/home/infosync/public_html'
     branch='master'
     user = 'infosync'
-    key_filename = '/home/josepato/.ssh/id_rsa'
+    key_filename = '/home/infosync/.ssh/id_rsa'
     port =22
     print 'removing files...'
     del_files_status = git_commit_delete_files(testing_server, home_dir, port, branch, user, key_filename)
@@ -197,7 +190,7 @@ def restores_wordpress_git():
     """
     home_dir = '/home/infosync/public_html'
     print 'doing status'
-    status = git_status(testing_server, home_dir, port=22, branch='master', user = 'infosync', key_filename = '/home/josepato/.ssh/id_rsa')
+    status = git_status(testing_server, home_dir, port=22, branch='master', user = 'infosync', key_filename = '/home/infosync/.ssh/id_rsa')
     if status.find('nothing to commit') > 0 or status.find('up-to-date') > 0:
         print 'Nothing to commit, everything is up to date', status
     else:
@@ -207,9 +200,9 @@ def restores_wordpress_git():
         for server in front_servers:
             env.host_string = server
             env.user = 'infosync'
-            env.key_filename = '/home/josepato/.ssh/id_rsa'
+            env.key_filename = '/home/infosync/.ssh/id_rsa'
             print 'making pull on ', server
-            git_pull(server, home_dir, port=22, branch='master', sys_user = 'infosync', key_filename = '/home/josepato/.ssh/id_rsa')
+            git_pull(server, home_dir, port=22, branch='master', sys_user = 'infosync', key_filename = '/home/infosync/.ssh/id_rsa')
             print 'pull done'
     restores_remote_db()
     return True
@@ -223,8 +216,8 @@ def restores_remote_wordpress():
     print 'coping files...'
     env.host_string = 'localhost' #production_server
     env.user = 'josepato'
-    env.key_filename = '/home/josepato/.ssh/id_rsa'
-    run_local("scp -i /home/josepato/.ssh/id_rsa_goddady infosync@%s:%s /var/backups/"%(testing_server, backup_name))
+    env.key_filename = '/home/infosync/.ssh/id_rsa'
+    run_local("scp -i /home/infosync/.ssh/id_rsa_goddady infosync@%s:%s /var/backups/"%(testing_server, backup_name))
     print 'Restoring ',backup_name
     with mode_local():
         with mode_sudo():
@@ -244,7 +237,7 @@ def make_oscar_build(branch):
     port = 2221
     home_dir ='/home/infosync/infosync-webapp/app'
     user = 'infosync'
-    key_filename = '/home/josepato/.ssh/id_rsa'
+    key_filename = '/home/infosync/.ssh/id_rsa'
     git_pull(server, home_dir, branch, user, key_filename)
     run('grunt build --force')
     return True
@@ -254,7 +247,7 @@ def commiting_build(branch='master'):
     port = 2221
     home_dir ='/home/infosync/infosync-webapp/app/dist'
     user = 'infosync'
-    key_filename = '/home/josepato/.ssh/id_rsa'
+    key_filename = '/home/infosync/.ssh/id_rsa'
     git_commit_delete_files(server, home_dir, port, branch, user, key_filename)
     git_commit_add_all_files(server, home_dir, port, branch, user, key_filename)
     git_push(server, home_dir, port, branch, user, key_filename)
