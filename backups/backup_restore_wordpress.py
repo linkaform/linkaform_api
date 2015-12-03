@@ -75,7 +75,7 @@ def restores_remote_db():
     Copies and restores the databse form the remote server
     """
     with mode_local():
-        env.host_string = production_server
+        #env.host_string = production_server
         #env.user = 'infosync'
         #env.key_filename = '/home/josepato/.ssh/id_rsa_goddady'
         #setups scripts
@@ -92,21 +92,21 @@ FLUSH PRIVILEGES;"""
     db_name = backup_mysqldb()
     #copies dbs
     print 'Coping files...'
-    for server in production_server:
+    for server in front_servers:
         env.host_string = server
         env.user = 'infosync'
-        env.key_filename = '/home/josepato/.ssh/id_rsa'
-        run("scp -i /home/josepato/.ssh/id_rsa_goddady infosync@%s:%s ./"%(testing_server,db_name))
+        env.key_filename = '/home/infosync/.ssh/id_rsa'
+        run("scp -i /home/josepato/.ssh/id_rsa infosync@%s:%s ./"%(testing_server,db_name))
         print 'droping db . . .'
-        run("mysql -uroot -pdirector infosync_wp1 < %s"%(script))#/tmp/sql_drop.sql")
+        run("mysql -uroot -pdirector infosync_wp1 < %s"%"/tmp/sql_drop.sql")
         print 'Restoring . . .'
         run("mysql -uinfosync -pdirector infosync_wp1 < infosync_wp1.sql ")
         print 'Updates...'
-        run("mysql -uinfosync -pdirector infosync_wp1 < %s"(update_script))#/tmp/update_script.sql")
+        run("mysql -uinfosync -pdirector infosync_wp1 < %s"%"/tmp/update_script.sql")
         print 'restores_remote_db DONE'
+    return True
 
-
-def git_commit_delete_files(server, home_dir, port=22, dbranch='master', user='infosync', key_filename='/home/josepato/.ssh/id_rsa'):
+def git_commit_delete_files(server, home_dir, port=22, branch='master', user='infosync', key_filename='/home/josepato/.ssh/id_rsa'):
     env.host_string = server
     env.user = user
     env.port = port
@@ -114,18 +114,21 @@ def git_commit_delete_files(server, home_dir, port=22, dbranch='master', user='i
     env.key_filename = key_filename
     with cd(home_dir):
         run('git  checkout %s'%(branch))
-        del_files = run('git status  | grep deleted:')
-        del_files = del_files.replace('#','')
-        del_files = del_files.replace('\t','')
-        del_files = del_files.replace('\n','')
-        del_files = del_files.replace('\r','')
-        del_files = del_files.replace('deleted:','')
-        print 'del_files', del_files
-        git_del = run('git rm %s'%(del_files))
-        if git_del[:2] != 'rm':
+        try:
+            del_files = run('git status  | grep deleted:')
+            if del_files:
+                del_files = del_files.replace('#','')
+                del_files = del_files.replace('\t','')
+                del_files = del_files.replace('\n','')
+                del_files = del_files.replace('\r','')
+                del_files = del_files.replace('deleted:','')
+                print 'del_files', del_files
+                git_del = run('git rm %s'%(del_files))
+                if git_del[:2] != 'rm':
+                    return False
+        except:
             return False
         return True
-
 
 def git_commit_add_all_files(server, home_dir, port=22, branch='master', user = 'infosync', key_filename = '/home/josepato/.ssh/id_rsa'):
     env.host_string = server
@@ -139,70 +142,77 @@ def git_commit_add_all_files(server, home_dir, port=22, branch='master', user = 
         git_commit = run('git commit -m "Auto commit made by jvote on %s the %s"'%(hostname, date))
         return True
 
+def git_status(server, home_dir, port=22, branch='master', user = 'infosync', key_filename = '/home/josepato/.ssh/id_rsa'):
+    env.host_string = server
+    env.user = user
+    env.key_filename = key_filename
+    with cd(home_dir):
+        status = run('git status')
+    return status
+
 def git_push(server, home_dir, port=22, branch='master', user = 'infosync', key_filename = '/home/josepato/.ssh/id_rsa'):
     env.host_string = server
     env.user = user
     env.key_filename = key_filename
     with cd(home_dir):
-        git_status = run('git push -u origin %s'%(branch))
-    return git_status
+        status = run('git push -u origin %s'%(branch))
+    return status
 
-def git_pull(server, home_dir, port=22, branch='master', user = 'infosync', key_filename = '/home/josepato/.ssh/id_rsa'):
+def git_pull(server, home_dir, port=22, branch='master', sys_user = 'infosync', key_filename = '/home/josepato/.ssh/id_rsa'):
     env.host_string = server
-    env.user = user
+    env.user = sys_user
     env.key_filename = key_filename
     print 'running pull at', server
     with cd(home_dir):
-        with user(user):
-            git_status = run('git fetch')
-            print git_status
-            git_status = run('git checkout %s'%(branch))
-            print 'checkout=', git_status
-            git_status = run('git pull -u origin %s'%(branch))
-            print 'pull=', git_status
-    return git_status
+        print 'home dir', home_dir
+        print 'sys_user', sys_user
+        status = run('git fetch')
+        print status
+        status = run('git checkout %s'%(branch))
+        print 'checkout=', status
+        status = run('git pull -u origin %s'%(branch))
+        print 'pull=', status
+    return status
 
 def git_wordpress_backup():
     home_dir = '/home/infosync/public_html'
     branch='master'
     user = 'infosync'
     key_filename = '/home/josepato/.ssh/id_rsa'
+    port =22
     print 'removing files...'
-    del_files_status = git_commit_delete_files(testing_server, home_dir, branch, user, key_filename)
+    del_files_status = git_commit_delete_files(testing_server, home_dir, port, branch, user, key_filename)
     print 'removed with status', del_files_status
     print 'adding files ...'
-    add_files_status = git_commit_add_all_files(testing_server, home_dir, branch, user, key_filename)
+    add_files_status = git_commit_add_all_files(testing_server, home_dir, port, branch, user, key_filename)
     print 'add files status: ',add_files_status
     print 'pushing files'
-    git_status = git_push(testing_server, home_dir, branch, user, key_filename)
-    print 'git done', git_status
+    status = git_push(testing_server, home_dir, port, branch, user, key_filename)
+    print 'git done', status
     return True
-
 
 def restores_wordpress_git():
     """
     Copies and restores remote wordpress
     """
-    #restores_remote_db()
-    #backup_name = backup_public_html()
-    print 'making backups with git...'
-    git_wordpress_backup()
-    print 'Restoring ',backup_name
-    home_dir = '/srv/wordpress/linkaform.com/'
-    for server in front_servers:
-        env.host_string = server
-        env.user = 'infosync'
-        env.key_filename = '/home/josepato/.ssh/id_rsa'
-        git_pull(server, home_dir, port=22, branch='master', user = 'infosync', key_filename = '/home/josepato/.ssh/id_rsa')
-        #dir_attribs("/srv/wordpress/linkaform.com", mode=777, owner='www-data', group='www-data', recursive=True)
-        with cd('/var/backups/'):
-            run_local("tar xfz /var/backups/%s "%(backup_name))
-        with mode_sudo():
-            run_local('rm -rf /srv/wordpress/linkaform/*')
-            run_local('mv /var/backups/public_html/* /srv/wordpress/linkaform.com/')
-            run_local('cp /home/josepato/wp-config.php /srv/wordpress/linkaform.com/')
-            dir_attribs("/srv/wordpress/linkaform.com", mode=774, owner='www-data', group='www-data', recursive=True)
-    print 'restores_remote_wordpress = Done'
+    home_dir = '/home/infosync/public_html'
+    print 'doing status'
+    status = git_status(testing_server, home_dir, port=22, branch='master', user = 'infosync', key_filename = '/home/josepato/.ssh/id_rsa')
+    if status.find('nothing to commit') > 0 or status.find('up-to-date') > 0:
+        print 'Nothing to commit, everything is up to date', status
+    else:
+        print 'making backups with git...'
+        git_wordpress_backup()
+        home_dir = '/srv/wordpress/linkaform.com/'
+        for server in front_servers:
+            env.host_string = server
+            env.user = 'infosync'
+            env.key_filename = '/home/josepato/.ssh/id_rsa'
+            print 'making pull on ', server
+            git_pull(server, home_dir, port=22, branch='master', sys_user = 'infosync', key_filename = '/home/josepato/.ssh/id_rsa')
+            print 'pull done'
+    restores_remote_db()
+    return True
 
 def restores_remote_wordpress():
     """
@@ -259,17 +269,12 @@ def restore_build(branch='master'):
     git_pull(server, home_dir, branch, user, key_filename)
     return True
 
-#git_commit_delete_files(server, home_dir, port, dbranch, user, key_filename)
-#git_commit_add_all_files(server, home_dir, branch, user, key_filename)
-#git_push(server, home_dir, branch, user, key_filename)
-
 if __name__ == "__main__":
     try:
         if argv[1] == 'all':
             print 'the hole echilada'
             execute(restores_remote_wordpress)
         #elif argv[1] == 'commit':
-
         elif argv[1] == 'make_build':
             print 'Starting to make build'
             branch = argv[2]
@@ -280,8 +285,8 @@ if __name__ == "__main__":
             #commiting_build(branch)
             restore_build(branch)
         else:
+            execute(restores_wordpress_git)
             print ' olny db'
-            execute(restores_remote_db)
     except IndexError:
-        execute(restores_remote_db)
-        print 'only bd'
+        print 'else '
+        execute(restores_wordpress_git)
