@@ -155,7 +155,8 @@ def git_pull(server, home_dir, port=22, branch='master', sys_user = 'infosync', 
     env.host_string = server
     env.user = sys_user
     env.key_filename = key_filename
-    print 'running pull at', server
+    env.port = port
+    print 'running pull at', server , 'port', port
     with cd(home_dir):
         print 'home dir', home_dir
         print 'sys_user', sys_user
@@ -237,7 +238,7 @@ def make_oscar_build(branch):
     port = 2221
     home_dir ='/home/infosync/infosync-webapp/app'
     user = 'infosync'
-    key_filename = '/home/infosync/.ssh/id_rsa'
+    key_filename = '/home/josepato/.ssh/id_rsa'
     git_pull(server, home_dir, branch, user, key_filename)
     run('grunt build --force')
     return True
@@ -247,7 +248,7 @@ def commiting_build(branch='master'):
     port = 2221
     home_dir ='/home/infosync/infosync-webapp/app/dist'
     user = 'infosync'
-    key_filename = '/home/infosync/.ssh/id_rsa'
+    key_filename = '/home/josepato/.ssh/id_rsa'
     git_commit_delete_files(server, home_dir, port, branch, user, key_filename)
     git_commit_add_all_files(server, home_dir, port, branch, user, key_filename)
     git_push(server, home_dir, port, branch, user, key_filename)
@@ -258,28 +259,35 @@ def restore_build(branch='master'):
     port = 2221
     home_dir ='/srv/infosync-webapp/dist'
     user = 'infosync'
-    key_filename = '/home/infosync/.ssh/id_rsa'
-    git_pull(server, home_dir, branch, user, key_filename)
+    key_filename = '/home/josepato/.ssh/id_rsa'
+    git_pull(server, home_dir, port, branch, user, key_filename)
     return True
 
 if __name__ == "__main__":
-    try:
-        if argv[1] == 'all':
-            print 'the hole echilada'
-            execute(restores_remote_wordpress)
-        #elif argv[1] == 'commit':
-        elif argv[1] == 'make_build':
-            print 'Starting to make build'
+    if argv[1] == 'all':
+        print 'the hole echilada'
+        execute(restores_remote_wordpress)
+    #elif argv[1] == 'commit':
+    elif argv[1] == 'make_build':
+        print 'Starting to make build'
+        branch = argv[2]
+        restores_oscar_build(branch)
+    elif argv[1] == 'commit':
+        print 'Restore build'
+        try:
             branch = argv[2]
-            restores_oscar_build(branch)
-        elif argv[1] == 'restore_build':
-            print 'Restore build'
-            branch =argv[2]
-            #commiting_build(branch)
-            restore_build(branch)
-        else:
-            execute(restores_wordpress_git)
-            print ' olny db'
-    except IndexError:
-        print 'else '
+        except:
+            branch = 'master'
+        commiting_build(branch)
+    elif argv[1] == 'restore_build':
+        print 'Restore build'
+        try:
+            branch = argv[2]
+        except:
+            branch = 'master'
+        restore_build(branch)
+    elif argv[1] == 'wordpress':
+        print ' olny db'
         execute(restores_wordpress_git)
+    else:
+        print 'Sorry no option selected, pleas use all, make_build, commit, restore_build, wordpress '
