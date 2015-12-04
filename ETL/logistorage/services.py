@@ -118,9 +118,9 @@ def get_query():
         'ENTRADA_DETALLE_unit_price': {'$max': "$55916a6f01a4de7bba8529a2.unit_price"},
         'ENTRADA_DETALLE_total': {'$sum': "$55916a6f01a4de7bba8529a2.total"},
 
-        'FLEJE_VENTA_qty': {'$sum': "$55cb86f423d3fd09737bcc1a.qty"},
-        'FLEJE_VENTA_unit_price': {'$max': "$55cb86f423d3fd09737bcc1a.unit_price"},
-        'FLEJE_VENTA_total': {'$sum': "$55cb86f423d3fd09737bcc1a.total"},
+        'FLEJE_VENTA_qty': {'$sum': "$5601781223d3fd71eb874da7.qty"},
+        'FLEJE_VENTA_unit_price': {'$max': "$5601781223d3fd71eb874da7.unit_price"},
+        'FLEJE_VENTA_total': {'$sum': "$5601781223d3fd71eb874da7.total"},
 
 #        "55cb692523d3fd4818dd2195":"55cb786023d3fd4818dd21b7",
         'PERSONAL_DEDICADO_PROYECTO_qty': {'$sum': "$55cb692523d3fd4818dd2195.qty"},

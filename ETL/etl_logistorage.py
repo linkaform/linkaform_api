@@ -15,7 +15,7 @@ import json, re, locale, requests, simplejson
 host = 'localhost'
 local_port = 27017
 #testing_port = 27019
-production_port = 27019
+production_port = 27017
 
 LOGIN_URL = "https://www.info-sync.com/api/infosync/user_admin/login/"
 USERNAME = 'logistorage.infosync@gmail.com'
@@ -25,7 +25,7 @@ GET_PARENT_ID_FORMS = "https://www.info-sync.com/api/infosync/item/?parent="
 MONTH_DIR = {1:'2015/01',2:'2015/02',3:'2015/03',4:'2015/04',5:'2015/05',6:'2015/06',
 7:'2015/07',8:'2015/08',9:'2015/09',10:'2015/10',11:'2015/11',12:'2015/12'}
 
-MONTH_DIR_TEXT = {'ENERO':'2015/01','FERERO':'2015/02','MARZO':'2015/03','ABRIL':'2015/04','MAYO':'2015/05','JUNIO':'2015/06',
+MONTH_DIR_TEXT = {'ENERO':'2015/01','FEBRERO':'2015/02','MARZO':'2015/03','ABRIL':'2015/04','MAYO':'2015/05','JUNIO':'2015/06',
 'JULIO':'2015/07','AGOSTO':'2015/08','SEPTIEMBRE':'2015/09','OCTUBRE':'2015/10','NOVIEMBRE':'2015/11','DICIEMBRE':'2015/12'}
 
 
@@ -120,6 +120,7 @@ service_price_json = {
         "55db956d23d3fd30f2ce9df0":"55db943d23d3fd30f15ce388",
         "55db956d23d3fd30f2ce9df1":"55db943d23d3fd30f15ce389",
         "55db5bd923d3fd157a97dfd6":"55d5050a23d3fd5787d8a97b",
+        "5601781223d3fd71eb874da7":"55cb86f423d3fd09737bcc1a",#Fleje Venta
         "55fb84cf23d3fd7817c11955":"55fb83f623d3fd78190aa80e",
         "00000000000000000000a100":"00000000000000000000b100",
         "00000000000000000000a101":"00000000000000000000b101"
@@ -295,7 +296,7 @@ class FakeETLModel(object):
         #active = True
 
 def get_price_from_dates(answer, price_list, created_at):
-        offset = '05'
+        offset = '06'
         index_price = -1
         price_index = 0
         last_from_delta = 1000
@@ -353,9 +354,11 @@ def get_service_answer_json(answer, field, meta_answers):
         condition_id = extra_price_condition_json[price_id]
         condition_price_list = PRICE_LIST[client][warehouse][condition_id]
         condition_qty = get_price_from_dates(answer, condition_price_list, created_at)['unit_price']
+        fixed_rent_json = get_price_from_dates(1, PRICE_LIST[client][warehouse]['5595a5ae23d3fd7d304980c3'], created_at)
         extra_json = {
         'extra_price':extra_unit_price,
-        'condition':{'operator':'>','qty':condition_qty}
+        'condition':{'operator':'>','qty':condition_qty},
+        'fixed_rent':fixed_rent_json['total']
         }
         service_json.update(extra_json)
     return service_json
@@ -394,7 +397,7 @@ def get_answer(answer, field, meta_answers= {}):
                     return answer
         elif field["field_type"] == "date":
             #TODO get time offset
-            date = answer + 'T05'
+            date = answer + 'T06'
             return datetime.strptime(date,'%Y-%m-%dT%H')
         elif field_id in service_price_json.keys():
             try:
@@ -427,7 +430,7 @@ def insert_rent_services(meta_answer):
         rent_id = str(record_date.year) + str(record_date.month) + client + warehouse
         #asures with 6 hrs the time zone
         #to do , insert timezone
-        new_created_at = '%s-%s-%02d'%(record_date.year, record_date.month, record_date.day)+'T05:00:00'
+        new_created_at = '%s-%s-%02d'%(record_date.year, record_date.month, record_date.day)+'T06:00:00'
         created_at = record_date
         rent_json['created_at'] = datetime.strptime(new_created_at, '%Y-%m-%dT%H:%M:%S')
     except:
@@ -504,7 +507,7 @@ def verify_one_record_per_company(report_answer):#, one_record_json):
                 for year_month in get_all_months(report_answer):
                     year = year_month['_id']['year']
                     month = year_month['_id']['month']
-                    offset = '05'
+                    offset = '06'
                     date = '%s-%s-01T%s:00:00'%(year, month, offset)
                     created_at = datetime.strptime(date,'%Y-%m-%dT%H:%M:%S')
                     for itype in all_types:
@@ -543,7 +546,7 @@ def get_meta_answer_with_rules(record):
     #var now = new Date();
     #now.getTimezoneOffset()
     #this will give you the offset in munuts
-    offset = '05'
+    offset = '06'
     if not res:
         res = record['answers'].get(other_field['Fecha_de_Captura']['old_id'], False)
     if not res:
