@@ -128,6 +128,7 @@ class SanfandilaForm(Form):
     MORTALIDADES_MODULOS = 3288
     MORTALIDADES_SANFANDILA_ABC = 4706
     PARAMETROS = 4879
+    CAPACIDAD_LAGOS = 1234
     TESTING = 5106
     
     def __init__(self, **kwargs):        
@@ -162,6 +163,7 @@ class SanfandilaForm(Form):
             self.MORTALIDADES_MODULOS : 'mortalidades_modulos',            
             self.MORTALIDADES_SANFANDILA_ABC : 'mortalidades_sanfandila_abc',
             self.PARAMETROS : 'parametros',
+            self.CAPACIDAD_LAGOS : 'capacidad_lagos',
             self.TESTING : 'testing'
         }        
 
@@ -324,7 +326,24 @@ class SanfandilaForm(Form):
                 'mortalidad' : (FieldType.ONE_FIELD, '487900000000000000000010', 'float'),
                 'consumo_semanal' : (FieldType.ONE_FIELD, '487900000000000000000011', 'float'),
                 'consumo_diario' : (FieldType.ONE_FIELD, '487900000000000000000012', 'float'),
-                'kg_carne' : (FieldType.ONE_FIELD, '487900000000000000000013', 'float')                                
+                'kg_carne' : (FieldType.ONE_FIELD, '487900000000000000000013', 'float'),
+                'dias_edad' : (FieldType.ONE_FIELD, '487900000000000000000014', 'float'),
+                'sitios' : (FieldType.ONE_FIELD, '487900000000000000000015', ''),
+                'alimento' : (FieldType.ONE_FIELD, '487900000000000000000016', ''),
+                'consumo_alimento' : (FieldType.ONE_FIELD, '487900000000000000000017', 'float'),
+                'peso_desecho' : (FieldType.ONE_FIELD, '487900000000000000000018', 'float'),
+                'porcentaje_desecho' : (FieldType.ONE_FIELD, '487900000000000000000019', 'float'),
+                'inventario_inicial' : (FieldType.ONE_FIELD, '487900000000000000000020', 'float'),
+                'inventario_final' : (FieldType.ONE_FIELD, '487900000000000000000021', 'float'),
+                'inventario_desecho' : (FieldType.ONE_FIELD, '487900000000000000000022', 'float'), 
+                'inventario_retrasado' : (FieldType.ONE_FIELD, '487900000000000000000023', 'float'),
+                'cantidad_alimento_consumido' : (FieldType.ONE_FIELD, '487900000000000000000024', 'float'),
+                'cantidad_alimento_acumulado' : (FieldType.ONE_FIELD, '487900000000000000000025', 'float')
+            }],
+
+            self.CAPACIDAD_LAGOS : [{
+                'capacidad' : (FieldType.ONE_FIELD, '123400000000000000000001', 'float'),
+                'granja' : (FieldType.ONE_FIELD, '123400000000000000000002', '')
             }],
             
             self.TESTING : [{
@@ -335,6 +354,25 @@ class SanfandilaForm(Form):
         }
         return form_id_fields_map[self.form_id]
 
+
+            # self.PARAMETROS : [{
+            #     'sem_edad' : (FieldType.ONE_FIELD, '487900000000000000000001', 'float'),
+            #     'alimento_consumo_semanal' : (FieldType.ONE_FIELD, '487900000000000000000002', 'float'),
+            #     'alimento_consumo_diario' : (FieldType.ONE_FIELD, '487900000000000000000003', 'float'),
+            #     'ganancia_diaria' : (FieldType.ONE_FIELD, '487900000000000000000004', 'float'),
+            #     'gsp' : (FieldType.ONE_FIELD, '487900000000000000000005', 'float'),
+            #     'peso' : (FieldType.ONE_FIELD, '487900000000000000000006', 'float'),
+            #     'porcentaje_desecho' : (FieldType.ONE_FIELD, '487900000000000000000007', 'float'),
+            #     'peso_retrasado' : (FieldType.ONE_FIELD, '487900000000000000000008', 'float'),
+            #     'conversion_alimenticia' : (FieldType.ONE_FIELD, '487900000000000000000009', 'float'),
+            #     'mortalidad' : (FieldType.ONE_FIELD, '487900000000000000000010', 'float'),
+            #     'consumo_semanal' : (FieldType.ONE_FIELD, '487900000000000000000011', 'float'),
+            #     'consumo_diario' : (FieldType.ONE_FIELD, '487900000000000000000012', 'float'),
+            #     'kg_carne' : (FieldType.ONE_FIELD, '487900000000000000000013', 'float'),
+            #     'semana_calendario' : (FieldType.ONE_FIELD, '487900000000000000000014', 'float')                
+            # }],
+
+    
 def warning(*objs):
     '''
     To print stuff at stderr

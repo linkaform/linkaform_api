@@ -1,0 +1,13 @@
+[
+    {
+	'fecha' : '$answers.000000000000000000000001',
+	'granja' : '$answers.000000000000000000000002',
+	'total_muertos' : '$answers.000000000000000000000003',
+	'descripcion_muertes' : '$answers.000000000000000000000004',
+	'causa_muerte' : '$answers.000000000000000000000005',
+	'muertos_por_esta_causa' : '$answers.000000000000000000000006',
+	'fotografia' : '$answers.000000000000000000000007',
+	'lote' : '$answers.000000000000000000000008',
+	'flujo' : '$answers.000000000000000000000009'		
+    }
+]

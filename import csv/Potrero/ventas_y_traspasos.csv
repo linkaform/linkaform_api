@@ -1,0 +1,41 @@
+fecha, granja, movimiento, traspaso_granja_destino, cantidad, kilos_totales, dias_totales, lote, flujo
+,,,,,,,,
+2015-10-03,Potrero, Venta de Primera,,312,31785,47736,18,Tejas
+2015-10-06,Potrero, Venta de Primera,,26,2579,4056,18,Tejas
+2015-10-07,Potrero, Venta de Primera,,183,16468,28731,18,Tejas
+2015-10-08,Potrero, Venta de Primera,,152,14824,24016,18,Tejas
+2015-10-09,Potrero, Venta de Primera,,61,5801,9699,18,Tejas
+2015-10-10,Potrero, Venta de Primera,,84,6804,13440,18,Tejas
+2015-09-03,Potrero, Venta de Desecho,,6,147,738,18,Tejas
+2015-10-14,Potrero, Venta de Primera,,370,30925,58090,19,Tejas
+2015-10-15,Potrero, Venta de Primera,,283,28015,44714,19,Tejas
+2015-09-03,Potrero, Venta de Desecho,,6,147,696,19,Tejas
+2015-09-15,Potrero, Venta de Desecho,,7,209,896,19,Tejas
+2015-10-17,Potrero, Venta de Primera,,48,4870,7344,20,Tejas
+2015-10-17,Potrero, Venta de Retrasado,,1,76,153,20,Tejas
+2015-10-16,Potrero, Venta de Retrasado,,15,1185,2265,20,Tejas
+2015-09-15,Potrero, Venta de Desecho,,2,60,242,20,Tejas
+2015-09-03,Potrero, Venta de Desecho,,4,97,408,21,Tejas
+2015-09-03,Potrero, Venta de Desecho,,3,74,285,22,Tejas
+2015-09-15,Potrero, Venta de Desecho,,3,90,321,22,Tejas
+2015-09-03,Potrero, Venta de Desecho,,7,172,616,23,Tejas
+2015-09-15,Potrero, Venta de Desecho,,6,179,600,23,Tejas
+2015-09-03,Potrero, Venta de Desecho,,7,172,567,24,Tejas
+2015-09-15,Potrero, Venta de Desecho,,1,30,93,24,Tejas
+2015-10-05,Potrero, Venta de Primera,,130,13590,20150,18,Zacatecas
+2015-10-06,Potrero, Venta de Primera,,96,9521,14976,18,Zacatecas
+2015-10-07,Potrero, Venta de Primera,,196,17637,30772,18,Zacatecas
+2015-10-08,Potrero, Venta de Primera,,36,3511,5688,18,Zacatecas
+2015-10-09,Potrero, Venta de Primera,,130,12363,20670,18,Zacatecas
+2015-10-10,Potrero, Venta de Primera,,16,1296,2560,18,Zacatecas
+2015-10-16,Potrero, Venta de Primera,,48,4987,7968,18,Zacatecas
+2015-10-08,Potrero, Venta de Retrasado,,6,451,948,18,Zacatecas
+2015-10-15,Potrero, Venta de Retrasado,,8,608,1320,18,Zacatecas
+2015-10-16,Potrero, Venta de Primera,,110,11428,17490,19,Zacatecas
+2015-10-17,Potrero, Venta de Primera,,96,9740,15360,19,Zacatecas
+2015-09-03,Potrero, Venta de Desecho,,2,49,218,20,Zacatecas
+2015-09-03,Potrero, Venta de Desecho,,3,74,306,21,Zacatecas
+2015-09-15,Potrero, Venta de Desecho,,1,30,114,21,Zacatecas
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,

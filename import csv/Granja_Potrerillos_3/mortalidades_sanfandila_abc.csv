@@ -1,0 +1,70 @@
+fecha,granja,total_muertos,causa_muerte,muerto_por_esta_causa,lote,flujo
+2015-08-27,Potrerillos 3,1,Neumonia,1,15220401,Tepuza
+2015-09-01,Potrerillos 3,3,Neumonia,3,15220401,Tepuza
+2015-09-02,Potrerillos 3,2,Neumonia,2,15220401,Tepuza
+2015-09-06,Potrerillos 3,1,Neumonia,1,15220401,Tepuza
+2015-09-07,Potrerillos 3,1,Poliserositis,1,15220401,Tepuza
+2015-09-10,Potrerillos 3,1,Edema,1,15220401,Tepuza
+2015-09-11,Potrerillos 3,2,Edema,2,15220401,Tepuza
+2015-09-14,Potrerillos 3,2,Neumonia,2,15220401,Tepuza
+2015-09-16,Potrerillos 3,2,Edema,2,15220401,Tepuza
+2015-09-17,Potrerillos 3,2,Edema,2,15220401,Tepuza
+2015-09-18,Potrerillos 3,3,Edema,3,15220401,Tepuza
+2015-09-19,Potrerillos 3,1,Edema,1,15220401,Tepuza
+2015-09-21,Potrerillos 3,1,Neumonia,1,15220401,Tepuza
+2015-09-22,Potrerillos 3,2,Edema,2,15220401,Tepuza
+2015-09-25,Potrerillos 3,1,Edema,1,15220401,Tepuza
+2015-10-02,Potrerillos 3,1,Edema,1,15220401,Tepuza
+2015-10-04,Potrerillos 3,1,Sindrome Hemorrágico,1,15220401,Tepuza
+2015-09-01,Potrerillos 3,3,Neumonia,3,15220201,Palomas
+2015-09-02,Potrerillos 3,1,Neumonia,1,15220201,Palomas
+2015-09-14,Potrerillos 3,1,Neumonia,1,15220201,Palomas
+2015-09-16,Potrerillos 3,2,Neumonia,2,15220201,Palomas
+2015-09-22,Potrerillos 3,1,No Determinado,1,15220201,Palomas
+2015-09-27,Potrerillos 3,1,Neumonia,1,15220201,Palomas
+2015-10-04,Potrerillos 3,1,Neumonia,1,15220201,Palomas
+2015-09-01,Potrerillos 3,1,Neumonia,1,15220301,Sanfandila
+2015-09-08,Potrerillos 3,1,Neumonia,1,15220301,Sanfandila
+2015-09-10,Potrerillos 3,1,Neumonia,1,15220301,Sanfandila
+2015-09-11,Potrerillos 3,1,No Determinado,1,15220301,Sanfandila
+2015-09-14,Potrerillos 3,1,No Determinado,1,15220301,Sanfandila
+2015-09-16,Potrerillos 3,1,Edema,1,15220301,Sanfandila
+2015-09-18,Potrerillos 3,2,Neumonia,2,15220301,Sanfandila2015-09-22,Potrerillos 3,1,Neumonia,1,15220301,Sanfandila
+2015-09-07,Potrerillos 3,1,Neumonia,1,15220601,Purgatorio
+2015-09-18,Potrerillos 3,1,Edema,1,15220601,Purgatorio
+2015-09-11,Potrerillos 3,1,Edema,1,15230601,Purgatorio
+2015-09-29,Potrerillos 3,1,Neumonia,1,15230601,Purgatorio
+2015-10-01,Potrerillos 3,1,Sindrome Hemorrágico,1,15230601,Purgatorio
+2015-09-03,Potrerillos 3,2,Neumonia,2,15230301,Sanfandila
+2015-09-06,Potrerillos 3,1,Neumonia,1,15230301,Sanfandila
+2015-09-14,Potrerillos 3,1,No Determinado,1,15230301,Sanfandila
+2015-09-17,Potrerillos 3,1,No Determinado,1,15230301,Sanfandila
+2015-09-22,Potrerillos 3,1,Descriado,1,15230301,Sanfandila
+2015-09-25,Potrerillos 3,1,Neumonia,1,15230301,Sanfandila
+2015-09-28,Potrerillos 3,1,Sindrome Hemorrágico,1,15230301,Sanfandila
+2015-10-02,Potrerillos 3,1,Neumonia,1,15230301,Sanfandila
+2015-09-09,Potrerillos 3,2,Neumonia,2,15240201,Palomas
+2015-09-14,Potrerillos 3,1,Edema,1,15240201,Palomas
+2015-09-17,Potrerillos 3,1,Neumonia,1,15240201,Palomas
+2015-09-02,Potrerillos 3,1,No Determinado,1,15240401,Tepuza
+2015-09-11,Potrerillos 3,1,No Determinado,1,15240401,Tepuza
+2015-09-21,Potrerillos 3,1,Edema,1,15240401,Tepuza
+2015-09-28,Potrerillos 3,1,Edema,1,15240401,Tepuza
+2015-10-01,Potrerillos 3,1,Neumonia,1,15240401,Tepuza
+2015-09-12,Potrerillos 3,1,Neumonia,1,15240301,Sanfandila
+2015-09-24,Potrerillos 3,1,No Determinado,1,15240301,Sanfandila
+2015-09-28,Potrerillos 3,1,Neumonia,1,15240301,Sanfandila
+2015-10-06,Potrerillos 3,2,Edema,2,15220401,Tepuza
+2015-10-07,Potrerillos 3,1,Edema,1,15220401,Tepuza
+2015-10-08,Potrerillos 3,1,Neumonia,1,15220401,Tepuza
+2015-10-10,Potrerillos 3,1,Sindrome Hemorrágico,1,15220401,Tepuza
+2015-10-10,Potrerillos 3,1,Edema,1,15220301,Sanfandila
+2015-10-05,Potrerillos 3,1,Neumonia,1,15220601,Purgatorio
+2015-10-08,Potrerillos 3,1,Edema,1,15220601,Purgatorio
+2015-10-06,Potrerillos 3,1,Neumonia,1,15230301,Sanfandila
+2015-10-10,Potrerillos 3,1,Strepto suis (Incordinado),1,15230401,Tepuza
+2015-10-05,Potrerillos 3,1,No Determinado,1,15240401,Tepuza
+2015-10-06,Potrerillos 3,1,Neumonia,1,15240401,Tepuza
+2015-10-07,Potrerillos 3,1,Edema,1,15240401,Tepuza
+2015-10-05,Potrerillos 3,1,Neumonia,1,15240301,Sanfandila
+2015-10-09,Potrerillos 3,1,Sindrome Hemorrágico,1,15240301,Sanfandila

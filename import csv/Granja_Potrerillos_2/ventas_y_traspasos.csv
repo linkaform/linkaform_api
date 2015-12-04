@@ -1,0 +1,23 @@
+fecha,granja,movimiento,traspaso_granja_destino,cantidad,kilos_totales,dias_totales,lote,flujo
+
+2015-06-15,Potrerillos 2,Traspaso,Sanfandila C,819,17405,58149,14,Sanfandila
+
+2015-06-16,Potrerillos 2,Traspaso,Sanfandila C,256,5120,18432,14,Sanfandila
+
+2015-06-16,Potrerillos 2,Venta de Desecho,Sanfandila C,19,243,1368,14,Sanfandila
+
+2015-06-16,Potrerillos 2,Traspaso,Sanfandila C,234,5890,16848,14,Tepuza
+
+2015-06-18,Potrerillos 2,Traspaso,Sanfandila C,158,4266,11692,14,Tepuza
+
+2015-06-16,Potrerillos 2,Venta de Desecho,Sanfandila C,7,90,504,14,Tepuza
+
+2015-06-18,Potrerillos 2,Traspaso,Sanfandila C,345,9634,25530,14,Palomas
+
+2015-06-16,Potrerillos 2,Venta de Desecho,Sanfandila C,4,50,288,14,Palomas
+
+2015-06-22,Potrerillos 2,Traspaso,Sanfandila C,616,13345,43736,14,Sanfandila
+
+2015-06-23,Potrerillos 2,Traspaso,Sanfandila C,440,9380,31680,14,Sanfandila
+
+2015-06-23,Potrerillos 2,Traspaso,Sanfandila C,166,4320,11952,14,Purgatorio

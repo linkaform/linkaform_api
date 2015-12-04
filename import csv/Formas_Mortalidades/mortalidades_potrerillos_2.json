@@ -1,0 +1,13 @@
+[
+    {
+	'fecha' : '$answers.55e9cf7823d3fd685de86eab',
+	'granja' : '$answers.55e9cf7823d3fd685de86eb1',
+	'total_muertos' : '$answers.55e9cf7823d3fd685de86eb2',
+	'descripcion_muertes' : '$answers.55e9cf7823d3fd685de86eb3',
+	'causa_muerte' : '$answers.55e9cf7823d3fd685de86eac',
+	'muertos_por_esta_causa' : '$answers.55e9cf7823d3fd685de86ead',
+	'fotografia' : '$answers.55e9cf7823d3fd685de86eae',
+	'lote' : '$answers.55e9cf7823d3fd685de86eaf',
+	'flujo' : '$answers.55e9cf7823d3fd685de86eb0'
+    }
+]

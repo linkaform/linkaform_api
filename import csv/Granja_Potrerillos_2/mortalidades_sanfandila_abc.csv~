@@ -1,0 +1,156 @@
+﻿fecha,granja,total_muertos,causa_muerte,muerto_por_esta_causa,lote,flujo
+2015-04-27,Potrerillos 2,1,Descriado,1,15140301,Sanfandila
+
+2015-05-01,Potrerillos 2,1,Diarrea,1,15140301,Sanfandila
+
+2015-05-03,Potrerillos 2,1,Sindrome Hemorrágico,1,15140301,Sanfandila
+
+2015-05-11,Potrerillos 2,3,Descriado,3,15140301,Sanfandila
+
+2015-05-12,Potrerillos 2,1,Descriado,1,15140301,Sanfandila
+
+2015-05-13,Potrerillos 2,3,Descriado,3,15140301,Sanfandila
+
+2015-05-14,Potrerillos 2,1,Sindrome Hemorrágico,1,15140301,Sanfandila
+
+2015-05-18,Potrerillos 2,2,Descriado,2,15140301,Sanfandila
+
+2015-05-19,Potrerillos 2,3,Descriado,3,15140301,Sanfandila
+
+2015-05-20,Potrerillos 2,1,Neumonia,1,15140301,Sanfandila
+
+2015-05-21,Potrerillos 2,1,Neumonia,1,15140301,Sanfandila
+
+2015-05-22,Potrerillos 2,4,Descriado,4,15140301,Sanfandila
+
+2015-05-25,Potrerillos 2,1,Sindrome Hemorrágico,1,15140301,Sanfandila
+
+2015-05-27,Potrerillos 2,2,Neumonia,2,15140301,Sanfandila
+
+2015-05-28,Potrerillos 2,2,Descriado,2,15140301,Sanfandila
+
+2015-05-29,Potrerillos 2,1,Neumonia,1,15140301,Sanfandila
+
+2015-06-01,Potrerillos 2,4,Neumonia,4,15140301,Sanfandila
+
+2015-06-02,Potrerillos 2,7,Neumonia,7,15140301,Sanfandila
+
+2015-06-03,Potrerillos 2,3,Neumonia,3,15140301,Sanfandila
+
+2015-06-04,Potrerillos 2,4,Neumonia,4,15140301,Sanfandila
+
+2015-06-05,Potrerillos 2,3,Neumonia,3,15140301,Sanfandila
+
+2015-06-08,Potrerillos 2,6,Neumonia,6,15140301,Sanfandila
+
+2015-05-11,Potrerillos 2,2,Descriado,2,15140401,Tepuza
+
+2015-05-12,Potrerillos 2,1,Descriado,1,15140401,Tepuza
+
+2015-05-22,Potrerillos 2,1,Descriado,1,15140401,Tepuza
+
+2015-05-23,Potrerillos 2,1,Neumonia,1,15140401,Tepuza
+
+2015-06-01,Potrerillos 2,14,Descriado,14,15140401,Tepuza
+
+2015-06-02,Potrerillos 2,4,Descriado,4,15140401,Tepuza
+
+2015-06-03,Potrerillos 2,1,Sindrome Hemorrágico,1,15140401,Tepuza
+
+2015-06-05,Potrerillos 2,1,Neumonia,1,15140401,Tepuza
+
+2015-06-06,Potrerillos 2,1,Neumonia,1,15140401,Tepuza
+
+2015-06-08,Potrerillos 2,4,Neumonia,4,15140401,Tepuza
+
+2015-06-09,Potrerillos 2,2,Neumonia,2,15140401,Tepuza
+
+2015-06-12,Potrerillos 2,2,Neumonia,2,15140401,Tepuza
+
+2015-06-13,Potrerillos 2,1,Neumonia,1,15140401,Tepuza
+
+2015-06-18,Potrerillos 2,1,Neumonia,1,15140401,Tepuza
+
+2015-05-04,Potrerillos 2,1,Diarrea,1,15140201,Palomas
+
+2015-05-20,Potrerillos 2,1,Descriado,1,15140201,Palomas
+
+2015-06-01,Potrerillos 2,1,Sindrome Hemorrágico,1,15140201,Palomas
+
+2015-06-05,Potrerillos 2,1,Descriado,1,15140201,Palomas
+
+2015-06-06,Potrerillos 2,1,Descriado,1,15140201,Palomas
+
+2015-06-18,Potrerillos 2,2,Poliserositis,2,15140201,Palomas
+
+2015-05-06,Potrerillos 2,2,Sindrome Hemorrágico,2,15150301,Sanfandila
+
+2015-05-07,Potrerillos 2,2,Descriado,2,15150301,Sanfandila
+
+2015-05-08,Potrerillos 2,2,Descriado,2,15150301,Sanfandila
+
+2015-05-09,Potrerillos 2,1,Diarrea,1,15150301,Sanfandila
+
+2015-05-11,Potrerillos 2,7,Sindrome Hemorrágico,7,15150301,Sanfandila
+
+2015-05-12,Potrerillos 2,1,Descriado,1,15150301,Sanfandila
+
+2015-05-16,Potrerillos 2,3,Descriado,3,15150301,Sanfandila
+
+2015-05-18,Potrerillos 2,6,Descriado,6,15150301,Sanfandila
+
+2015-05-19,Potrerillos 2,6,Descriado,6,15150301,Sanfandila
+
+2015-05-20,Potrerillos 2,2,Descriado,2,15150301,Sanfandila
+
+2015-05-21,Potrerillos 2,3,Descriado,3,15150301,Sanfandila
+
+2015-05-22,Potrerillos 2,12,Descriado,12,15150301,Sanfandila
+
+2015-05-23,Potrerillos 2,1,Descriado,1,15150301,Sanfandila
+
+2015-05-26,Potrerillos 2,2,Descriado,2,15150301,Sanfandila
+
+2015-05-28,Potrerillos 2,6,Descriado,6,15150301,Sanfandila
+
+2015-05-29,Potrerillos 2,3,Descriado,3,15150301,Sanfandila
+
+2015-06-01,Potrerillos 2,3,Neumonia,3,15150301,Sanfandila
+
+2015-06-04,Potrerillos 2,2,Poliserositis,2,15150301,Sanfandila
+
+2015-06-08,Potrerillos 2,4,Poliserositis,4,15150301,Sanfandila
+
+2015-06-09,Potrerillos 2,3,Poliserositis,3,15150301,Sanfandila
+
+2015-06-10,Potrerillos 2,2,NeumoniaSacrificado,2,15150301,Sanfandila
+
+2015-06-11,Potrerillos 2,2,Neumonia,2,15150301,Sanfandila
+
+2015-06-12,Potrerillos 2,2,Poliserositis,2,15150301,Sanfandila
+
+2015-06-13,Potrerillos 2,1,Neumonia,1,15150301,Sanfandila
+
+2015-06-14,Potrerillos 2,1,Poliserositis,1,15150301,Sanfandila
+
+2015-06-15,Potrerillos 2,1,Neumonia,1,15150301,Sanfandila
+
+2015-06-17,Potrerillos 2,2,Neumonia,2,15150301,Sanfandila
+
+2015-06-20,Potrerillos 2,1,Neumonia,1,15150301,Sanfandila
+
+2015-06-22,Potrerillos 2,7,Neumonia,7,15150301,Sanfandila
+
+2015-06-23,Potrerillos 2,3,Neumonia,3,15150301,Sanfandila
+
+2015-06-24,Potrerillos 2,2,Neumonia,2,15150301,Sanfandila
+
+2015-05-07,Potrerillos 2,1,Diarrea,1,15150601,Purgatorio
+
+2015-05-19,Potrerillos 2,1,Sindrome Hemorrágico,1,15150601,Purgatorio
+
+2015-06-01,Potrerillos 2,1,Descriado,1,15150601,Purgatorio
+
+2015-06-11,Potrerillos 2,1,Descriado,1,15150601,Purgatorio
+
+2015-06-23,Potrerillos 2,1,Sindrome Hemorrágico,1,15150601,Purgatorio

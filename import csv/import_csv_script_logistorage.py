@@ -63,6 +63,7 @@ def post_answers(session, answers):
 
 def get_file_to_import(file_path):
     #reads the csv file and imports it
+    warning(file_path)
     csv_file = open(file_path, 'r')
     field_ids = csv_file.next()
     field_ids = field_ids.strip('\n')
