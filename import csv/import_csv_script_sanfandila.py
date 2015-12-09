@@ -489,19 +489,19 @@ def delimiter():
     print "="*50
 
 config = {
-    'FORM_ANSWER_URL' : 'http://grover.info-sync.com/api/infosync/form_answer/',        
-    'LOGIN_URL' : 'http://grover.info-sync.com/api/infosync/user_admin/login/',
-    'USERNAME' : '<cliente>@infosync.mx',
-    'PASS' : '<password>',
-    'COLLECTION' : 'demo',
+    'FORM_ANSWER_URL' : 'https://grover.info-sync.com/api/infosync/form_answer/',        
+    'LOGIN_URL' : 'https://grover.info-sync.com/api/infosync/user_admin/login/',
+    'USERNAME' : 'infosync@sanfandila.com',
+    'PASS' : '123456',
+    'COLLECTION' : 'form_answer',
     'HOST' : 'localhost',
-    'PORT' : 27017,
+    'PORT' : 27019,
     'USER_ID' : 'demo',
     'KEYS_POSITION' : {},
     'FILE_PATH_DIR' : 'tmp/',
     'IS_USING_APIKEY' : True,
-    'AUTHORIZATION_EMAIL_VALUE' : 'saul@infosync.mx',
-    'AUTHORIZATION_TOKEN_VALUE' : '9a6fb445a52b44089c1628296b0f99bae715aefc',
+    'AUTHORIZATION_EMAIL_VALUE' : 'infosync@sanfandila.com',
+    'AUTHORIZATION_TOKEN_VALUE' : '530bd4396d7ffd9f6ee76aea4f621e7d00cd9e21',
     'LOAD_DATA_USING' : ImportData.MONGO,
     'CREATE' : False
 }
