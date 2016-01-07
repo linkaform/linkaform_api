@@ -279,12 +279,6 @@ if __name__ == "__main__":
         except:
             branch = 'master'
         commiting_build(branch)
-    elif argv[1] == 'restore_build':
-        print 'Restore build'
-        try:
-            branch = argv[2]
-        except:
-            branch = 'master'
         restore_build(branch)
     elif argv[1] == 'wordpress':
         print ' olny db'

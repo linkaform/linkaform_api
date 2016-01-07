@@ -1,18 +1,17 @@
-{"$match": {
-      "5591627901a4de7bb8eb1ad5":"MILLER",
-      "5591627901a4de7bb8eb1ad4":"Monterrey",
-      "559174f601a4de7bb94f87ed":"JUNIO"
-    }},
+db.report_answer.aggregate(
+[
+  {"$match": {"itype":"service"}},
     {"$group": {
 
        _id: {
-
+                currency: "$559167ed01a4de7bba852992.currency",
                 cliente: "$5591627901a4de7bb8eb1ad5",
                 almacen: "$5591627901a4de7bb8eb1ad4",
                  year: {$year: "$created_at"},
                  month:"$559174f601a4de7bb94f87ed"
 
           },
+        }}])
 
     SAC_qty:{$sum: "$5591627901a4de7bb8eb1ad9.qty"},
     SAC_unit_price: {$max: "$5591627901a4de7bb8eb1ad9.unit_price"},
@@ -276,3 +275,4 @@
     PRECIO_TIEMPO_EXTRA_X_DIA_total : {$multiply: ["$PRECIO_TIEMPO_EXTRA_X_DIA_qty","$PRECIO_TIEMPO_EXTRA_X_DIA_unit_price"]},
 
 }}
+])
