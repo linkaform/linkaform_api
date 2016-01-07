@@ -4,18 +4,30 @@ from pymongo.collection import Collection
 import json, re
 
 
+host = 'localhost'
+local_port = 27017
+testing_port = 27019
+production_port = 27020
+
+
 # Create your views here.
 
-def get_user_connection(user_id):
+def get_user_local_connection(user_id):
     connection = {}
-    connection['client'] = MongoClient()
-
-    user_db_name = "infosync_answers_client_{0}".format(user_id) 
-
+    connection['client'] = MongoClient(host, local_port)
+    user_db_name = "infosync_answers_client_{0}".format(user_id)
     if not user_db_name:
         return None
-    connection['db'] = connection['client'][user_db_name]   
+    connection['db'] = connection['client'][user_db_name]
+    return connection
 
+def get_user_production_connection(user_id):
+    connection = {}
+    connection['client'] = MongoClient(host, production_port)
+    user_db_name = "infosync_answers_client_{0}".format(user_id)
+    if not user_db_name:
+        return None
+    connection['db'] = connection['client'][user_db_name]
     return connection
 
 class FakeETLModel(object):
@@ -99,7 +111,7 @@ def etl():
     #item = Item.objects.get(id=524)
     #items_to_search  = [516,517,549,554,2119]
     items_to_search = [2119,]
-    types = open("tipos.json", "r")
+    types = open("../tipos.json", "r")
     types_dictionary = json.loads(types.read())
     for item in items_to_search:
         # Modelo para pruebas
@@ -110,16 +122,18 @@ def etl():
 	    'group_filters': ['Dictamen Tecnico',]
             }
         )
-
-        user_conn = get_user_connection(etl_model.user_id)
+        
+        user_production_conn = get_user_production_connection(etl_model.user_id)
         # Form answer collection
-        form_answer = user_conn['db']['form_answer']
+        form_answer = user_production_conn['db']['form_answer']
 
+        user_local_conn = get_user_local_connection(etl_model.user_id)
+        
         # Obtener coleccion de reportes si existe, crear si aún no existe
-        if 'report_answer_g' in user_conn['db'].collection_names():
-            report_answer = user_conn['db']['report_answer_g']
+        if 'report_answer_g' in user_local_conn['db'].collection_names():
+            report_answer = user_local_conn['db']['report_answer_g']
         else:
-            report_answer = Collection(user_conn['db'], "report_answer_g", create=True)
+            report_answer = Collection(user_local_conn['db'], "report_answer_g", create=True)
 
         # Plantilla del reporte
         report = { "form_id": etl_model.item_id, "answers": [] }

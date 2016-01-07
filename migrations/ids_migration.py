@@ -20,7 +20,7 @@ class Database:
         errors_counter = 0
         total_records = len(records)
 
-        print "> Updating {} records ...".format(total_records)        
+        print "> Updating {0} records ...".format(total_records)        
         n = 0
         
         for record in records:

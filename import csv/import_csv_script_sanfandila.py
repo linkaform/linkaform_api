@@ -502,7 +502,7 @@ config = {
     'IS_USING_APIKEY' : True,
     'AUTHORIZATION_EMAIL_VALUE' : 'infosync@sanfandila.com',
     'AUTHORIZATION_TOKEN_VALUE' : '530bd4396d7ffd9f6ee76aea4f621e7d00cd9e21',
-    'LOAD_DATA_USING' : ImportData.MONGO,
+    'LOAD_DATA_USING' : ImportData.REST,
     'CREATE' : False
 }
     
@@ -527,7 +527,7 @@ if __name__ == "__main__":
                 'start_timestamp' : 123456789,
                 'created_at' : None
             }
-            answers = load_answers(metadata, file_path)
+            answers = loadgit_answers(metadata, file_path)
             print "Total answers: ",len(answers)
             try:
                 delimiter()

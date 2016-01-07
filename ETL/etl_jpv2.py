@@ -1,7 +1,39 @@
 #coding: utf-8
 from pymongo import MongoClient
 from pymongo.collection import Collection
+from sys import stderr
 import json, re
+
+host = 'localhost'
+local_port = 27017
+testing_port = 27020
+production_port = 27019
+
+def get_user_local_connection(user_id):
+    connection = {}
+    connection['client'] = MongoClient(host, local_port)
+    user_db_name = "infosync_answers_client_{0}".format(user_id)
+    if not user_db_name:
+        return None
+    connection['db'] = connection['client'][user_db_name]
+    return connection
+
+def get_user_production_connection(user_id):
+    connection = {}
+    connection['client'] = MongoClient(host, production_port)
+    user_db_name = "infosync_answers_client_{0}".format(user_id)
+    if not user_db_name:
+        return None
+    connection['db'] = connection['client'][user_db_name]
+    return connection
+
+
+def warning(*objs):
+    '''
+    To print stuff at stderr
+    '''
+    output = "warning:%s\n" % objs
+    stderr.write(output)
 
 
 # Create your views here.
@@ -101,7 +133,7 @@ def etl():
     # Repetir para cada modelo en la tabla de reportes
     #item = Item.objects.get(id=524)
     items_to_search  = [516,517,549,554,2119]
-    types = open("tipos.json", "r")
+    types = open("../tipos.json", "r")
     types_dictionary = json.loads(types.read())
     for item in items_to_search:
         # Modelo para pruebas
@@ -113,15 +145,17 @@ def etl():
             }
         )
 
-        user_conn = get_user_connection(etl_model.user_id)
+        user_production_conn = get_user_production_connection(etl_model.user_id)
         # Form answer collection
-        form_answer = user_conn['db']['form_answer']
+        form_answer = user_production_conn['db']['form_answer']
+
+        user_local_conn = get_user_local_connection(etl_model.user_id)        
 
         # Obtener coleccion de reportes si existe, crear si aún no existe
-        if 'report_answer' in user_conn['db'].collection_names():
-            report_answer = user_conn['db']['report_answer']
+        if 'report_answer' in user_local_conn['db'].collection_names():
+            report_answer = user_local_conn['db']['report_answer']
         else:
-            report_answer = Collection(user_conn['db'], "report_answer", create=True)
+            report_answer = Collection(user_local_conn['db'], "report_answer", create=True)
 
         # Plantilla del reporte
         report = { "form_id": etl_model.item_id, "answers": [] }
@@ -169,7 +203,6 @@ def etl():
 		    #print 'fields[field_id]',fields[field_id]
                     new_answer["field_value"] = get_answer(record["answers"], fields[field_id])
                     report["answers"].append(new_answer)
-
         # Editar reporte si existe, crear si no es así
         if report_answer.find({"form_id": etl_model.item_id}).count() > 0:
             report_answer.update({"form_id": etl_model.item_id}, report)
