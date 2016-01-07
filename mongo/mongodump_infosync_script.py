@@ -14,7 +14,6 @@ remove = 'rm -rf /var/tmp/mongo_back_client_%s'%(client_id)
 copy_tar = 'scp grover.info-sync.com:/var/tmp/mongo_back_client_%s.tar.gz /var/tmp/'%(client_id)
 untar = 'tar -zxvf mongo_back_client_%s.tar.gz'%(client_id)
 restore = 'mongorestore /var/tmp/mongo_back_client_%s'%client_id
-
 print '--------- remote host ------------'
 print 'cd /var/tmp/'
 print removedir
