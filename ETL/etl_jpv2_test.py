@@ -5,7 +5,7 @@ from sys import stderr
 import json, re
 
 host = 'localhost'
-local_port = 27017
+local_port = 27019
 testing_port = 27020
 production_port = 27019
 
@@ -32,7 +32,7 @@ def warning(*objs):
     '''
     To print stuff at stderr
     '''
-    output = "warning:%s\n" % objs
+    output = "warning:%s\n\n" % objs
     stderr.write(output)
 
 
@@ -140,7 +140,7 @@ def etl():
         etl_model = FakeETLModel(
         **{
             'name': 'Reporte', 'item_id':  item, 'user_id': 94,
-            'filters': ['FRACCIONAMIENTO','Fraccionamiento', 'Manzana', 'Lote', 'Concepto'],
+            'filters': ['FRACCIONAMIENTO','Fraccionamiento', 'Manzana', 'Lote', 'Concepto', 'Resultado de la Recepcion/Entrega'],
 	    'group_filters': ['Dictamen Tecnico',]
             }
         )
