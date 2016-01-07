@@ -1,0 +1,108 @@
+fecha,granja,tipo_alimento,origen_alimento,kilos
+2015-06-16,Maguey,Crecimiento,Planta de Alimentos Sanfandila,12215
+2015-06-17,Maguey,Crecimiento,Planta de Alimentos Sanfandila,12315
+2015-06-18,Maguey,Crecimiento,Planta de Alimentos Sanfandila,5925
+2015-06-19,Maguey,Crecimiento,Planta de Alimentos Sanfandila,12380
+2015-06-20,Maguey,Crecimiento,Planta de Alimentos Sanfandila,7050
+2015-06-21,Maguey,Crecimiento,Planta de Alimentos Sanfandila,6190
+2015-06-22,Maguey,Crecimiento,Planta de Alimentos Sanfandila,5315
+2015-06-23,Maguey,Crecimiento,Planta de Alimentos Sanfandila,6280
+2015-06-24,Maguey,Crecimiento,Planta de Alimentos Sanfandila,5830
+2015-06-25,Maguey,Crecimiento,Planta de Alimentos Sanfandila,6345
+2015-06-26,Maguey,Crecimiento,Planta de Alimentos Sanfandila,5945
+2015-06-27,Maguey,Desarrollo,Planta de Alimentos Sanfandila,6590
+2015-06-28,Maguey,Crecimiento,Planta de Alimentos Sanfandila,6600
+2015-06-29,Maguey,Crecimiento,Planta de Alimentos Sanfandila,7070
+2015-06-30,Maguey,Desarrollo,Planta de Alimentos Sanfandila,3050
+2015-07-01,Maguey,Crecimiento,Planta de Alimentos Sanfandila,3450
+2015-07-02,Maguey,Desarrollo,Planta de Alimentos Sanfandila,6670
+2015-07-03,Maguey,Desarrollo,Planta de Alimentos Sanfandila,9370
+2015-07-04,Maguey,Desarrollo,Planta de Alimentos Sanfandila,9550
+2015-07-05,Maguey,Desarrollo,Planta de Alimentos Sanfandila,11580
+2015-07-06,Maguey,Desarrollo,Planta de Alimentos Sanfandila,11175
+2015-07-07,Maguey,Desarrollo,Planta de Alimentos Sanfandila,12060
+2015-07-08,Maguey,Desarrollo,Planta de Alimentos Sanfandila,9065
+2015-07-09,Maguey,Desarrollo,Planta de Alimentos Sanfandila,8945
+2015-07-10,Maguey,Desarrollo,Planta de Alimentos Sanfandila,11165
+2015-07-11,Maguey,Engorda 5,Planta de Alimentos Sanfandila,9230
+2015-07-12,Maguey,Desarrollo,Planta de Alimentos Sanfandila,5760
+2015-07-13,Maguey,Desarrollo,Planta de Alimentos Sanfandila,6545
+2015-07-14,Maguey,Engorda 5,Planta de Alimentos Sanfandila,5940
+2015-07-15,Maguey,Engorda 5,Planta de Alimentos Sanfandila,11975
+2015-07-16,Maguey,Engorda 5,Planta de Alimentos Sanfandila,9030
+2015-07-17,Maguey,Engorda 5,Planta de Alimentos Sanfandila,5805
+2015-07-18,Maguey,Engorda 5,Planta de Alimentos Sanfandila,5805
+2015-07-19,Maguey,Engorda 5,Planta de Alimentos Sanfandila,15020
+2015-07-20,Maguey,Engorda 5,Planta de Alimentos Sanfandila,14860
+2015-07-21,Maguey,Engorda 5,Planta de Alimentos Sanfandila,5835
+2015-07-22,Maguey,Engorda 10,Planta de Alimentos Sanfandila,8710
+2015-07-23,Maguey,Engorda 10,Planta de Alimentos Sanfandila,14335
+2015-07-24,Maguey,Engorda 10,Planta de Alimentos Sanfandila,8365
+2015-07-25,Maguey,Engorda 10,Planta de Alimentos Sanfandila,5935
+2015-07-26,Maguey,Engorda 10,Planta de Alimentos Sanfandila,11950
+2015-07-27,Maguey,Engorda 10,Planta de Alimentos Sanfandila,11645
+2015-07-28,Maguey,Engorda 10,Planta de Alimentos Sanfandila,8945
+2015-07-29,Maguey,Engorda 10,Planta de Alimentos Sanfandila,5960
+2015-07-30,Maguey,Engorda 10,Planta de Alimentos Sanfandila,6065
+2015-07-31,Maguey,Engorda 10,Sanfandila B,330
+2015-08-01,Maguey,Crecimiento,Planta de Alimentos Sanfandila,3450
+2015-08-02,Maguey,Desarrollo,Planta de Alimentos Sanfandila,6670
+2015-08-03,Maguey,Desarrollo,Planta de Alimentos Sanfandila,9370
+2015-08-04,Maguey,Desarrollo,Planta de Alimentos Sanfandila,9550
+2015-08-05,Maguey,Desarrollo,Planta de Alimentos Sanfandila,11580
+2015-08-06,Maguey,Desarrollo,Planta de Alimentos Sanfandila,11175
+2015-08-07,Maguey,Desarrollo,Planta de Alimentos Sanfandila,12060
+2015-08-08,Maguey,Desarrollo,Planta de Alimentos Sanfandila,9065
+2015-08-09,Maguey,Desarrollo,Planta de Alimentos Sanfandila,8945
+2015-08-10,Maguey,Desarrollo,Planta de Alimentos Sanfandila,11165
+2015-08-11,Maguey,Engorda 5,Planta de Alimentos Sanfandila,9230
+2015-08-12,Maguey,Desarrollo,Planta de Alimentos Sanfandila,5760
+2015-08-13,Maguey,Desarrollo,Planta de Alimentos Sanfandila,6545
+2015-08-14,Maguey,Engorda 5,Planta de Alimentos Sanfandila,5940
+2015-08-15,Maguey,Engorda 5,Planta de Alimentos Sanfandila,11975
+2015-08-16,Maguey,Engorda 5,Planta de Alimentos Sanfandila,9030
+2015-08-18,Maguey,Engorda 5,Planta de Alimentos Sanfandila,5805
+2015-08-17,Maguey,Engorda 5,Planta de Alimentos Sanfandila,9030
+2015-08-19,Maguey,Engorda 5,Planta de Alimentos Sanfandila,15020
+2015-08-20,Maguey,Engorda 5,Planta de Alimentos Sanfandila,14860
+2015-08-21,Maguey,Engorda 5,Planta de Alimentos Sanfandila,5835
+2015-08-22,Maguey,Engorda 10,Planta de Alimentos Sanfandila,8710
+2015-08-23,Maguey,Engorda 10,Planta de Alimentos Sanfandila,14335
+2015-08-24,Maguey,Engorda 10,Planta de Alimentos Sanfandila,8365
+2015-08-25,Maguey,Engorda 10,Planta de Alimentos Sanfandila,5935
+2015-08-26,Maguey,Engorda 10,Planta de Alimentos Sanfandila,11950
+2015-08-27,Maguey,Engorda 10,Planta de Alimentos Sanfandila,11645
+2015-08-28,Maguey,Engorda 10,Planta de Alimentos Sanfandila,8945
+2015-08-29,Maguey,Engorda 10,Planta de Alimentos Sanfandila,5960
+2015-08-30,Maguey,Engorda 10,Planta de Alimentos Sanfandila,6065
+2015-08-31,Maguey,Engorda 10,Sanfandila B,330
+2015-09-01,Maguey,Crecimiento,Planta de Alimentos Sanfandila,3450
+2015-09-02,Maguey,Desarrollo,Planta de Alimentos Sanfandila,6670
+2015-09-03,Maguey,Desarrollo,Planta de Alimentos Sanfandila,9370
+2015-09-04,Maguey,Desarrollo,Planta de Alimentos Sanfandila,9550
+2015-09-05,Maguey,Desarrollo,Planta de Alimentos Sanfandila,11580
+2015-09-06,Maguey,Desarrollo,Planta de Alimentos Sanfandila,11175
+2015-09-07,Maguey,Desarrollo,Planta de Alimentos Sanfandila,12060
+2015-09-08,Maguey,Desarrollo,Planta de Alimentos Sanfandila,9065
+2015-09-09,Maguey,Desarrollo,Planta de Alimentos Sanfandila,8945
+2015-09-10,Maguey,Desarrollo,Planta de Alimentos Sanfandila,11165
+2015-09-11,Maguey,Engorda 5,Planta de Alimentos Sanfandila,9230
+2015-09-12,Maguey,Desarrollo,Planta de Alimentos Sanfandila,5760
+2015-09-13,Maguey,Desarrollo,Planta de Alimentos Sanfandila,6545
+2015-09-14,Maguey,Engorda 5,Planta de Alimentos Sanfandila,5940
+2015-09-15,Maguey,Engorda 5,Planta de Alimentos Sanfandila,11975
+2015-09-16,Maguey,Engorda 5,Planta de Alimentos Sanfandila,9030
+2015-09-17,Maguey,Engorda 5,Planta de Alimentos Sanfandila,9030
+2015-09-18,Maguey,Engorda 5,Planta de Alimentos Sanfandila,5805
+2015-09-19,Maguey,Engorda 5,Planta de Alimentos Sanfandila,15020
+2015-09-20,Maguey,Engorda 5,Planta de Alimentos Sanfandila,14860
+2015-09-21,Maguey,Engorda 5,Planta de Alimentos Sanfandila,5835
+2015-09-22,Maguey,Engorda 10,Planta de Alimentos Sanfandila,8710
+2015-09-23,Maguey,Engorda 10,Planta de Alimentos Sanfandila,14335
+2015-09-24,Maguey,Engorda 10,Planta de Alimentos Sanfandila,8365
+2015-09-25,Maguey,Engorda 10,Planta de Alimentos Sanfandila,5935
+2015-09-26,Maguey,Engorda 10,Planta de Alimentos Sanfandila,11950
+2015-09-27,Maguey,Engorda 10,Planta de Alimentos Sanfandila,11645
+2015-09-28,Maguey,Engorda 10,Planta de Alimentos Sanfandila,8945
+2015-09-29,Maguey,Engorda 10,Planta de Alimentos Sanfandila,5960
+2015-09-30,Maguey,Engorda 10,Planta de Alimentos Sanfandila,6065

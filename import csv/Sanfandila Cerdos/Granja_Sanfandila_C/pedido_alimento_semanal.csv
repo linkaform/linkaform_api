@@ -1,0 +1,54 @@
+numero_semana_pedido,granja,tipo_alimento,cantidad,dia
+37,Sanfandila C,Engorda 10,6000,Lunes
+37,Sanfandila C,Engorda 10,6000,Miercoles
+37,Sanfandila C,Engorda 10,6000,Jueves
+37,Sanfandila C,Engorda 10,6000,Sabado
+36,Sanfandila C,Engorda 10,6000,Lunes
+36,Sanfandila C,Engorda 10,6000,Martes
+36,Sanfandila C,Engorda 10,12000,Miercoles
+36,Sanfandila C,Engorda 10,12000,Viernes
+36,Sanfandila C,Engorda 10,6000,Sabado
+35,Sanfandila C,Engorda 5,6000,Lunes
+35,Sanfandila C,Engorda 10,9000,Lunes
+35,Sanfandila C,Engorda 10,12000,Miercoles
+35,Sanfandila C,Engorda 10,9000,Viernes
+35,Sanfandila C,Engorda 10,6000,Sabado
+34,Sanfandila C,Engorda 5,9000,Lunes
+34,Sanfandila C,Engorda 5,6000,Martes
+34,Sanfandila C,Engorda 5,15000,Miercoles
+34,Sanfandila C,Engorda 5,15000,Viernes
+33,Sanfandila C,Engorda normal,9000,Lunes
+33,Sanfandila C,Desarrollo,6000,Martes
+33,Sanfandila C,Desarrollo,6000,Miercoles
+33,Sanfandila C,Engorda normal,6000,Miercoles
+33,Sanfandila C,Engorda normal,6000,Viernes
+33,Sanfandila C,Engorda normal,6000,Sabado
+32,Sanfandila C,Desarrollo,6000,Lunes
+32,Sanfandila C,Desarrollo,6000,Martes
+32,Sanfandila C,Desarrollo,9000,Miercoles
+32,Sanfandila C,Desarrollo,9000,Viernes
+32,Sanfandila C,Desarrollo,6000,Domingo
+31,Sanfandila C,Desarrollo,9000,Lunes
+31,Sanfandila C,Desarrollo,3000,Miercoles
+31,Sanfandila C,Desarrollo,6000,Jueves
+31,Sanfandila C,Desarrollo,6000,Viernes
+31,Sanfandila C,Desarrollo,9000,Domingo
+30,Sanfandila C,Crecimiento,3000,Lunes
+30,Sanfandila C,Desarrollo,9000,Lunes
+30,Sanfandila C,Desarrollo,6000,Miercoles
+30,Sanfandila C,Desarrollo,9000,Viernes
+29,Sanfandila C,Crecimiento,6000,Lunes
+29,Sanfandila C,Desarrollo,6000,Lunes
+29,Sanfandila C,Crecimiento,6000,Jueves
+29,Sanfandila C,Desarrollo,3000,Viernes
+29,Sanfandila C,Crecimiento,6000,Sabado
+28,Sanfandila C,Crecimiento,6000,Miercoles
+28,Sanfandila C,Crecimiento,6000,Jueves
+28,Sanfandila C,Crecimiento,6000,Sabado
+27,Sanfandila C,Crecimiento,6000,Martes
+27,Sanfandila C,Crecimiento,6000,Jueves
+27,Sanfandila C,Crecimiento,6000,Sabado
+26,Sanfandila C,Crecimiento,6000,Lunes
+26,Sanfandila C,Crecimiento,6000,Jueves
+26,Sanfandila C,Crecimiento,6000,Viernes
+25,Sanfandila C,Crecimiento,12000,Jueves

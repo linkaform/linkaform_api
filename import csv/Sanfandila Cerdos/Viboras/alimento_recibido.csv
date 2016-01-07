@@ -1,0 +1,94 @@
+fecha,granja,tipo_alimento,origen_alimento,cantidad
+2015-04-24,Viboras,Nupig Sew, Planta de Alimentos Sanfandila,200
+2015-04-24,Viboras,Nupig Uno, Planta de Alimentos Sanfandila,2000
+2015-04-28,Viboras,Nupig Sew, Planta de Alimentos Sanfandila,100
+2015-04-28,Viboras,Nupig Uno, Planta de Alimentos Sanfandila,2000
+2015-05-04,Viboras,Nupig Sew, Planta de Alimentos Sanfandila,200
+2015-05-04,Viboras,Nupig Uno, Planta de Alimentos Sanfandila,2000
+2015-05-14,Viboras,Nupig Uno, Planta de Alimentos Sanfandila,3000
+2015-05-14,Viboras,Nupig Sew, Planta de Alimentos Sanfandila,200
+2015-05-16,Viboras,Preiniciador 2, Planta de Alimentos Sanfandila,2940
+2015-05-20,Viboras,Nupig Sew, Planta de Alimentos Sanfandila,400
+2015-05-20,Viboras,Nupig Uno, Planta de Alimentos Sanfandila,3000
+2015-05-23,Viboras,Preiniciador 2, Planta de Alimentos Sanfandila,5930
+2015-05-23,Viboras,Preiniciador 3, Planta de Alimentos Sanfandila,5925
+2015-05-27,Viboras,Nupig Uno, Planta de Alimentos Sanfandila,300
+2015-04-28,Viboras,Iniciador F2, Planta de Alimentos Sanfandila,6080
+2015-05-30,Viboras,Preiniciador 2, Planta de Alimentos Sanfandila,5115
+2015-05-30,Viboras,Preiniciador 3, Planta de Alimentos Sanfandila,6215
+2015-06-04,Viboras,Iniciador F2, Planta de Alimentos Sanfandila,6355
+2015-06-06,Viboras,Preiniciador 2, Planta de Alimentos Sanfandila,6720
+2015-06-06,Viboras,Preiniciador 3, Planta de Alimentos Sanfandila,6600
+2015-06-08,Viboras,Iniciador F2, Planta de Alimentos Sanfandila,5790
+2015-06-11,Viboras,Iniciador F2, Planta de Alimentos Sanfandila,11940
+2015-06-16,Viboras,Crecimiento , Planta de Alimentos Sanfandila,6190
+2015-06-17,Viboras,Iniciador F2, Planta de Alimentos Sanfandila,6340
+2015-06-20,Viboras,Iniciador F2, Planta de Alimentos Sanfandila,6145
+2015-06-22,Viboras,Crecimiento , Planta de Alimentos Sanfandila,6040
+2015-06-23,Viboras,Iniciador F2, Planta de Alimentos Sanfandila,12020
+2015-06-28,Viboras,Iniciador F2, Planta de Alimentos Sanfandila,5255
+2015-06-28,Viboras,Crecimiento , Planta de Alimentos Sanfandila,3370
+2015-07-01,Viboras,Crecimiento , Planta de Alimentos Sanfandila,6115
+2015-07-02,Viboras,Iniciador F2, Planta de Alimentos Sanfandila,11855
+2015-07-03,Viboras,Crecimiento , Planta de Alimentos Sanfandila,17710
+2015-07-06,Viboras,Crecimiento , Planta de Alimentos Sanfandila,11705
+2015-07-09,Viboras,Iniciador F2, Planta de Alimentos Sanfandila,6160
+2015-07-09,Viboras,Crecimiento , Planta de Alimentos Sanfandila,12780
+2015-07-11,Viboras,Crecimiento , Planta de Alimentos Sanfandila,12380
+2015-07-14,Viboras,Crecimiento , Planta de Alimentos Sanfandila,5990
+2015-07-15,Viboras,Desarrollo, Planta de Alimentos Sanfandila,9270
+2015-07-16,Viboras,Crecimiento , Planta de Alimentos Sanfandila,9150
+2015-07-17,Viboras,Crecimiento , Planta de Alimentos Sanfandila,15425
+2015-07-19,Viboras,Crecimiento , Planta de Alimentos Sanfandila,12400
+2015-07-20,Viboras,Desarrollo, Planta de Alimentos Sanfandila,8550
+2015-07-21,Viboras,Crecimiento , Planta de Alimentos Sanfandila,10260
+2015-07-21,Viboras,Desarrollo, Planta de Alimentos Sanfandila,8400
+2015-07-23,Viboras,Crecimiento , Planta de Alimentos Sanfandila,9100
+2015-07-24,Viboras,Desarrollo, Planta de Alimentos Sanfandila,8900
+2015-07-25,Viboras,Crecimiento , Planta de Alimentos Sanfandila,8930
+2015-07-27,Viboras,Desarrollo, Planta de Alimentos Sanfandila,8630
+2015-07-29,Viboras,Desarrollo, Planta de Alimentos Sanfandila,5560
+2015-07-29,Viboras,Crecimiento , Planta de Alimentos Sanfandila,8930
+2015-07-29,Viboras,Crecimiento , Planta de Alimentos Sanfandila,5785
+2015-07-31,Viboras,Desarrollo, Planta de Alimentos Sanfandila,9420
+2015-07-31,Viboras,Crecimiento , Planta de Alimentos Sanfandila,8985
+2015-08-01,Viboras,Desarrollo, Planta de Alimentos Sanfandila,9375
+2015-08-01,Viboras,Crecimiento , Planta de Alimentos Sanfandila,6200
+2015-08-04,Viboras,Desarrollo, Planta de Alimentos Sanfandila,7995
+2015-08-05,Viboras,Desarrollo, Planta de Alimentos Sanfandila,18300
+2015-08-05,Viboras,Desarrollo, Planta de Alimentos Sanfandila,8625
+2015-08-08,Viboras,Desarrollo, Planta de Alimentos Sanfandila,8710
+2015-08-11,Viboras,Desarrollo, Planta de Alimentos Sanfandila,8960
+2015-08-11,Viboras,Engorda 5, Planta de Alimentos Sanfandila,6340
+2015-08-12,Viboras,Desarrollo, Planta de Alimentos Sanfandila,17965
+2015-08-14,Viboras,Desarrollo, Planta de Alimentos Sanfandila,15240
+2015-08-14,Viboras,Engorda 5, Planta de Alimentos Sanfandila,11930
+2015-08-17,Viboras,Engorda 5, Planta de Alimentos Sanfandila,5910
+2015-08-18,Viboras,Desarrollo, Planta de Alimentos Sanfandila,6245
+2015-08-19,Viboras,Engorda 5, Planta de Alimentos Sanfandila,6130
+2015-08-21,Viboras,Desarrollo, Planta de Alimentos Sanfandila,12015
+2015-08-22,Viboras,Engorda 5, Planta de Alimentos Sanfandila,12185
+2015-08-24,Viboras,Engorda 5, Planta de Alimentos Sanfandila,8885
+2015-08-25,Viboras,Engorda 10, Planta de Alimentos Sanfandila,9235
+2015-08-26,Viboras,Desarrollo, Planta de Alimentos Sanfandila,5535
+2015-08-27,Viboras,Engorda 5, Planta de Alimentos Sanfandila,9070
+2015-08-27,Viboras,Engorda 10, Planta de Alimentos Sanfandila,8915
+2015-08-31,Viboras,Engorda 5, Planta de Alimentos Sanfandila,8960
+2015-08-31,Viboras,Engorda 10, Planta de Alimentos Sanfandila,9030
+2015-09-02,Viboras,Engorda 5, Planta de Alimentos Sanfandila,9090
+2015-09-02,Viboras,Engorda 10, Planta de Alimentos Sanfandila,9140
+2015-09-04,Viboras,Engorda 5, Planta de Alimentos Sanfandila,9135
+2015-09-04,Viboras,Engorda 10, Planta de Alimentos Sanfandila,9105
+2015-09-05,Viboras,Engorda 5, Planta de Alimentos Sanfandila,9085
+2015-09-08,Viboras,Engorda 10, Planta de Alimentos Sanfandila,9230
+2015-09-09,Viboras,Engorda 5, Planta de Alimentos Sanfandila,9070
+2015-09-09,Viboras,Engorda 10, Planta de Alimentos Sanfandila,8965
+2015-09-12,Viboras,Engorda 10, Planta de Alimentos Sanfandila,9125
+2015-09-12,Viboras,Engorda 10, Planta de Alimentos Sanfandila,9115
+2015-09-16,Viboras,Engorda 10, Planta de Alimentos Sanfandila,9665
+2015-09-17,Viboras,Engorda 10, Planta de Alimentos Sanfandila,9240
+2015-09-18,Viboras,Engorda 10, Planta de Alimentos Sanfandila,8765
+2015-09-18,Viboras,Engorda 10,18 de Marzo D,2070
+2015-09-21,Viboras,Engorda 10, Planta de Alimentos Sanfandila,5905
+2015-09-23,Viboras,Engorda 10, Planta de Alimentos Sanfandila,6350
+2015-10-05,Viboras,Engorda 10,Potrero,-4720
