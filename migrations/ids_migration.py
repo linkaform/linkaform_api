@@ -27,7 +27,7 @@ class Database:
             n =  n + 1
             try:
                 print "> Updating {0} record with id {1}".format(n, record['_id'])
-                collection.update({'_id': record['_id']}, record)
+                collection.update({'_id': record['_id']}, {'$set':record})
             except Exception as e:
                 errors_counter = errors_counter + 1
                 raise ValueError("Something went wrong checking: {0}".format(e.message))
