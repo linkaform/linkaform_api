@@ -16,18 +16,18 @@ import json, re, locale, requests, simplejson
 host = 'localhost'
 local_port = 27017
 #testing_port = 27019
-production_port = 27017
+production_port = 27019
 
-LOGIN_URL = "https://www.info-sync.com/api/infosync/user_admin/login/"
+LOGIN_URL = "https://www.linkaform.com/api/infosync/user_admin/login/"
 USERNAME = 'logistorage.infosync@gmail.com'
 PASS = '654321'
-GET_PARENT_ID_FORMS = "https://www.info-sync.com/api/infosync/item/?parent="
+GET_PARENT_ID_FORMS = "https://www.linkaform.com/api/infosync/item/?parent="
 
 MONTH_DIR = {1:'2015/01',2:'2015/02',3:'2015/03',4:'2015/04',5:'2015/05',6:'2015/06',
 7:'2015/07',8:'2015/08',9:'2015/09',10:'2015/10',11:'2015/11',12:'2015/12'}
 
-MONTH_DIR_TEXT = {'ENERO':'2015/01','FEBRERO':'2015/02','MARZO':'2015/03','ABRIL':'2015/04','MAYO':'2015/05','JUNIO':'2015/06',
-'JULIO':'2015/07','AGOSTO':'2015/08','SEPTIEMBRE':'2015/09','OCTUBRE':'2015/10','NOVIEMBRE':'2015/11','DICIEMBRE':'2015/12'}
+MONTH_DIR_TEXT = {'ENERO':1,'FEBRERO':2,'MARZO':3,'ABRIL':4,'MAYO':5,'JUNIO':6,
+'JULIO':7,'AGOSTO':8,'SEPTIEMBRE':9,'OCTUBRE':10,'NOVIEMBRE':11,'DICIEMBRE':12}
 
 
 service_names = {'service':'Servicios', 'space_unit':'Unidad de Espacio',
@@ -246,6 +246,9 @@ def set_structure_service():
 
 def set_price_service(price_line, service_list):
     for service_id in service_list.keys():
+        print 'folio', price_line['folio']
+        print 'from',price_line['answers'].get('55a53ecb23d3fd7c88b11108', '')
+        print 'to',price_line['answers'].get('55a53ecb23d3fd7c88b11109', '')
         price_detail = {
         'from': price_line['answers'].get('55a53ecb23d3fd7c88b11108', ''),
         'to':price_line['answers'].get('55a53ecb23d3fd7c88b11109', ''),
@@ -261,7 +264,7 @@ def get_service_price():
     all_forms = get_all_forms(service_folders) + get_all_forms(space_unit_folder)
     etl_model = FakeETLModel(
     **{
-        'name': 'Reporte', 'item_id':  all_forms[0], 'user_id': 516,
+        'name': 'Reporte', 'item_id':  all_forms[0], 'user_id': 516, 'deleted_at':{'$exists':0},
         'filters': filter_ids,
         'group_filters': []
         }
@@ -269,7 +272,7 @@ def get_service_price():
     user_conn = get_user_production_connection(etl_model.user_id)
     form_answer = user_conn['db']['form_answer']
     price_list = {}
-    for price_line in form_answer.find({"form_id": 3447}):
+    for price_line in form_answer.find({"form_id": 3447, 'deleted_at':{'$exists':0}}):
         #checks that the primary keys exists
         service_list = {}
         try:
@@ -593,7 +596,7 @@ def etl():
         report_answer = Collection(user_local_conn['db'], "report_answer", create=True)
         report = { "form_id": etl_model.item_id }
         count = 0
-        all_forms_find = {"form_id": {"$in":all_forms}}
+        all_forms_find = {"form_id": {"$in":all_forms}, "deleted_at": {"$exists":False}}
         #alter_find = {'answers.5591627901a4de7bb8eb1ad5':'palacio_de_hierro','form_id': {"$in":all_forms}}
         #all_forms_find = alter_find
         #alter_find =  {"answers.55b7f41623d3fd41daa1c414":{"$gte": 'ISODate("2015-05-01T00:00:00Z")', '$lt':'ISODate("2015-08-01T00:00:00Z")'}}
@@ -605,7 +608,10 @@ def etl():
             pass_all = False
             fields = {}
             filter_fields = {}
-            all_fields = record['voucher']['fields']
+            try:
+               all_fields = record['voucher']['fields']
+            except:
+               print 'record=', record
             #fields = update_fields()
             for field in all_fields:
                 field_id = field['field_id']['id']
@@ -666,8 +672,8 @@ def etl():
         verify_one_record_per_company(report_answer)
         return True
 
-PRICE_LIST = get_service_price()
-etl()
+#PRICE_LIST = get_service_price()
+#etl()
 
 def loop_query_update(cr_report_total, query_result, itype, operation_type='update'):
     count = 0
@@ -704,11 +710,20 @@ def get_insert_id (rec, itype):
         months_index_str = [str(i) for i in range(13)]
         #Checks if the month comes on a numeric format even if its consider a str
         #And it converts it to the given format ad MONTH_DIR
+        print 'rec month', rec['month']
         if type(rec['month']) is int or rec['month'] in months_index_str:
-            month = MONTH_DIR[int(rec['month'])]
+            #month = MONTH_DIR[int(rec['month'])]
+            month = '%d/%02d'%(rec['year'], rec['month'])
         else:
+            print 'dos', rec
+            print 'rec dos month', rec['month']
             month = MONTH_DIR_TEXT[rec['month']]
+            #print 'month', month
+            month = '%d/%02d'%(rec['year'], MONTH_DIR_TEXT[rec['month']])
+            print 'month_dir', month
+            #print turen
         month = month.lower()
+        print 'month', month
         #tratar de desnormailzar a ver si mejora Boreas
         client = re.sub(' ', '_', rec['client']).lower()
         #print 'cliente ', client
@@ -738,10 +753,22 @@ def get_query_service_total(record):
                 res.update({key:value})
             else:
                 res.update({key:0})
+        #if key=='month':
+            #print 'value', value
+            #print 'key', key
+            ##print 'value', value
+            #print 'record', record
         if key == 'month' and type(value) == int:
-            res.update({key:MONTH_DIR[value]})
+            month_dir = '%d/%02d'%(record['year'], record['month'])
+            print 'month_dir', month_dir
+            res.update({key:month_dir})
+            #print 'res value', MONTH_DIR[value]
         elif key == 'month' and type(value) in (str, unicode):
-            res.update({key:MONTH_DIR_TEXT[value]})
+            month_dir = '%d/%02d'%(record['year'], MONTH_DIR_TEXT[value])
+            print 'month_dir texto', month_dir
+            res.update({key:month_dir})
+            #print 'res value', MONTH_DIR_TEXT[value]
+            #print test
     return res
 
 
@@ -754,7 +781,7 @@ def insert_services(report_answer, cr_report_total):
          if a['total_services'] != 0 :
     #         tt += a['total_services']
              print  'service=', a['total_services']
-             print 'a',a
+             #print 'a',a
     #     #if a['sac_total2'] != 0:
     #     #    print 'sac_total2',a['sac_total2']
     #     #    tts += a['sac_total2']
