@@ -85,6 +85,7 @@ class Form(object):
                     return answer[records[0]]
             elif field_type=='select':
                 try:
+                    print 'answer', answer
                     return answer[records[0]].lower().replace(' ','_')
                 except ValueError:
                     return answer[records[0]]
@@ -536,7 +537,7 @@ if __name__ == "__main__":
                 'start_timestamp' : 123456789,
                 'created_at' : None
             }
-            answers = loadgit_answers(metadata, file_path)
+            answers = load_answers(metadata, file_path)
             print "Total answers: ",len(answers)
             try:
                 print "Sample of answers:"
