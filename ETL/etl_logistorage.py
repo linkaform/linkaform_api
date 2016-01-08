@@ -1,4 +1,5 @@
 #coding: utf-8
+
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
