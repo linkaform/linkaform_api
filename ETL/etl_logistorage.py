@@ -206,7 +206,7 @@ def set_dict_service():
 
 def get_user_local_connection(user_id):
     connection = {}
-    connection['client'] = MongoClient(host, local_port)
+    connection['client'] = MongoClient(host,local_port,replicaset='birt', slaveOK=True)
     user_db_name = "infosync_answers_client_{0}".format(user_id)
     if not user_db_name:
         return None
