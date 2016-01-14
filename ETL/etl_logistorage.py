@@ -23,8 +23,8 @@ USERNAME = 'logistorage.infosync@gmail.com'
 PASS = '654321'
 GET_PARENT_ID_FORMS = "https://www.linkaform.com/api/infosync/item/?parent="
 
-MONTH_DIR = {1:'2015/01',2:'2015/02',3:'2015/03',4:'2015/04',5:'2015/05',6:'2015/06',
-7:'2015/07',8:'2015/08',9:'2015/09',10:'2015/10',11:'2015/11',12:'2015/12'}
+#MONTH_DIR = {1:'2015/01',2:'2015/02',3:'2015/03',4:'2015/04',5:'2015/05',6:'2015/06',
+#7:'2015/07',8:'2015/08',9:'2015/09',10:'2015/10',11:'2015/11',12:'2015/12'}
 
 MONTH_DIR_TEXT = {'ENERO':1,'FEBRERO':2,'MARZO':3,'ABRIL':4,'MAYO':5,'JUNIO':6,
 'JULIO':7,'AGOSTO':8,'SEPTIEMBRE':9,'OCTUBRE':10,'NOVIEMBRE':11,'DICIEMBRE':12}
@@ -66,14 +66,12 @@ service_price_json = {
         "559167ed01a4de7bba852991":"558b01dd01a4de7bba851398",
         "5591627901a4de7bb8eb1ada":"558b01dd01a4de7bba851399",
         "559167ed01a4de7bba852992":"558b01dd01a4de7bba85139a",
-#Old record testing        "5591627901a4de7bb8eb1adb":"558b01dd01a4de7bba85139b",
         "5591627901a4de7bb8eb1adb":"558b01dd01a4de7bba85139b",
         "5591627901a4de7bb8eb1adc":"558b01dd01a4de7bba85139c",
         "559167ed01a4de7bba852993":"558b01dd01a4de7bba85139d",
         "559167ed01a4de7bba852994":"558b01dd01a4de7bba85139e",
         "5591627901a4de7bb8eb1add":"558b01dd01a4de7bba85139f",
         "5591627901a4de7bb8eb1ade":"559168bd01a4de7bba852996",
-        #id de fleje
         "55916a6f01a4de7bba852997":"558b01dd01a4de7bba8513a0",
         "5591627901a4de7bb8eb1adf":"558b01dd01a4de7bba8513a1",
         "5591627901a4de7bb8eb1ae0":"558b01dd01a4de7bba8513a2",
@@ -246,9 +244,6 @@ def set_structure_service():
 
 def set_price_service(price_line, service_list):
     for service_id in service_list.keys():
-        print 'folio', price_line['folio']
-        print 'from',price_line['answers'].get('55a53ecb23d3fd7c88b11108', '')
-        print 'to',price_line['answers'].get('55a53ecb23d3fd7c88b11109', '')
         price_detail = {
         'from': price_line['answers'].get('55a53ecb23d3fd7c88b11108', ''),
         'to':price_line['answers'].get('55a53ecb23d3fd7c88b11109', ''),
@@ -389,7 +384,6 @@ def get_answer(answer, field, meta_answers= {}):
         # Radio
         elif field["field_type"] in ("radio","select"):
             options = {}
-            #print 'answer', len(answer)
             for option in field["options"]:
                 options[option["value"]] = option["label"]
             if options.get(answer):
@@ -463,13 +457,6 @@ def insert_rent_services(meta_answer):
     'fixed_rent':{'unit_price':fixed_rent_price,'currency':fixed_rent_currency},
     'office_rent':{'unit_price':office_rent_price,'currency':office_rent_currency},
     })
-    # if rent_json['created_at'].month ==9:
-    #     print 'rent_json', rent_json
-    #     print 'client', client
-    #     print 'warehouse', warehouse
-    #     print 'rent_id', rent_id
-    #     print 'created_at', created_at
-    #     print '--------------------------------------'
     return rent_json
 
 def invoicing_month(one_record_json):
@@ -535,7 +522,7 @@ def verify_one_record_per_company(report_answer):#, one_record_json):
                             '5591627901a4de7bb8eb1ad4':warehouse_upper })
                         one_record_json.update(invoicing_month(one_record_json))
                         report_answer.update({'_id':one_record_id}, one_record_json, upsert=True)
-                        #print 'one_record_json',one_record_json
+                        # 'one_record_json',one_record_json
     return True
 
 #TODO AGREGAR LISTA DE PRECIOS EN PESOS Y DLLS
@@ -603,7 +590,6 @@ def etl():
         ###replace alter_find with all_forms_find
         for record in form_answer.find(all_forms_find):
             count +=1
-            #print 'records ', count
             record_answer = {}
             pass_all = False
             fields = {}
@@ -611,7 +597,6 @@ def etl():
             try:
                all_fields = record['voucher']['fields']
             except:
-               print 'record=', record
             #fields = update_fields()
             for field in all_fields:
                 field_id = field['field_id']['id']
@@ -627,7 +612,6 @@ def etl():
                     meta_answers.update({raw_meta:meta_answer})
                 else:
                     print 'NOT FOUND THE the metadata ', raw_meta
-                    #print 'meta_answer',meta_answer
                     pass_all = True
                     continue
             ### Metadata form fields
@@ -657,12 +641,10 @@ def etl():
                     service_answers.update({'itype':'service'})
                 if answer_field_id in etl_model.filters:
                     service_answers.update({answer_field_id:get_answer(record["answers"][answer_field_id], fields[answer_field_id], meta_answers)})
-            #print 'service_answers',service_answers
             record_answer.update(service_answers)
-            #report_answer.replace_one(record_answer, upsert=True)
-            #print 'record_answer',record_answer
             currency = get_record_currency(record_answer)
             record_answer.update({'currency':currency})
+            print '-'
             report_answer.update({'_id':record_answer['_id']}, record_answer, upsert=True)
             try:
                 rent_service = insert_rent_services(meta_answers)
@@ -672,8 +654,8 @@ def etl():
         verify_one_record_per_company(report_answer)
         return True
 
-#PRICE_LIST = get_service_price()
-#etl()
+PRICE_LIST = get_service_price()
+etl()
 
 def loop_query_update(cr_report_total, query_result, itype, operation_type='update'):
     count = 0
@@ -710,33 +692,15 @@ def get_insert_id (rec, itype):
         months_index_str = [str(i) for i in range(13)]
         #Checks if the month comes on a numeric format even if its consider a str
         #And it converts it to the given format ad MONTH_DIR
-        print 'rec month', rec['month']
         if type(rec['month']) is int or rec['month'] in months_index_str:
-            #month = MONTH_DIR[int(rec['month'])]
             month = '%d/%02d'%(rec['year'], rec['month'])
         else:
-            print 'dos', rec
-            print 'rec dos month', rec['month']
             month = MONTH_DIR_TEXT[rec['month']]
-            #print 'month', month
             month = '%d/%02d'%(rec['year'], MONTH_DIR_TEXT[rec['month']])
-            print 'month_dir', month
-            #print turen
         month = month.lower()
-        print 'month', month
-        #tratar de desnormailzar a ver si mejora Boreas
         client = re.sub(' ', '_', rec['client']).lower()
-        #print 'cliente ', client
         if not client:
-            print 'aqui truena'
-            print truena_get_insert_id
         warehouse = re.sub(' ', '_', rec['warehouse']).lower()
-        if not warehouse:
-            print 'aqui warehouse'
-            print truena_get_insert_id
-        if not itype:
-            print 'truena type'
-            print truena_get_insert_id
         db_id = currency + month + client + warehouse + itype
         return db_id
     except KeyError:
@@ -760,12 +724,10 @@ def get_query_service_total(record):
             #print 'record', record
         if key == 'month' and type(value) == int:
             month_dir = '%d/%02d'%(record['year'], record['month'])
-            print 'month_dir', month_dir
             res.update({key:month_dir})
             #print 'res value', MONTH_DIR[value]
         elif key == 'month' and type(value) in (str, unicode):
             month_dir = '%d/%02d'%(record['year'], MONTH_DIR_TEXT[value])
-            print 'month_dir texto', month_dir
             res.update({key:month_dir})
             #print 'res value', MONTH_DIR_TEXT[value]
             #print test
