@@ -597,6 +597,7 @@ def etl():
             try:
                all_fields = record['voucher']['fields']
             except:
+                print 'ERROR: record=',record
             #fields = update_fields()
             for field in all_fields:
                 field_id = field['field_id']['id']
@@ -644,7 +645,6 @@ def etl():
             record_answer.update(service_answers)
             currency = get_record_currency(record_answer)
             record_answer.update({'currency':currency})
-            print '-'
             report_answer.update({'_id':record_answer['_id']}, record_answer, upsert=True)
             try:
                 rent_service = insert_rent_services(meta_answers)
@@ -700,6 +700,7 @@ def get_insert_id (rec, itype):
         month = month.lower()
         client = re.sub(' ', '_', rec['client']).lower()
         if not client:
+            print 'ERROR: no client record=',rec
         warehouse = re.sub(' ', '_', rec['warehouse']).lower()
         db_id = currency + month + client + warehouse + itype
         return db_id

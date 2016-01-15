@@ -247,6 +247,13 @@ def get_query():
         'OTROS_unit_price': {'$max': "$00000000000000000000a101.unit_price"},
         'OTROS_total': {'$sum': "$00000000000000000000a101.total"},
 
+        'MAQUILA_SPOUT_qty': {'$sum': "$00000000000000000000a102.qty"},
+        'MAQUILA_SPOUT_unit_price': {'$max': "$00000000000000000000a102.unit_price"},
+        'MAQUILA_SPOUT_total': {'$sum': "$00000000000000000000a102.total"},
+
+        'MAQUILA_PERFORACION_qty': {'$sum': "$00000000000000000000a103.qty"},
+        'MAQUILA_PERFORACION_unit_price': {'$max': "$00000000000000000000a103.unit_price"},
+        'MAQUILA_PERFORACION_total': {'$sum': "$00000000000000000000a103.total"},
     }},
 
     {'$project': {
@@ -364,6 +371,8 @@ def get_query():
         'TARIMAS_NEGRAS_FLEJADAS_total': {'$multiply': ["$TARIMAS_NEGRAS_FLEJADAS_qty","$TARIMAS_NEGRAS_FLEJADAS_unit_price"]},
         'RENTA_GRUA_total': {'$multiply': ["$RENTA_GRUA_qty","$RENTA_GRUA_unit_price"]},
         'OTROS_total': {'$multiply': ["$OTROS_qty","$OTROS_unit_price"]},
+        'MAQUILA_SPOUT_total': {'$multiply': ["$MAQUILA_SPOUT_qty","$MAQUILA_SPOUT_unit_price"]},
+        'MAQUILA_PERFORACION_total': {'$multiply': ["$MAQUILA_PERFORACION_qty","$MAQUILA_PERFORACION_unit_price"]},
 
         'total_services': {'$add': [ '$SAE_total' , '$SAD_total', '$SAP_total', '$SE_total', '$SEPONY_total','$SAT_total', '$SPY_total', '$TCH_total',
         '$TCOSTCO_total', '$STD_total','$TNL_total','$TERMO_total', '$SD_total','$RM_total','$PALLET_IN_total','$PALLET_OUT_total',
@@ -376,7 +385,8 @@ def get_query():
         '$COSTO_MENSUAL_UE_EXTRA_total','$PRECIO_TIEMPO_EXTRA_X_DIA_total','$PRECIO_RENTA_FIJA_total',
         '$PRECIO_RENTA_OFICINA_total','$METROS_ACORDADOS_total','$SD_DESCARGA_35_total','$SD_DESCARGA_TORTON_total',
         '$SD_DESCARGA_TRAILER_total','$CM_CARGA_MATERIAL_35_total', '$CM_CARGA_MATERIAL_TORTON_total',
-        '$CM_CARGA_MATERIAL_TRAILER_total','$TARIFA_GUIA_total','$TARIMAS_NEGRAS_FLEJADAS_total','$RENTA_GRUA_total','$OTROS_total'  ]}
+        '$CM_CARGA_MATERIAL_TRAILER_total','$TARIFA_GUIA_total','$TARIMAS_NEGRAS_FLEJADAS_total','$RENTA_GRUA_total','$OTROS_total' ,
+        '$MAQUILA_SPOUT_total','$MAQUILA_PERFORACION_total' ]}
         }},
         {'$project':{
         '_id':1,
