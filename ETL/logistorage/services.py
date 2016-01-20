@@ -254,6 +254,14 @@ def get_query():
         'MAQUILA_PERFORACION_qty': {'$sum': "$00000000000000000000a103.qty"},
         'MAQUILA_PERFORACION_unit_price': {'$max': "$00000000000000000000a103.unit_price"},
         'MAQUILA_PERFORACION_total': {'$sum': "$00000000000000000000a103.total"},
+
+        'ETIQUETAS_qty': {'$sum': "$00000000000000000000a104.qty"},
+        'ETIQUETAS_unit_price': {'$max': "$00000000000000000000a104.unit_price"},
+        'ETIQUETAS_total': {'$sum': "$00000000000000000000a104.total"},
+
+        'PLACA_IMPRESION_qty': {'$sum': "$00000000000000000000a105.qty"},
+        'PLACA_IMPRESION_unit_price': {'$max': "$00000000000000000000a105.unit_price"},
+        'PLACA_IMPRESION_total': {'$sum': "$00000000000000000000a105.total"},
     }},
 
     {'$project': {
@@ -373,6 +381,8 @@ def get_query():
         'OTROS_total': {'$multiply': ["$OTROS_qty","$OTROS_unit_price"]},
         'MAQUILA_SPOUT_total': {'$multiply': ["$MAQUILA_SPOUT_qty","$MAQUILA_SPOUT_unit_price"]},
         'MAQUILA_PERFORACION_total': {'$multiply': ["$MAQUILA_PERFORACION_qty","$MAQUILA_PERFORACION_unit_price"]},
+        'ETIQUETAS_total': {'$multiply': ["$ETIQUETAS_qty","$ETIQUETAS_unit_price"]},
+        'PLACA_IMPRESION_total': {'$multiply': ["$PLACA_IMPRESION_qty","$PLACA_IMPRESION_unit_price"]},
 
         'total_services': {'$add': [ '$SAE_total' , '$SAD_total', '$SAP_total', '$SE_total', '$SEPONY_total','$SAT_total', '$SPY_total', '$TCH_total',
         '$TCOSTCO_total', '$STD_total','$TNL_total','$TERMO_total', '$SD_total','$RM_total','$PALLET_IN_total','$PALLET_OUT_total',
@@ -386,7 +396,7 @@ def get_query():
         '$PRECIO_RENTA_OFICINA_total','$METROS_ACORDADOS_total','$SD_DESCARGA_35_total','$SD_DESCARGA_TORTON_total',
         '$SD_DESCARGA_TRAILER_total','$CM_CARGA_MATERIAL_35_total', '$CM_CARGA_MATERIAL_TORTON_total',
         '$CM_CARGA_MATERIAL_TRAILER_total','$TARIFA_GUIA_total','$TARIMAS_NEGRAS_FLEJADAS_total','$RENTA_GRUA_total','$OTROS_total' ,
-        '$MAQUILA_SPOUT_total','$MAQUILA_PERFORACION_total' ]}
+        '$MAQUILA_SPOUT_total','$MAQUILA_PERFORACION_total','$ETIQUETAS_total', '$PLACA_IMPRESION_total' ]}
         }},
         {'$project':{
         '_id':1,
