@@ -122,7 +122,11 @@ service_price_json = {
         "5601781223d3fd71eb874da7":"55cb86f423d3fd09737bcc1a",#Fleje Venta
         "55fb84cf23d3fd7817c11955":"55fb83f623d3fd78190aa80e",
         "00000000000000000000a100":"00000000000000000000b100",
-        "00000000000000000000a101":"00000000000000000000b101"
+        "00000000000000000000a101":"00000000000000000000b101",
+        "00000000000000000000a102":"00000000000000000000b102",
+        "00000000000000000000a103":"00000000000000000000b103",
+        "00000000000000000000a104":"00000000000000000000b104"
+        "00000000000000000000a105":"00000000000000000000b105"
 }
 
 #service_id:price_id
@@ -597,6 +601,7 @@ def etl():
             try:
                all_fields = record['voucher']['fields']
             except:
+                print 'ERROR: record=',record
             #fields = update_fields()
             for field in all_fields:
                 field_id = field['field_id']['id']
@@ -644,7 +649,6 @@ def etl():
             record_answer.update(service_answers)
             currency = get_record_currency(record_answer)
             record_answer.update({'currency':currency})
-            print '-'
             report_answer.update({'_id':record_answer['_id']}, record_answer, upsert=True)
             try:
                 rent_service = insert_rent_services(meta_answers)
@@ -700,6 +704,7 @@ def get_insert_id (rec, itype):
         month = month.lower()
         client = re.sub(' ', '_', rec['client']).lower()
         if not client:
+            print 'ERROR: no client record=',rec
         warehouse = re.sub(' ', '_', rec['warehouse']).lower()
         db_id = currency + month + client + warehouse + itype
         return db_id
