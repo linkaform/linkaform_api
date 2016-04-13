@@ -85,12 +85,14 @@ class Form(object):
                     return answer[records[0]]
             elif field_type=='select':
                 try:
-                    print 'answer', answer
-                    return answer[records[0]].lower().replace(' ','_')
+                    value = delete_spaces(answer[records[0]])
+                    value = value.lower().replace(' ','_')
+                    value = get_conversions(value)
+                    return value
                 except ValueError:
-                    return answer[records[0]]
+                    return delete_space(answer[records[0]])
             else:
-                return answer[records[0]].decode("latin-1")
+                return delete_spaces(answer[records[0]].decode("utf-8"))
         else:
             return ""
 
@@ -109,8 +111,9 @@ class Form(object):
             date_object = datetime.strptime(strisodate2, '%Y-%m-%d')
         except ValueError:
             date_object = datetime.strptime(strisodate2[:8],  '%d/%m/%y')
+            print 'date_objerct', date_object
+        print 'date', date_object.strftime("%s")
         return int(date_object.strftime("%s"))
-
 
     def convert_to_sting_date(self, strisodate):
         strisodate2 = re.sub(' ','',strisodate)
@@ -118,7 +121,10 @@ class Form(object):
         try:
             date_object = datetime.strptime(strisodate2, '%Y-%m-%d')
         except ValueError:
-            date_object = datetime.strptime(strisodate2[:8],  '%d/%m/%y')
+            try:
+                date_object = datetime.strptime(strisodate2[:10],  '%d/%m/%Y')
+            except ValueError:
+                date_object = datetime.strptime(strisodate2[:8],  '%d/%m/%y')
         return date_object.strftime('%Y-%m-%d')
 
 
@@ -136,6 +142,7 @@ class SanfandilaForm(Form):
     PARAMETROS = 4879
     CAPACIDAD_LAGOS = 1234
     TESTING = 5106
+    CALENDARIO = 6335
 
     def __init__(self, **kwargs):
         super(SanfandilaForm, self).__init__(**kwargs)
@@ -166,21 +173,22 @@ class SanfandilaForm(Form):
             self.PEDIDO_ALIMENTO_SEMANAL : 'pedido_alimento_semanal',
             self.VENTAS_Y_TRASPASOS : 'ventas_y_traspasos',
             self.CERDOS_RECIBIDOS : 'cerdos_recibidos',
-            self.MORTALIDADES_MODULOS : 'mortalidades_modulos',
             self.MORTALIDADES_SANFANDILA_ABC : 'mortalidades_sanfandila_abc',
             self.PARAMETROS : 'parametros',
             self.CAPACIDAD_LAGOS : 'capacidad_lagos',
-            self.TESTING : 'testing'
+            self.TESTING : 'testing',
+            self.CALENDARIO : 'calendario'
         }
-
         for key, value in form_id_filenames_map.iteritems():
+            #if value[:12] == 'mortalidades':
+            #    print stop
+            #    return key
             if value in filename:
                 return key
         raise ValueError("invalid filename!")
 
-
     def get_answers(self):
-        answer_keys = self.answers.keys()
+        answer_keys = delete_spaces(self.answers.keys())
         if self.created_at is None:
             try:
                 self.created_at = self.get_answer_for_field_id(answer_keys, self.answers, 'fecha_creacion', '')
@@ -292,18 +300,6 @@ class SanfandilaForm(Form):
                 'edad_total' : (FieldType.ONE_FIELD, '276000000000000000000008', 'float')
             }],
 
-            self.MORTALIDADES_MODULOS : [{
-                'fecha' : (FieldType.ONE_FIELD, '000000000000000000000001', 'date'),
-                'granja' : (FieldType.ONE_FIELD, '000000000000000000000002', 'select'),
-                'total_muertos' : (FieldType.ONE_FIELD, '328800000000000000000003', 'int'),
-                'descripcion_muertes' : (FieldsType.REPETITIVE_FIELDS, '328800000000000000000004', {
-                    'causa_muerte' : (FieldType.ONE_FIELD, '328800000000000000000005', 'select'),
-                    'muerto_por_esta_causa' : (FieldType.ONE_FIELD, '328800000000000000000006', 'int'),
-                    'lote' : (FieldType.ONE_FIELD, '328800000000000000000007', 'int'),
-                    'flujo' : (FieldType.ONE_FIELD, '328800000000000000000008', 'select')
-                })
-            }],
-
             self.MORTALIDADES_SANFANDILA_ABC : [{
                 'fecha' : (FieldType.ONE_FIELD, '000000000000000000000001', 'date'),
                 'granja' : (FieldType.ONE_FIELD, '000000000000000000000002', 'select'),
@@ -352,6 +348,12 @@ class SanfandilaForm(Form):
             self.TESTING : [{
                 'testing' : (FieldType.ONE_FIELD, '012345678901234567890123', ''),
                 'testing2' : (FieldType.ONE_FIELD, '012345678901234567890124', '')
+            }],
+
+            self.CALENDARIO : [{
+                'fecha' : (FieldType.ONE_FIELD, 'f00000000000000000000001', 'date'),
+                'semana' : (FieldType.ONE_FIELD, 'f00000000000000000000002', 'int'),
+                'año' : (FieldType.ONE_FIELD, 'f00000000000000000000003', 'int')
             }]
 
         }
@@ -407,19 +409,18 @@ def login(session, username, password):
     return r.status_code == 200
 
 
-def post_answers(session, answers, test=False):
+def post_answers(session, answers, file, test=False):
     POST_CORRECTLY=0
     errors_json = []
     if test:
         answers = [answers[0],answers[1]]
-        print 'answers=', answers
     for index, answer in enumerate(answers):
         if config['IS_USING_APIKEY']:
-            r = session.post(config['FORM_ANSWER_URL'], data = simplejson.dumps(answer, encoding='latin-1'), headers={'Content-type': 'application/json', 'Authorization':'ApiKey {0}:{1}'.format(config['AUTHORIZATION_EMAIL_VALUE'], config['AUTHORIZATION_TOKEN_VALUE'])}, verify=False)
+            r = session.post(config['FORM_ANSWER_URL'], data = simplejson.dumps(answer), headers={'Content-type': 'application/json', 'Authorization':'ApiKey {0}:{1}'.format(config['AUTHORIZATION_EMAIL_VALUE'], config['AUTHORIZATION_TOKEN_VALUE'])}, verify=False)
         else:
-            r = session.post(config['FORM_ANSWER_URL'], data = simplejson.dumps(answer, encoding='latin-1'), headers={'Content-type': 'application/json'}, verify=False)
+            r = session.post(config['FORM_ANSWER_URL'], data = simplejson.dumps(answer), headers={'Content-type': 'application/json'}, verify=False)
         if r.status_code == 201:
-            print "Answer %s saved."%(index + 1)
+            #print "Answer %s saved."%(index + 1)
             POST_CORRECTLY += 1
         else:
             print "Answer %s was rejected."%(index + 1)
@@ -427,6 +428,9 @@ def post_answers(session, answers, test=False):
             response = simplejson.loads(r.content)
             errors_json.append(response)
     print 'Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, index+1)
+    print '\n\n\n\n\n\n\n'
+    if POST_CORRECTLY/(index+1) == 1:
+        os.remove(file)
     if errors_json:
         print 'errors_json=', errors_json
         if test:
@@ -436,12 +440,81 @@ def get_file_to_import(file_path):
     answers = []
     with open(file_path) as file:
         headers = file.readline().strip().split(',')
+        headers = delete_spaces(headers)
         for line in file:
+            line = line.decode('utf-8')
             line = line.strip().split(',')
             field_map = zip(headers, line)
             answers.append(dict(field_map))
     return answers
 
+def delete_spaces(value_list, is_string = False):
+    if type(value_list) == str or type(value_list) == unicode:
+        is_string = True
+        value_list = [value_list,]
+    res= []
+    for akey in value_list:
+        new_key = akey
+        try:
+            while new_key[0] == " ":
+                new_key = new_key[1:len(new_key)]
+            while new_key[-1] == " ":
+                new_key = new_key[:-1]
+        except IndexError:
+            pass
+        #try:
+        #    if new_key == 'tama\xf1o_muestra':
+        #        new_key = 'tamano_muestra'
+        #except:
+        if new_key == 'tama\xc3\xb1o_muestra':
+                new_key = 'tamano_muestra'
+        res.append(new_key)
+    if is_string:
+        return res[0]
+    return res
+
+def get_conversions(value):
+    if value ==u'activo' or value ==u'activos':
+        return 'abierto'
+    if value == u'18_mzo_d' or value =='18_mzo_d':
+        return '18_de_marzo_d'
+    if value == u'18_mzo_a' or value =='18_mzo_a':
+        return '18_de_marzo_a'
+    if value == u'18_mzo_b'  or value =='18_mzo_b':
+        return '18_de_marzo_b'
+    if value == u'18_mzo_c' or value =='18_mzo_c' or value =='18_marzo_c':
+        return '18_de_marzo_c'
+    if value == u'viboras':
+        return u'viboras'
+    if value == 'viboras':
+        return u'viboras'
+    if value == u'engorda_5':
+        return 'engorda_5ppm'
+    if value == u'engorda_10':
+        return 'engorda_10ppm'
+    if value == u'el_rincon':
+        return 'el_rincón'
+    if value == u'estrés':
+        return u'estres'
+    if value == 'engorda':
+        return 'engorda_normal'
+    if value == 'cimarron':
+        return 'cimarrón'
+    if value =='venta_de_retraso' or value == u'venta_de_retraso' or value =='ventas_de_retraso' or value == u'ventas_de_retraso':
+        return 'venta_de_retrasado'
+    if value =='ventas_de_desecho' or value == u'ventas_de_desecho':
+        return 'venta_de_desecho'
+    if value == 'virgen_2':
+        return 'virgen_ii'
+    if value == 'marvic_ii' or value == u'marvic_ii':
+        return 'marvic_2'
+    if value == 'virgen_iii' or value == u'virgen_iii':
+        return 'la_virgen_iii'
+    if value == 'virgen_s2' or value == u'virgen_s2':
+        return 'la_virgen_ii'
+    if value == 'virgen_s3' or value == u'virgen_s3' or value == u'la_virgen_s3' or value == u'la_virgen_s3':
+        return 'la_virgen_iii'
+    return value
 
 
 def get_user_connection(user_id):
@@ -462,8 +535,6 @@ def create_collection(collection, user_connection):
     newCollection = Collection(user_connection['db'], collection, create=config['CREATE'])
     return newCollection
 
-
-
 def upload_answers_to_database(answers):
     print "> Uploading Content ..."
     user_connection = get_user_connection(config['USER_ID'])
@@ -478,8 +549,7 @@ def upload_answers_to_database(answers):
         finally:
             counter = counter +1
 
-
-def upload_answers_using_rest(answers, test=False):
+def upload_answers_using_rest(answers, file, test=False):
     session = requests.Session()
     if config['IS_USING_APIKEY']:
         post_answers(session, answers, test)
@@ -491,7 +561,6 @@ def upload_answers_using_rest(answers, test=False):
         else:
             print "Invalid login."
 
-
 config = {
     'FORM_ANSWER_URL' : 'https://grover.info-sync.com/api/infosync/form_answer/',
     'LOGIN_URL' : 'https://grover.info-sync.com/api/infosync/user_admin/login/',
@@ -502,7 +571,7 @@ config = {
     'PORT' : 27019,
     'USER_ID' : '414',
     'KEYS_POSITION' : {},
-    'FILE_PATH_DIR' : 'tmp/',
+    'FILE_PATH_DIR' : '/tmp/Import/',
     'IS_USING_APIKEY' : True,
     'AUTHORIZATION_EMAIL_VALUE' : 'infosync@sanfandila.com',
     'AUTHORIZATION_TOKEN_VALUE' : '530bd4396d7ffd9f6ee76aea4f621e7d00cd9e21',
@@ -518,45 +587,51 @@ config = {
 
 
 if __name__ == "__main__":
-    files = os.popen('ls %s' % config['FILE_PATH_DIR'])
-    all_files = files.read().split('\n')
-    try:
-        test = argv[1]
-    except:
-        test = False
-    GLOBAL_ERRORS = []
-    for file_name in all_files:
-        if file_name:
-            file_path = config['FILE_PATH_DIR'] + file_name
-            print "Filename: {0}".format(file_path)
-            time_started = time.time()
-            metadata = {
-                'form_id' : None,
-                'lat' : 25.644885499999997,
-                'glong' : -100.3862645,
-                'start_timestamp' : 123456789,
-                'created_at' : None
-            }
-            answers = load_answers(metadata, file_path)
-            print "Total answers: ",len(answers)
-            try:
-                print "Sample of answers:"
-                # print answers[0]
-                # print answers[1]
-                # print answers[2]
-                # print answers[3]
-            except:
-                pass
-            if len(answers) > 0:
-                print "%s answers loaded." % len(answers)
-                if config['LOAD_DATA_USING'] == ImportData.MONGO:
-                    upload_answers_to_database(answers)
-                elif config['LOAD_DATA_USING'] == ImportData.REST:
-                    upload_answers_using_rest(answers, test)
+    directories = os.popen('find %s -maxdepth 2'%(config['FILE_PATH_DIR']))
+    directories = directories.read().split('\n')
+    for adir in directories:
+        lsdir = re.sub(" ", lambda x: '\ ', adir)
+        files = os.popen('ls %s/*.csv' %(lsdir))
+        all_files = files.read().split('\n')
+        all_files = [file[len(adir)+1:] for file in all_files]
+        try:
+            test = argv[1]
+        except:
+            test = False
+        GLOBAL_ERRORS = []
+        for file_name in all_files:
+            if file_name:
+                file_path = adir + '/'+ file_name
+                time_started = time.time()
+                metadata = {
+                    'form_id' : None,
+                    'lat' : 25.644885499999997,
+                    'glong' : -100.3862645,
+                    'start_timestamp' : 123456789,
+                    'created_at' : None
+                }
+                print 'Filepath:',file_path
+                answers = load_answers(metadata, file_path)
+                print "Total answers: ",len(answers)
+                #try:
+                #    print ''
+                #print "Sample of answers:"
+                #print answers[0]
+                    #print answers[1]
+                    #print answers[2]
+                    # print answers[3]
+                #except:
+                #    pass
+                if len(answers) > 0:
+                    #print "%s answers loaded." % len(answers)
+                    if config['LOAD_DATA_USING'] == ImportData.MONGO:
+                        upload_answers_to_database(answers)
+                    elif config['LOAD_DATA_USING'] == ImportData.REST:
+                        upload_answers_using_rest(answers, test, file_path)
+                    else:
+                        raise ValueError("LOAD_DATA_USING {0} is invalid".format(config['LOAD_DATA_USING']))
                 else:
-                    raise ValueError("LOAD_DATA_USING {0} is invalid".format(config['LOAD_DATA_USING']))
-            else:
-                 "No answers loaded."
+                     "No answers loaded."
     if test or len(GLOBAL_ERRORS):
         print '=================== TEST RESULTS ================================'
         print 'total errors', len(GLOBAL_ERRORS)

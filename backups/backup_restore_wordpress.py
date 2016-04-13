@@ -123,7 +123,7 @@ def git_commit_delete_files(server, home_dir, port=22, branch='master', user='in
             return False
         return True
 
-def git_commit_add_all_files(server, home_dir, port=22, branch='master', user = 'infosync', key_filename = '/home/infosync/.ssh/id_rsa'):
+def git_commit_add_all_files(server, home_dir, port=22, branch='master', user = 'infosync', key_filename = '/home/infosync/.ssh/id_rsa', comments=''):
     env.host_string = server
     env.user = user
     env.key_filename = key_filename
@@ -132,7 +132,7 @@ def git_commit_add_all_files(server, home_dir, port=22, branch='master', user = 
         date = datetime.now()
         date = date.strftime("%Y_%m_%d")
         add_files = run('git add ./')
-        git_commit = run('git commit -m "Auto commit made by jvote on %s the %s"'%(hostname, date))
+        git_commit = run('git commit -m "%s : Auto commit at branch %s,  made by jvote on %s the %s"'%(comments,branch, hostname, date))
         return True
 
 def git_status(server, home_dir, port=22, branch='master', user = 'infosync', key_filename = '/home/infosync/.ssh/id_rsa'):
@@ -178,7 +178,7 @@ def git_wordpress_backup():
     del_files_status = git_commit_delete_files(testing_server, home_dir, port, branch, user, key_filename)
     print 'removed with status', del_files_status
     print 'adding files ...'
-    add_files_status = git_commit_add_all_files(testing_server, home_dir, port, branch, user, key_filename)
+    add_files_status = git_commit_add_all_files(testing_server, home_dir, port, branch, user, key_filename, comments)
     print 'add files status: ',add_files_status
     print 'pushing files'
     status = git_push(testing_server, home_dir, port, branch, user, key_filename)
@@ -250,7 +250,7 @@ def commiting_build(branch='master'):
     user = 'infosync'
     key_filename = '/home/josepato/.ssh/id_rsa'
     git_commit_delete_files(server, home_dir, port, branch, user, key_filename)
-    git_commit_add_all_files(server, home_dir, port, branch, user, key_filename)
+    git_commit_add_all_files(server, home_dir, port, branch, user, key_filename, comments)
     git_push(server, home_dir, port, branch, user, key_filename)
     return True
 
@@ -276,6 +276,7 @@ if __name__ == "__main__":
         print 'Restore build'
         try:
             branch = argv[2]
+            comments = argv[3]
         except:
             branch = 'master'
         commiting_build(branch)
