@@ -1,0 +1,9 @@
+###
+### Script para respaldar base de datos de Postgres
+###
+
+
+
+pg_dump -Ft infosync > /tmp/postgres_backup.tar
+
+

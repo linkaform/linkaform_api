@@ -1,0 +1,21 @@
+
+
+
+
+sudo bash
+USER="jonathan"
+KEY="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC3UKhuUy5futyhDO92a4Vf3gryZFTKtvlnpzpCcqUU60jaf3EbA738OSNkH0Aqxz0ayuaDmttvlSgRItNfJ4fi5GhcRd3e6PWRTh9w+Ojjy9ONL7nskO0w64aXIRN8ksLKO6LIDzOfDmo0aU4ObyXM8YRsA3ocwxBEs5lWbmv/SxP4ztp9t7v3bDPMm6owHLi97EEZH3sNgSinljtTGW8fRdcerEDgiQcfm7i4YkckUxrGiVUDjZl2RgRPIfdfgOn5fCmtLI4n3V4eqKV9AVXbsCSBZIJVwIDJdw/vIqYRdqRFfyTmQSG49ZTS708QV9ChVf/7nh37AP8qa6kiFGGqImTXh0CjTKYEfhvWYqWrWJV4yn6TDoUtdKLEqrhJU/8oAYFzCfwowINwULbYDkYd+QBy5J0hQfYBXbmlOsUvOUZLCmcBbpEkaQgYmn16NrDmedk6GpoPMODZnQm6H/JuyZyUbkhpreJ8LRdnCSS8+8POzpxqfGWRyMHJMVoPTkf4Jz4d9gf9aRdeVCv1xrInpmBfg4QtD6RAQm5AZZebJBbaFUfqUQPVJ66ZETQhReQv92GwKQBG2lyBecEoKf19WTig8PSRgCG2q+hq2LrA6vnJWpuxg+rhSh4NTQkVvrqxWuv2yEMCyQ2GaqzHs23XycgvNJX2/ZgtCTogO1FdhQ== jonathan@linkafrom.com"
+
+
+
+USER="josepato"
+adduser $USER --disabled-password
+
+
+su $USER
+cd /home/$USER
+KEY="ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAtyP57cdxKQQOs2Oz7bixKktj/9NteT3qoMp+V90RmGAiETHn2fvFWDV8DTMrH1UvzvhP9Jbit3hhL2Abx5I+nZx0f1H8iUzfWpWsHU07EO55LrDO6JZ1qKGgkhU48/l+B0C9t4NZo5xUxOeCkyDQVsxMsZuYaCg3aGTc/uO2VbSCdkPt7yK/gRtycde63KyI1RolujJhl2ue+F/8iGXV28TSdt7+STOS1Wabfis5YKjs9EUpFJi/awkcO/U52k3s9ZzVz8cZcm8V0uGEHl/LdM9pLeuCJIIFob/xHwzuyEDeoOrbmb/fe6LNkzbL2rF3qG+mWqJlkOnWlRVe92mHFQ== josepato@maria"
+mkdir /home/$USER/.ssh
+chmod 700 -R  /home/$USER/.ssh
+echo $KEY>/home/$USER/.ssh/authorized_keys
+chmod 600 /home/$USER/.ssh/authorized_keys

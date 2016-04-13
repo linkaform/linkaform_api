@@ -1,0 +1,21 @@
+###
+### commands to drop, create and restore a db
+### 
+
+
+#base de datos de infosync
+#backup
+pg_dump -Ft infosync > /var/tmp/postgres_backup_infosync.tar
+pg_dump -Ft Infosync > /var/tmp/postgres_backup_openerp.tar
+
+scp /var/tmp/postgres_backup_infosync.tar db3.linkaform.com:/var/tmp/
+scp /var/tmp/postgres_backup_openerp.tar db3.linkaform.com:/var/tmp/
+
+dropdb infosync --username infosync
+createdb infosync --encoding=UNICODE --username infosync
+pg_restore --username infosync -d infosync /var/tmp/postgres_backup_infosync.tar
+
+#
+dropdb Infosync --username openerp
+createdb Infosync --encoding=UNICODE --username openerp
+pg_restore --username openerp -d Infosync /var/tmp/postgres_backup_openerp.tar
