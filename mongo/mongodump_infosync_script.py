@@ -4,10 +4,10 @@
 #### This is the first draft.....
 
 
-client_id =558
+client_id =101
 server ='db4.linkaform.com'
 
-mongodump ='mongodump -d infosync_answers_client_%s --out /var/tmp/mongo_back_client_%s'%(client_id,client_id)
+mongodump ='mongodump -d infosync_answers_client_%s --host db4.linkaform.com --out /var/tmp/mongo_back_client_%s'%(client_id,client_id)
 removedir = 'rm -rf /var/tmp/mongo_back*'
 dotar = 'tar -zcvf /var/tmp/mongo_back_client_%s.tar.gz ./mongo_back_client_%s'%(client_id,client_id)
 remove = 'rm -rf /var/tmp/mongo_back_client_%s'%(client_id)

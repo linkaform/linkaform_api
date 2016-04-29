@@ -25,7 +25,7 @@ def get_collection_objects(cur_col, query = None):
 	else:
 		objects = cur_col.find()
 	try:
-		if len(objects) == 0:
+		if objects.count() == 0:
 			print 'NO RECORDS FOUND'
 	except TypeError:
 		print 'NO RECORDS FOUND'

@@ -8,13 +8,18 @@ KEY="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC3UKhuUy5futyhDO92a4Vf3gryZFTKtvlnpzp
 
 
 
-USER="josepato"
+USER="jonathan"
+adduser $USER --disabled-password
+
+KEY="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCmpDou+KjiSogGCL7oI7sRZCITm5FPcrfqSGziHqimxK0YKKjo0ctyr9xp3PpUPCOiYkjStQi+T0msJZImQW1ycOD0gYX2Ju5T8/9DsMG9CKnaeu14fOiQ77QAdiRt2zmNy1DQ72IHfuWUKj54WIJpWtjwSdCo3yenMaMop3av6GYIsO40cGL9/c88KRqFf17ccRIxRIYrRKrQJVle66qoU4ltqjLht6yveZKg+jrOo/e/NUsluVbuvdBzMUi+M/JJgdMFDbuayxyPpPp6GVqxwGFA+85thgLIOQ3rL7tjkPJglTKrFvaoNu0nfI5HP1T+JEC3parC4zow9wAGl14h cecy@Cecys-MacBook-Pro.local"
+
+USER="cecy"
 adduser $USER --disabled-password
 
 
 su $USER
 cd /home/$USER
-KEY="ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAtyP57cdxKQQOs2Oz7bixKktj/9NteT3qoMp+V90RmGAiETHn2fvFWDV8DTMrH1UvzvhP9Jbit3hhL2Abx5I+nZx0f1H8iUzfWpWsHU07EO55LrDO6JZ1qKGgkhU48/l+B0C9t4NZo5xUxOeCkyDQVsxMsZuYaCg3aGTc/uO2VbSCdkPt7yK/gRtycde63KyI1RolujJhl2ue+F/8iGXV28TSdt7+STOS1Wabfis5YKjs9EUpFJi/awkcO/U52k3s9ZzVz8cZcm8V0uGEHl/LdM9pLeuCJIIFob/xHwzuyEDeoOrbmb/fe6LNkzbL2rF3qG+mWqJlkOnWlRVe92mHFQ== josepato@maria"
+KEY="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCmpDou+KjiSogGCL7oI7sRZCITm5FPcrfqSGziHqimxK0YKKjo0ctyr9xp3PpUPCOiYkjStQi+T0msJZImQW1ycOD0gYX2Ju5T8/9DsMG9CKnaeu14fOiQ77QAdiRt2zmNy1DQ72IHfuWUKj54WIJpWtjwSdCo3yenMaMop3av6GYIsO40cGL9/c88KRqFf17ccRIxRIYrRKrQJVle66qoU4ltqjLht6yveZKg+jrOo/e/NUsluVbuvdBzMUi+M/JJgdMFDbuayxyPpPp6GVqxwGFA+85thgLIOQ3rL7tjkPJglTKrFvaoNu0nfI5HP1T+JEC3parC4zow9wAGl14h cecy@Cecys-MacBook-Pro.local"
 mkdir /home/$USER/.ssh
 chmod 700 -R  /home/$USER/.ssh
 echo $KEY>/home/$USER/.ssh/authorized_keys

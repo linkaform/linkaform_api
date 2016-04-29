@@ -179,10 +179,9 @@ class SanfandilaForm(Form):
             self.TESTING : 'testing',
             self.CALENDARIO : 'calendario'
         }
+        if 'mortalidades' in filename:
+            filename = 'mortalidades_sanfandila_abc'
         for key, value in form_id_filenames_map.iteritems():
-            #if value[:12] == 'mortalidades':
-            #    print stop
-            #    return key
             if value in filename:
                 return key
         raise ValueError("invalid filename!")
