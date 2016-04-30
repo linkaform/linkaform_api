@@ -9,7 +9,6 @@ collection_name = 'form_data'
 
 
 def connect_mongodb(dbname, host='localhost', port=27017):
-	client = MongoClient()
 	client = MongoClient(host, port)
 	cur_db = client[dbname]
 	return cur_db
