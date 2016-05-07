@@ -105,8 +105,8 @@ service_price_json = {
         "55cb692523d3fd4818dd21a2":"55cb786023d3fd4818dd21c3",
         "55cb7f0923d3fd0328736629":"55cb7f5323d3fd032873662a",
         "558d685701a4de7bba85289f":"558db23301a4de7bba8528e5",
-        "55a010c323d3fd2994ab74e8":"558db23301a4de7bba8528e5",
-        "55a010c323d3fd2994ab74e9":"558db23301a4de7bba8528e5",
+        "55a010c323d3fd2994ab74e8":"344700000000000000000e01",
+        "55a010c323d3fd2994ab74e9":"344700000000000000000e01",
         "5595a5ae23d3fd7d304980c3":"5595a5ae23d3fd7d304980c3",
         "5594688623d3fd7d311a4583":"5594688623d3fd7d311a4583",
         "558d6a3c01a4de7bba8528a1":"558d6a3c01a4de7bba8528a1",
@@ -125,21 +125,32 @@ service_price_json = {
         "00000000000000000000a101":"00000000000000000000b101",
         "00000000000000000000a102":"00000000000000000000b102",
         "00000000000000000000a103":"00000000000000000000b103",
-        "00000000000000000000a104":"00000000000000000000b104"
+        "00000000000000000000a104":"00000000000000000000b104",
         "00000000000000000000a105":"00000000000000000000b105"
 }
 
 #service_id:price_id
 #just for extra space
+#558d685701a4de7bba85289f : Servcio Metros Usados
+#558d685701a4de7bba85289f : Servcio Metros Usados Promocionales
+#558d685701a4de7bba85289f : Servcio Metros Usados Enfriadores
+#55c5392c23d3fd4817ed01d0 : Precio Metros Acordados
+#344700000000000000000e01 : Precio Metros Acordados Promocionales y Enfriadores
 extra_price_json = {
         "558d685701a4de7bba85289f":"55c5392c23d3fd4817ed01d0",
-        "55a010c323d3fd2994ab74e8":"55c5392c23d3fd4817ed01d0",
-        "55a010c323d3fd2994ab74e9":"55c5392c23d3fd4817ed01d0",
+        "55a010c323d3fd2994ab74e8":"344700000000000000000e01",
+        "55a010c323d3fd2994ab74e9":"344700000000000000000e01",
 }
 
 #price_id:condition_id <the condition_id in on the list price
+#5594688623d3fd7d311a4584 : Metros Acordados
+#55c5392c23d3fd4817ed01d0 : Precio Metros Acordados
+#34470000000000000002ae01 : Metros Acordados Promocionales y Enfiradores (condicion)
+#344700000000000000000e01 : Precio Metros Acordados Promocionales y Enfriadores
 extra_price_condition_json = {
         "55c5392c23d3fd4817ed01d0":"5594688623d3fd7d311a4584",
+        "344700000000000000000e01":"34470000000000000002ae01",
+        "344700000000000000000e01":"34470000000000000002ae01",
 }
 
 #new price_fields_ids ids,
@@ -342,11 +353,20 @@ def get_price_from_dates(answer, price_list, created_at):
         }
         return service_json
 
+def get_created_at_from_meta_answer(meta_answers):
+    #busca el id de la fecha de la fomra Unidad de Espacio Miller
+    if meta_answers.has_key('55b7f41623d3fd41daa1c414') and meta_answers['55b7f41623d3fd41daa1c414']:
+        return meta_answers['55b7f41623d3fd41daa1c414']
+    #busca el id de la fecha de la forma Unida de Espacio
+    if meta_answers.has_key('558d685701a4de7bba85289f') and meta_answers['558d685701a4de7bba85289f']:
+        return meta_answers['558d685701a4de7bba85289f']
+    return meta_answers['created_at']
+
 def get_service_answer_json(answer, field, meta_answers):
     price_id = service_price_json[field['field_id']['id']]
     client = re.sub(' ', '_', meta_answers['5591627901a4de7bb8eb1ad5']).lower()
     warehouse = re.sub(' ', '_', meta_answers['5591627901a4de7bb8eb1ad4']).lower()
-    created_at = meta_answers['created_at']
+    created_at = get_created_at_from_meta_answer(meta_answers)
     price_list =  PRICE_LIST[client][warehouse][price_id]
     service_json = get_price_from_dates(answer, price_list, created_at)
     if field['field_id']['id'] in extra_price_json.keys():
@@ -588,6 +608,8 @@ def etl():
         report = { "form_id": etl_model.item_id }
         count = 0
         all_forms_find = {"form_id": {"$in":all_forms}, "deleted_at": {"$exists":False}}
+        #alter_find = {'answers.5591627901a4de7bb8eb1ad5':'miller','answers.5591627901a4de7bb8eb1ad4':'monterrey', 'form_id':3486}#,'5591627901a4de7bb8eb1ad4': 'monterrey'}
+        #all_forms_find.update(alter_find)
         #alter_find = {'answers.5591627901a4de7bb8eb1ad5':'palacio_de_hierro','form_id': {"$in":all_forms}}
         #all_forms_find = alter_find
         #alter_find =  {"answers.55b7f41623d3fd41daa1c414":{"$gte": 'ISODate("2015-05-01T00:00:00Z")', '$lt':'ISODate("2015-08-01T00:00:00Z")'}}
