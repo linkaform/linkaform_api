@@ -219,7 +219,8 @@ def set_dict_service():
 
 def get_user_local_connection(user_id):
     connection = {}
-    connection['client'] = MongoClient(host, local_port)
+    connection['client'] = MongoClient(host,local_port,replicaset='birt')
+    #connection['client'] = MongoClient(host, local_port)
     user_db_name = "infosync_answers_client_{0}".format(user_id)
     if not user_db_name:
         return None
@@ -503,7 +504,8 @@ def get_all_months(db_form_answer):
                         {"year":"$year", "month":"$month"},
                     }
                 }]
-    year_month = db_form_answer.aggregate(proyect)['result']
+    #year_month = db_form_answer.aggregate(proyect)['result']
+    year_month = db_form_answer.aggregate(proyect)
     return year_month
 
 def verify_one_record_per_company(report_answer):#, one_record_json):
@@ -762,8 +764,9 @@ def get_query_service_total(record):
 
 
 def insert_services(report_answer, cr_report_total):
-    service_query = services.get_query()
+    #service_query = services.get_query()
     service_res = report_answer.aggregate(service_query)
+    service_res = report_answer.aggregate(service_query, **{'allowDiskUse':True})
     tt = 0
     tts = 0
     for a in service_res['result']:
@@ -777,13 +780,15 @@ def insert_services(report_answer, cr_report_total):
     # print 'asi queda tt= ', tt
     # print 'asi queda ts=', tts
     # print tt+tts
-    loop_query_update(cr_report_total, service_res['result'], itype='service', operation_type='insert')
+    #loop_query_update(cr_report_total, service_res['result'], itype='service', operation_type='insert')
+    loop_query_update(cr_report_total, service_res, itype='service', operation_type='insert')
     return True
 
 def upsert_space_unit(report_answer, cr_report_total):
     space_unit_query =space_unit.get_query()
     space_unit_res = report_answer.aggregate(space_unit_query)
-    loop_query_update(cr_report_total, space_unit_res['result'], itype='space_unit',operation_type='insert')
+    #loop_query_update(cr_report_total, space_unit_res['result'], itype='space_unit',operation_type='insert')
+    loop_query_update(cr_report_total, space_unit_res, itype='space_unit',operation_type='insert')
     return True
 
 def upsert_rent_service(report_answer, cr_report_total):
@@ -792,7 +797,8 @@ def upsert_rent_service(report_answer, cr_report_total):
     loop_query_update(cr_report_total, rent_service_res['result'], itype='fixed_rent',operation_type='insert')
     rent_office_query = rent_office.get_query()
     rent_office_res = report_answer.aggregate(rent_office_query)
-    loop_query_update(cr_report_total, rent_office_res['result'], itype='office_rent',operation_type='insert')
+    #loop_query_update(cr_report_total, rent_office_res['result'], itype='office_rent',operation_type='insert')
+    loop_query_update(cr_report_total, rent_office_res, itype='office_rent',operation_type='insert')
     return True
 
 def set_services_total():
