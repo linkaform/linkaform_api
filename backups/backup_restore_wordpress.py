@@ -33,6 +33,8 @@ from datetime import datetime
 testing_server = 'test.linkaform.com'
 production_server = 'www.linkaform.com'
 front_servers = ['ernie.linkaform.com', 'ernie2.linkaform.com']
+production_server_tetengo = 'ernie.tetengo.com'
+
 
 #TODO:
 #PUT PASSWORDS ON FIELS
@@ -53,6 +55,20 @@ def backup_mysqldb(key_filename='/home/infosync/.ssh/id_rsa'):
     return db_backup_name
 
 @task
+def backup_mysqldb_tetengo(key_filename='/home/infosync/.ssh/id_rsa'):
+    """
+    Crear un archivo tar de directorio remoto
+    """
+    env.host_string = testing_server
+    env.user = 'infosync'
+    env.key_filename = key_filename
+    print 'starting... to backup remote db'
+    db_backup_name = 'tetengo_wp2.sql'
+    run ("mysqldump -utetengo_wp1 -pB*tD7dMZIv16.~9  tetengo_wp2 > %s"%(db_backup_name))
+    print 'Backup done....'
+    return db_backup_name
+
+@task
 def backup_public_html(key_filename='/home/infosync/.ssh/id_rsa'):
     """
     Crear un archivo tar de directorio remoto
@@ -66,6 +82,23 @@ def backup_public_html(key_filename='/home/infosync/.ssh/id_rsa'):
     date = date.strftime("%Y_%m_%d")
     tar_name = 'linkaform_bakup_%s.tar.gz'%date
     run("tar cfz %s public_html/ %s"%(tar_name,dbname))
+    print 'backup compleated',tar_name
+    return tar_name
+
+@task
+def backup_public_html_tetengo(key_filename='/home/infosync/.ssh/id_rsa'):
+    """
+    Crear un archivo tar de directorio remoto
+    """
+    dbname = backup_mysqldb_tetengo(key_filename)
+    env.host_string = testing_server
+    env.user = 'infosync'
+    env.key_filename = key_filename
+    print 'starting to do backup of all folders...'
+    date = datetime.now()
+    date = date.strftime("%Y_%m_%d")
+    tar_name = 'tetengo_bakup_%s.tar.gz'%date
+    run("tar cfz %s public_html/ %s"%(tar_name,tetengo))
     print 'backup compleated',tar_name
     return tar_name
 
@@ -96,6 +129,36 @@ FLUSH PRIVILEGES;"""
         run("mysql -uinfosync -pdirector infosync_wp1 < infosync_wp1.sql ")
         print 'Updates...'
         run("mysql -uinfosync -pdirector infosync_wp1 < %s"%"/tmp/update_script.sql")
+        print 'restores_remote_db DONE'
+    return True
+
+def restores_remote_db_tetengo(key_filename = '/home/infosync/.ssh/id_rsa'):
+    """
+    Copies and restores the databse form the remote server
+    """
+    script = """use tetengo_wp2;
+drop database tetengo_wp2;
+create database tetengo_wp2;
+use tetengo_wp2;
+GRANT ALL PRIVILEGES ON tetengo_wp2.* TO "infosync"@"hostname"  IDENTIFIED BY "director";
+FLUSH PRIVILEGES;"""
+    #update_script ="update tetengo_wp2.wp_options set option_value ='http://%s' where option_value like http://test.tetengo%;"%(production_server_tetengo)
+    update_script = "Select option_value REPLACE('http://test.tetengo%', 'test', 'ernie2'); "
+    db_name = backup_mysqldb_tetengo(key_filename)
+    print 'Coping files...'
+    for server in front_servers:
+        env.host_string = server
+        env.user = 'infosync'
+        env.key_filename = '/home/infosync/.ssh/id_rsa'
+        file_write('/tmp/sql_drop_tetengo.sql', script)
+        file_write('/tmp/update_script_tetengo.sql', update_script )
+        run("scp  infosync@%s:%s ./"%(testing_server, db_name))
+        print 'droping db . . .'
+        run("mysql -uroot -pdirector tetengo_wp1 < %s"%"/tmp/sql_drop_tetengo.sql")
+        print 'Restoring . . .'
+        run("mysql -uinfosync -pdirector tetengo_wp1 < _tetengo_wp1.sql ")
+        print 'Updates...'
+        run("mysql -uinfosync -pdirector tetengo_wp1 < %s"%"/tmp/update_script_tetengo.sql")
         print 'restores_remote_db DONE'
     return True
 
@@ -230,6 +293,32 @@ def restores_remote_wordpress():
             run_local('rm -rf /srv/wordpress/linkaform/*')
             run_local('mv /var/backups/public_html/* /srv/wordpress/linkaform.com/')
             run_local('cp /home/josepato/wp-config.php /srv/wordpress/linkaform.com/')
+            dir_attribs("/srv/wordpress/linkaform.com", mode=774, owner='www-data', group='www-data', recursive=True)
+    print 'restores_remote_wordpress = Done'
+
+def restores_remote_wordpress_tetengo():
+    """
+    Copies and restores remote wordpress
+    """
+    restores_remote_db_tetengo('/home/josepato/.ssh/id_rsa_goddady')
+    backup_name = backup_public_html_tetengo('/home/josepato/.ssh/id_rsa_goddady')
+    print 'coping files...'
+    env.host_string = 'localhost' #production_server
+    env.user = 'josepato'
+    env.key_filename = '/home/infosync/.ssh/id_rsa'
+    run_local("scp -i /home/josepato/.ssh/id_rsa_goddady infosync@%s:%s /var/backups/"%(testing_server, backup_name))
+    #run_local("scp -i /home/infosync/.ssh/id_rsa_goddady infosync@%s:%s /var/backups/"%(testing_server, backup_name))
+    print 'Restoring ',backup_name
+    with mode_local():
+        with mode_sudo():
+            dir_attribs("/srv/wordpress/linkaform.com", mode=777, owner='www-data', group='www-data', recursive=True)
+    with mode_local():
+        with cd('/var/backups/'):
+            run_local("tar xfz /var/backups/%s "%(backup_name))
+        with mode_sudo():
+            run_local('rm -rf /srv/wordpress/linkaform/*')
+            run_local('mv /var/backups/public_html/* /srv/wordpress/linkaform.com/')
+            run_local('cp /home/josepato/wp-config-tetengo.php /srv/wordpress/linkaform.com/test.tetengo.com.mx/wp-config.php')
             dir_attribs("/srv/wordpress/linkaform.com", mode=774, owner='www-data', group='www-data', recursive=True)
     print 'restores_remote_wordpress = Done'
 
