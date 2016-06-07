@@ -70,7 +70,7 @@ def search_lost_folios(dbname, port, collection_name, form_list):
     for form_id in form_list:
         query = {'form_id':form_id, 'deleted_at': {'$exists':0}}
         records = mongo_util.get_collection_objects(cur_col, query)
-        
+
         for res in records:
             print '-----------------------------------------'
             print ' folio:', res['folio']
@@ -78,7 +78,7 @@ def search_lost_folios(dbname, port, collection_name, form_list):
             other_versions = res['other_versions']
             if other_versions:
                 old_folio = search_folio_in_versions(infosync_cr, other_versions, res['folio'])
-            
+
             if old_folio:
                 found_it.update({old_folio:res['folio']})
                 res['folio'] = old_folio
@@ -106,13 +106,13 @@ def search_folio_in_versions(infosync_cr, other_versions, folio):
         for res in record:
             version_ids.append(res['_id'])
     print 'version_ids', version_ids
-    
+
     #checar como hacer el in de object ids
     query = {'_id': { '$in': version_ids }, 'folio':{'$ne':folio}}
     #query = {'_id': {$in:ObjectId(version_id), 'folio':{'$neq':folio}}
     #revisar si se puede hacer un query a la version 1
     records = mongo_util.get_collection_objects(infosync_cr, query)
-    
+
     if records.count() > 0:
         query = {'_id': { '$in': version_ids }, 'version':1 }
         record_ver1 = mongo_util.get_collection_objects(infosync_cr, query)
@@ -129,8 +129,8 @@ def search_folio_in_versions(infosync_cr, other_versions, folio):
                 {'_id':res},
                 {
                     "$set": {
-                        "folio":folio_ver1 
-                    } 
+                        "folio":folio_ver1
+                    }
                 } )
             print '***********************'
         return folio_ver1
@@ -138,8 +138,8 @@ def search_folio_in_versions(infosync_cr, other_versions, folio):
 
 host = 'localhost'
 
-# port=27019
-port = 27017
+port=27019
+#port = 27017
 collection_name = "workflow_data"
 collection_name = 'form_answer'
 cr = MongoClient()
@@ -164,10 +164,19 @@ worklfow = ["571f9ce723d3fd2ea8d0bd2b"]
 
 # folio_list = ['57111ed923d3fd3044bca122']
 
+folio_list = ['573b899923d3fd40a0d9c072']
+#error pdf mayo 20 2016
+folio_list = ['57311bcc23d3fd0fc31d0a86']
+#error mayo 20 2016
+folio_list = ['5749b24823d3fd6c2df1a3b8', '5748cac923d3fd219569826d' ]
+
+#error junio 1 2016
+folio_list = ['56fda2d223d3fd0b9f7c9c67', '574f4d5423d3fd18f123da62' ,'56e87ff223d3fd60fa6c4dc9']
+
 for dbname in databases:
     if dbname in ['infosync']:#['test', 'infosync', 'admin']:
         continue
-    found_it = search_lost_folios(dbname, port, collection_name, form_list)
+    found_it = search_ids(dbname, port, collection_name, folio_list)
     #search_workflows(dbname, port, collection_name, folio_list)
     if found_it:
         found_all += 1

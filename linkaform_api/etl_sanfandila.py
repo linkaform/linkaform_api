@@ -1,8 +1,7 @@
 from datetime import datetime
 
-#from linkaform_api import settings
-import settings
-import network
+from linkaform_api import settings
+from linkaform_api import network
 
 config = {
     'USERNAME' : 'infosync@sanfandila.com',

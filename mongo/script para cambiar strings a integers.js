@@ -56,3 +56,18 @@ db.form_answer.find({form_id:2652, deleted_at: {$exists:0}, connection_id:126}).
     print(data.answers['552fc36801a4de2890055369'])
     db.form_answer.update({_id:data._id},{$set:{'answers.552fc36801a4de2890055369':parseInt(data.answers['552fc36801a4de2890055369'])}});
 })
+
+///// Cambiar granja
+use infosync_answers_client_414
+db.form_answer.find({form_id:2667, 'answers.552fdbf501a4de288f4275e9':'ermita'}).count()
+db.form_answer.find({form_id:2667, deleted_at: {$exists:0}}).forEach(function(data) {
+    print(data.answers['552fdbf501a4de288f4275e9'])
+    db.form_answer.update({_id:data._id},{$set:{'answers.552fdbf501a4de288f4275e9':'ermita'}});
+})
+db.form_answer.find({form_id:2667, 'answers.552fdbf501a4de288f4275e9':'ermita'}).count()
+db.form_answer.find({form_id:5857 ,deleted_at: {$exists:0}, 'answers.5696e5af23d3fd3face97f0b':'viboras'},{answers:1}).count()
+db.form_answer.find({form_id:5857, deleted_at: {$exists:0}}).forEach(function(data) {
+    print(data.answers['5696e5af23d3fd3face97f0b'])
+    db.form_answer.update({_id:data._id},{$set:{'answers.5696e5af23d3fd3face97f0b' : 'viboras_184'}});
+})
+db.form_answer.find({form_id:5857 ,deleted_at: {$exists:0}, 'answers.5696e5af23d3fd3face97f0b':'viboras'},{answers:1}).count()
