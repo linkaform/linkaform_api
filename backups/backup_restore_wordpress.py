@@ -143,24 +143,25 @@ use tetengo_wp2;
 GRANT ALL PRIVILEGES ON tetengo_wp2.* TO "infosync"@"hostname"  IDENTIFIED BY "director";
 FLUSH PRIVILEGES;"""
     #update_script ="update tetengo_wp2.wp_options set option_value ='http://%s' where option_value like http://test.tetengo%;"%(production_server_tetengo)
-    update_script = "Select option_value REPLACE('http://test.tetengo%', 'test', 'ernie2'); "
     db_name = backup_mysqldb_tetengo(key_filename)
     print 'Coping files...'
     for server in front_servers:
+        update_script = "UPDATE wp_options SET option_value = REPLACE(option_value, 'test', 'www') WHERE option_value like 'http://test.tetengo%'; "#%(server)
         env.host_string = server
         env.user = 'infosync'
-        env.key_filename = '/home/infosync/.ssh/id_rsa'
+        env.key_filename = key_filename# '/home/infosync/.ssh/id_rsa'
         file_write('/tmp/sql_drop_tetengo.sql', script)
         file_write('/tmp/update_script_tetengo.sql', update_script )
         run("scp  infosync@%s:%s ./"%(testing_server, db_name))
         print 'droping db . . .'
-        run("mysql -uroot -pdirector tetengo_wp1 < %s"%"/tmp/sql_drop_tetengo.sql")
+        run("mysql -uroot -pdirector tetengo_wp2 < %s"%"/tmp/sql_drop_tetengo.sql")
         print 'Restoring . . .'
-        run("mysql -uinfosync -pdirector tetengo_wp1 < _tetengo_wp1.sql ")
+        run("mysql -uinfosync -pdirector tetengo_wp2 < ./tetengo_wp2.sql ")
         print 'Updates...'
-        run("mysql -uinfosync -pdirector tetengo_wp1 < %s"%"/tmp/update_script_tetengo.sql")
+        run("mysql -uinfosync -pdirector tetengo_wp2 < %s"%"/tmp/update_script_tetengo.sql")
         print 'restores_remote_db DONE'
     return True
+
 
 def git_commit_delete_files(server, home_dir, port=22, branch='master', user='infosync', key_filename='/home/infosync/.ssh/id_rsa'):
     env.host_string = server
@@ -269,6 +270,7 @@ def restores_wordpress_git():
             git_pull(server, home_dir, port=22, branch='master', sys_user = 'infosync', key_filename = '/home/infosync/.ssh/id_rsa')
             print 'pull done'
     restores_remote_db()
+    restores_remote_db_tetengo()
     return True
 
 def restores_remote_wordpress():
