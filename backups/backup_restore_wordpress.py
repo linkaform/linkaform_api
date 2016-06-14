@@ -10,8 +10,7 @@ Configuracion Ubuntu Server 12.04 LTS
 al servidor de git que tenemos detras del NAT en el puerto 2223.
 Por lo que estamos haciendo un port fordward desde abby (git) hasta rostia
 (blog.info-sync.com) con
-ssh -R 2223:localhost:22 blog.info-sync.com
-y dsede el servidor de godaddy
+sy dsede el servidor de godaddy
 
 ssh -L 2223:localhost:2223 blog.info-sync.com
 
