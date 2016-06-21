@@ -89,17 +89,24 @@ def backup_public_html_tetengo(key_filename='/home/infosync/.ssh/id_rsa'):
     """
     Crear un archivo tar de directorio remoto
     """
-    dbname = backup_mysqldb_tetengo(key_filename)
     env.host_string = testing_server
     env.user = 'infosync'
     env.key_filename = key_filename
+    home_dir = '/home/infosync/public_html'
+    user = 'infosync'
+    branch='master'
+    #dbname = backup_mysqldb_tetengo(key_filename)
     print 'starting to do backup of all folders...'
     date = datetime.now()
     date = date.strftime("%Y_%m_%d")
-    tar_name = 'tetengo_bakup_%s.tar.gz'%date
-    run("tar cfz %s public_html/ %s"%(tar_name,tetengo))
-    print 'backup compleated',tar_name
-    return tar_name
+    #tar_name = 'tetengo_bakup_%s.tar.gz'%date
+    #run("tar cfz %s public_html/ %s"%(tar_name,tetengo))
+    #print 'backup compleated',tar_name
+    git_wordpress_backup(testing_server,home_dir, 22,branch, user, key_filename)
+    for server in front_servers:
+        git_pull(server, home_dir, port=22, branch, user, key_filename)
+    restores_remote_db_tetengo(key_filename)
+    return True
 
 @task
 def restores_remote_db():
@@ -231,20 +238,20 @@ def git_pull(server, home_dir, port=22, branch='master', sys_user = 'infosync', 
         print 'pull=', status
     return status
 
-def git_wordpress_backup():
-    home_dir = '/home/infosync/public_html'
-    branch='master'
-    user = 'infosync'
-    key_filename = '/home/infosync/.ssh/id_rsa'
-    port =22
+def git_wordpress_backup(server, home_dir, port=22, branch='master', sys_user = 'infosync', key_filename = '/home/infosync/.ssh/id_rsa'):
+    #home_dir = '/home/infosync/public_html'
+    #branch='master'
+    #user = 'infosync'
+    #key_filename = '/home/infosync/.ssh/id_rsa'
+    #port =22
     print 'removing files...'
-    del_files_status = git_commit_delete_files(testing_server, home_dir, port, branch, user, key_filename)
+    del_files_status = git_commit_delete_files(server, home_dir, port, branch, user, key_filename)
     print 'removed with status', del_files_status
     print 'adding files ...'
-    add_files_status = git_commit_add_all_files(testing_server, home_dir, port, branch, user, key_filename, comments)
+    add_files_status = git_commit_add_all_files(server, home_dir, port, branch, user, key_filename, comments)
     print 'add files status: ',add_files_status
     print 'pushing files'
-    status = git_push(testing_server, home_dir, port, branch, user, key_filename)
+    status = git_push(server, home_dir, port, branch, user, key_filename)
     print 'git done', status
     return True
 
@@ -307,7 +314,7 @@ def restores_remote_wordpress_tetengo():
     env.host_string = 'localhost' #production_server
     env.user = 'josepato'
     env.key_filename = '/home/infosync/.ssh/id_rsa'
-    run_local("scp -i /home/josepato/.ssh/id_rsa_goddady infosync@%s:%s /var/backups/"%(testing_server, backup_name))
+    #run_local("scp -i /home/josepato/.ssh/id_rsa_goddady infosync@%s:%s /var/backups/"%(testing_server, backup_name))
     #run_local("scp -i /home/infosync/.ssh/id_rsa_goddady infosync@%s:%s /var/backups/"%(testing_server, backup_name))
     print 'Restoring ',backup_name
     with mode_local():
@@ -333,12 +340,7 @@ def make_oscar_build(branch):
     run('grunt build --force')
     return True
 
-def commiting_build(branch='master'):
-    server = 'oscar.info-sync.com'
-    port = 2221
-    home_dir ='/home/infosync/infosync-webapp/app/dist'
-    user = 'infosync'
-    key_filename = '/home/josepato/.ssh/id_rsa'
+def commiting_build(branch='master', server = 'oscar.info-sync.com', home_dir ='/home/infosync/infosync-webapp/app/dist' ,key_filename = '/home/josepato/.ssh/id_rsa', port=2221 ):
     git_commit_delete_files(server, home_dir, port, branch, user, key_filename)
     git_commit_add_all_files(server, home_dir, port, branch, user, key_filename, comments)
     git_push(server, home_dir, port, branch, user, key_filename)
@@ -374,5 +376,8 @@ if __name__ == "__main__":
     elif argv[1] == 'wordpress':
         print ' olny db'
         execute(restores_wordpress_git)
+    elif argv[1] == 'tetengo':
+        print ' olny db'
+        execute(backup_public_html_tetengo)
     else:
         print 'Sorry no option selected, pleas use all, make_build, commit, restore_build, wordpress '
