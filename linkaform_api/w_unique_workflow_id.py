@@ -35,7 +35,7 @@ cr = MongoClient()
 cr = MongoClient(host, port)
 
 databases = cr.database_names()
-databases = ['infosync_answers_client_126','infosync_answers_client_9']
+databases = ['infosync_answers_client_47','infosync_answers_client_101']
 
 for dbname in databases:
     if dbname in ['test', 'infosync']:

@@ -3,7 +3,15 @@
 ###
 
 
+DBNAME = 'infosync'
 
 pg_dump -Ft infosync > /tmp/postgres_backup.tar
 
+dropdb -p 5434 infosync_test2 --username postgres
+createdb -p 5434  infosync_test2 --encoding=UNICODE --username infosync
 
+
+
+createdb infosync --encoding=UNICODE --username infosync
+pg_restore --username postgres -d orkin backuptiny/backup-orkin-mes.-dia.tar
+pg_restore --username postgres -d psc_facturae backup.tar

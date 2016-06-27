@@ -1,8 +1,7 @@
 from datetime import datetime
 
-#from linkaform_api import settings
-import settings
-import network
+from linkaform_api import settings
+from linkaform_api import network
 
 config = {
     'USERNAME' : 'infosync@sanfandila.com',
@@ -87,13 +86,29 @@ def get_farm_inventory(farms_inventory, reception):
     reception_date =  datetime.strptime(reception['fecha'], '%Y-%m-%d')
     last_reception = datetime.strptime(farms_inventory[farm]['last_date'], '%Y-%m-%d')
     days_delta = reception_date - last_reception
+    if farm == 'soledad':
+        print '777',days_delta
+        print 'last_reception', last_reception
+        print 'reception_date',reception_date
+        print 'days_delta', days_delta
+        print 'farms_inventory', farms_inventory['soledad']
+        print ' reception[cerdos]',  reception['cerdos']
+        print 'farm', farm
+        print 'days_delaata',days_delta
     days_delta = days_delta.days
     farms_inventory[farm]['last_date'] = reception['fecha']
     if days_delta > 35:
+
         farms_inventory[farm]['inventory'] = reception['cerdos']
+        if farm == 'soledad':
+            print 'reception[cerdos]',reception['cerdos']
+            print '----------------------------'
         return farms_inventory, reception['cerdos']
     inventory_addup = farms_inventory[farm]['inventory'] +  reception['cerdos']
     farms_inventory[farm]['inventory'] = inventory_addup
+    if farm == 'soledad':
+        print 'inventory_addup',inventory_addup
+        print '----------------------------'
     return farms_inventory, inventory_addup
 
 
