@@ -18,10 +18,12 @@ local_port = 27017
 #testing_port = 27019
 production_port = 27019
 
+LINKAFORM_URL = "https://www.linkaform.com"
 LOGIN_URL = "https://www.linkaform.com/api/infosync/user_admin/login/"
 USERNAME = 'logistorage.infosync@gmail.com'
 PASS = '654321'
 GET_PARENT_ID_FORMS = "https://www.linkaform.com/api/infosync/item/?parent="
+REPORTS_IDS = [4583,4300,4935,4476,6636]
 
 #MONTH_DIR = {1:'2015/01',2:'2015/02',3:'2015/03',4:'2015/04',5:'2015/05',6:'2015/06',
 #7:'2015/07',8:'2015/08',9:'2015/09',10:'2015/10',11:'2015/11',12:'2015/12'}
@@ -105,8 +107,8 @@ service_price_json = {
         "55cb692523d3fd4818dd21a2":"55cb786023d3fd4818dd21c3",
         "55cb7f0923d3fd0328736629":"55cb7f5323d3fd032873662a",
         "558d685701a4de7bba85289f":"558db23301a4de7bba8528e5",
-        "55a010c323d3fd2994ab74e8":"558db23301a4de7bba8528e5",
-        "55a010c323d3fd2994ab74e9":"558db23301a4de7bba8528e5",
+        "55a010c323d3fd2994ab74e8":"344700000000000000000e01",
+        "55a010c323d3fd2994ab74e9":"344700000000000000000e01",
         "5595a5ae23d3fd7d304980c3":"5595a5ae23d3fd7d304980c3",
         "5594688623d3fd7d311a4583":"5594688623d3fd7d311a4583",
         "558d6a3c01a4de7bba8528a1":"558d6a3c01a4de7bba8528a1",
@@ -125,21 +127,32 @@ service_price_json = {
         "00000000000000000000a101":"00000000000000000000b101",
         "00000000000000000000a102":"00000000000000000000b102",
         "00000000000000000000a103":"00000000000000000000b103",
-        "00000000000000000000a104":"00000000000000000000b104"
+        "00000000000000000000a104":"00000000000000000000b104",
         "00000000000000000000a105":"00000000000000000000b105"
 }
 
 #service_id:price_id
 #just for extra space
+#558d685701a4de7bba85289f : Servcio Metros Usados
+#558d685701a4de7bba85289f : Servcio Metros Usados Promocionales
+#558d685701a4de7bba85289f : Servcio Metros Usados Enfriadores
+#55c5392c23d3fd4817ed01d0 : Precio Metros Acordados
+#344700000000000000000e01 : Precio Metros Acordados Promocionales y Enfriadores
 extra_price_json = {
         "558d685701a4de7bba85289f":"55c5392c23d3fd4817ed01d0",
-        "55a010c323d3fd2994ab74e8":"55c5392c23d3fd4817ed01d0",
-        "55a010c323d3fd2994ab74e9":"55c5392c23d3fd4817ed01d0",
+        "55a010c323d3fd2994ab74e8":"344700000000000000000e01",
+        "55a010c323d3fd2994ab74e9":"344700000000000000000e01",
 }
 
 #price_id:condition_id <the condition_id in on the list price
+#5594688623d3fd7d311a4584 : Metros Acordados
+#55c5392c23d3fd4817ed01d0 : Precio Metros Acordados
+#34470000000000000002ae01 : Metros Acordados Promocionales y Enfiradores (condicion)
+#344700000000000000000e01 : Precio Metros Acordados Promocionales y Enfriadores
 extra_price_condition_json = {
         "55c5392c23d3fd4817ed01d0":"5594688623d3fd7d311a4584",
+        "344700000000000000000e01":"34470000000000000002ae01",
+        "344700000000000000000e01":"34470000000000000002ae01",
 }
 
 #new price_fields_ids ids,
@@ -189,6 +202,18 @@ def get_all_forms(folders_id):
                         forms_ids.append(obj['id'])
     return forms_ids
 
+def update_report_status(status='running'):
+    session = requests.Session()
+    report_url = '/api/infosync/report/status/'
+    service_url = LINKAFORM_URL + report_url
+    if login(session, USERNAME, PASS):
+        for item_id in REPORTS_IDS:
+            if status == 'running':
+                r = session.patch(service_url , data = simplejson.dumps({"properties":{"etl_running": True}, "report_id":item_id, "user_id":516}))
+            if status == 'done':
+                r = session.patch(service_url , data = simplejson.dumps({"properties":{"etl_running": False}, "report_id":item_id, "user_id":516}))
+    return True
+
 def get_price_id_dict():
     select_fields = {}
     #for price_id in price_fields_ids:
@@ -208,7 +233,7 @@ def set_dict_service():
 
 def get_user_local_connection(user_id):
     connection = {}
-    connection['client'] = MongoClient(host,local_port,replicaset='birt', slaveOK=True)
+    connection['client'] = MongoClient(host,local_port,replicaset='birt')
     user_db_name = "infosync_answers_client_{0}".format(user_id)
     if not user_db_name:
         return None
@@ -342,11 +367,20 @@ def get_price_from_dates(answer, price_list, created_at):
         }
         return service_json
 
+def get_created_at_from_meta_answer(meta_answers):
+    #busca el id de la fecha de la fomra Unidad de Espacio Miller
+    if meta_answers.has_key('55b7f41623d3fd41daa1c414') and meta_answers['55b7f41623d3fd41daa1c414']:
+        return meta_answers['55b7f41623d3fd41daa1c414']
+    #busca el id de la fecha de la forma Unida de Espacio
+    if meta_answers.has_key('558d685701a4de7bba85289f') and meta_answers['558d685701a4de7bba85289f']:
+        return meta_answers['558d685701a4de7bba85289f']
+    return meta_answers['created_at']
+
 def get_service_answer_json(answer, field, meta_answers):
     price_id = service_price_json[field['field_id']['id']]
     client = re.sub(' ', '_', meta_answers['5591627901a4de7bb8eb1ad5']).lower()
     warehouse = re.sub(' ', '_', meta_answers['5591627901a4de7bb8eb1ad4']).lower()
-    created_at = meta_answers['created_at']
+    created_at = get_created_at_from_meta_answer(meta_answers)
     price_list =  PRICE_LIST[client][warehouse][price_id]
     service_json = get_price_from_dates(answer, price_list, created_at)
     if field['field_id']['id'] in extra_price_json.keys():
@@ -483,7 +517,8 @@ def get_all_months(db_form_answer):
                         {"year":"$year", "month":"$month"},
                     }
                 }]
-    year_month = db_form_answer.aggregate(proyect)['result']
+    #year_month = db_form_answer.aggregate(proyect)['result']
+    year_month = db_form_answer.aggregate(proyect)
     return year_month
 
 def verify_one_record_per_company(report_answer):#, one_record_json):
@@ -581,6 +616,7 @@ def etl():
         form_answer = user_production_conn['db']['form_answer']
         user_local_conn = get_user_local_connection(etl_model.user_id)
         # Obtener coleccion de reportes si existe, crear si aún no existe
+	update_report_status('running')
         if 'report_answer' in user_local_conn['db'].collection_names():
             report_answer = user_local_conn['db']['report_answer']
             report_answer.drop()
@@ -588,6 +624,8 @@ def etl():
         report = { "form_id": etl_model.item_id }
         count = 0
         all_forms_find = {"form_id": {"$in":all_forms}, "deleted_at": {"$exists":False}}
+        #alter_find = {'answers.5591627901a4de7bb8eb1ad5':'miller','answers.5591627901a4de7bb8eb1ad4':'monterrey', 'form_id':3486}#,'5591627901a4de7bb8eb1ad4': 'monterrey'}
+        #all_forms_find.update(alter_find)
         #alter_find = {'answers.5591627901a4de7bb8eb1ad5':'palacio_de_hierro','form_id': {"$in":all_forms}}
         #all_forms_find = alter_find
         #alter_find =  {"answers.55b7f41623d3fd41daa1c414":{"$gte": 'ISODate("2015-05-01T00:00:00Z")', '$lt':'ISODate("2015-08-01T00:00:00Z")'}}
@@ -741,36 +779,36 @@ def get_query_service_total(record):
 
 def insert_services(report_answer, cr_report_total):
     service_query = services.get_query()
-    service_res = report_answer.aggregate(service_query)
+    service_res = report_answer.aggregate(service_query, **{'allowDiskUse':True})
     tt = 0
     tts = 0
-    for a in service_res['result']:
-         if a['total_services'] != 0 :
+    #for a in service_res:
+    #     if a['total_services'] != 0 :
     #         tt += a['total_services']
-             print  'service=', a['total_services']
-             #print 'a',a
+    #         print  'service=', a['total_services']
+    #         print 'a',a
     #     #if a['sac_total2'] != 0:
     #     #    print 'sac_total2',a['sac_total2']
     #     #    tts += a['sac_total2']
     # print 'asi queda tt= ', tt
     # print 'asi queda ts=', tts
     # print tt+tts
-    loop_query_update(cr_report_total, service_res['result'], itype='service', operation_type='insert')
+    loop_query_update(cr_report_total, service_res, itype='service', operation_type='insert')
     return True
 
 def upsert_space_unit(report_answer, cr_report_total):
     space_unit_query =space_unit.get_query()
     space_unit_res = report_answer.aggregate(space_unit_query)
-    loop_query_update(cr_report_total, space_unit_res['result'], itype='space_unit',operation_type='insert')
+    loop_query_update(cr_report_total, space_unit_res, itype='space_unit',operation_type='insert')
     return True
 
 def upsert_rent_service(report_answer, cr_report_total):
     rent_service_query = rent_fixed.get_query()
     rent_service_res = report_answer.aggregate(rent_service_query)
-    loop_query_update(cr_report_total, rent_service_res['result'], itype='fixed_rent',operation_type='insert')
+    loop_query_update(cr_report_total, rent_service_res, itype='fixed_rent',operation_type='insert')
     rent_office_query = rent_office.get_query()
     rent_office_res = report_answer.aggregate(rent_office_query)
-    loop_query_update(cr_report_total, rent_office_res['result'], itype='office_rent',operation_type='insert')
+    loop_query_update(cr_report_total, rent_office_res, itype='office_rent',operation_type='insert')
     return True
 
 def set_services_total():
@@ -791,9 +829,10 @@ def set_services_total():
     upsert_rent_service(report_answer, cr_report_total)
     upsert_space_unit(report_answer ,cr_report_total)
     print 'uuuuuuupserint rentttt'
-    #upsert_rent_service(report_answer, cr_report_total)
+    upsert_rent_service(report_answer, cr_report_total)
     print 'iiiiiiiinserting services'
     insert_services(report_answer, cr_report_total)
+    update_report_status('done')
     return True
 
 

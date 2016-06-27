@@ -1,0 +1,30 @@
+#! /bin/sh
+set -e
+umask 7
+
+REMOTEHOST="189.175.3.80"
+REMOTEUSER="humberto"
+DATABASES="Equitek_v6 Indy_Master OpenBias interaxes Volksw TinyERP AMCI pscleaners"
+FILESTOREDIR=""
+CLIENT="oerp"
+HOMEDIR="/backup"
+DBUSER="postgres"
+#CLIENT="minerales"
+
+#INCLUIMOS PASSWORD DE POSTGRES PARA AUTENTICARNOS
+#export PGPASSWORD="director"
+
+for db in $DATABASES; do
+  FNAME=${db}-DB-$(date +%Y-%m-%d)
+  DATETODAY=$(date +%Y-%m-%d)
+
+#CREATE PRESENT DAY FOLDER INTO HOMEDIR
+  mkdir $HOMEDIR/${db}/${DATETODAY}
+# pg_dump -Z9 -Fc -U ${DBUSER} ${db} > $HOMEDIR/${db}/${DATETODAY}/${FNAME}.dump
+  pg_dump -Z9 -Fc -U ${DBUSER} ${db} > $HOMEDIR/${db}/${DATETODAY}/${FNAME}.dump
+# /usr/bin/scp ${HOME}/${db}/${FNAME}.dump.gz ${REMOTEUSER}@${REMOTEHOST}:${db}.dump.gz
+done
+
+#echo /usr/bin/scp ${HOME}/${db}/${FNAME}.dump ${REMOTEUSER}@${REMOTEHOST}:Minerales.dump
+#/usr/bin/scp ${HOME}/${FNAME}.dump postgres@salieri.mty.itesm.mx:${db}/${FNAME}
+
