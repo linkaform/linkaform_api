@@ -1,6 +1,6 @@
 ###
 ### commands to drop, create and restore a db
-### 
+###
 
 
 #base de datos de infosync
@@ -11,11 +11,32 @@ pg_dump -Ft Infosync > /var/tmp/postgres_backup_openerp.tar
 scp /var/tmp/postgres_backup_infosync.tar db3.linkaform.com:/var/tmp/
 scp /var/tmp/postgres_backup_openerp.tar db3.linkaform.com:/var/tmp/
 
-dropdb infosync --username infosync
-createdb infosync --encoding=UNICODE --username infosync
-pg_restore --username infosync -d infosync /var/tmp/postgres_backup_infosync.tar
+dropdb infosync --username infosync -p 5434
+createdb infosync --encoding=UNICODE --username infosync -p 5434
+pg_restore --username infosync -d infosync
+postgres_backup_infosync.tar
 
 #
+dropdb Infosync --username openerp -p 5434
+dnfosync --encoding=UNICODE --username openerp -p 5434
+createdb infosync_test --encoding=UNICODE --username openerp -p 5434
+pg_restore --username openerp -d Infosync -p 5434
+pg_restore --username openerp -d infosync_test -p 5434
+
+/var/tmp/postgres_backup_openerp.tar
+
+
+pg_dump -Ft infosync > /var/tmp/postgres_backup_infosync_0723.tar
+scp /var/tmp/postgres_backup_infosync_0723.tar db2.linkaform.com:/var/tmp/
+
+dropdb infosync --username infosync
+createdb infosync --encoding=UNICODE --username infosync
+pg_restore --username infosync -d infosync /var/tmp/postgres_backup_infosync_0723.tar
+
+
+select id, name,deleted_at from items_item order by id DESC LIMIT 5;select id, name,deleted_at from items_item order by id DESC LIMIT 5;
+
+
 dropdb Infosync --username openerp
-createdb Infosync --encoding=UNICODE --username openerp
-pg_restore --username openerp -d Infosync /var/tmp/postgres_backup_openerp.tar
+createdb openerp_infosync  --encoding=UNICODE --username openerp
+pg_restore --username openerp -d openerp_infosync /var/tmp/postgres_backup_openerp_0723.tar

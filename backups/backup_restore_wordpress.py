@@ -93,6 +93,7 @@ def backup_public_html_tetengo(key_filename='/home/infosync/.ssh/id_rsa'):
     env.user = 'infosync'
     env.key_filename = key_filename
     home_dir = '/home/infosync/public_html'
+    home_production_dir = '/srv/wordpress/linkaform.com'
     user = 'infosync'
     branch='master'
     #dbname = backup_mysqldb_tetengo(key_filename)
@@ -104,7 +105,7 @@ def backup_public_html_tetengo(key_filename='/home/infosync/.ssh/id_rsa'):
     #print 'backup compleated',tar_name
     git_wordpress_backup(testing_server,home_dir, 22,branch, user, key_filename)
     for server in front_servers:
-        git_pull(server, home_dir, port=22, branch, user, key_filename)
+        git_pull(server, home_production_dir, 22, branch, user, key_filename)
     restores_remote_db_tetengo(key_filename)
     return True
 
@@ -340,7 +341,7 @@ def make_oscar_build(branch):
     run('grunt build --force')
     return True
 
-def commiting_build(branch='master', server = 'oscar.info-sync.com', home_dir ='/home/infosync/infosync-webapp/app/dist' ,key_filename = '/home/josepato/.ssh/id_rsa', port=2221 ):
+def commiting_build(branch='master', server = 'oscar.info-sync.com', home_dir ='/home/infosync/infosync-webapp/app/dist' ,key_filename = '/home/josepato/.ssh/id_rsa', port=2221, user='infosync' ):
     git_commit_delete_files(server, home_dir, port, branch, user, key_filename)
     git_commit_add_all_files(server, home_dir, port, branch, user, key_filename, comments)
     git_push(server, home_dir, port, branch, user, key_filename)
