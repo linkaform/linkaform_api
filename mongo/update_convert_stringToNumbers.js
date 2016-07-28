@@ -45,8 +45,8 @@ dbs.forEach(function (database) {
          }
       }
       for (a =0; a<group_fields_list.length; a++ ) {
-         if(group_fields_list[i] in form_data.answers){
-            if(form_data.answers[group_fields_list[i]].length > 0){
+         if(group_fields_list[a] in form_data.answers){
+            if(form_data.answers[group_fields_list[a]].length > 0){
               has_group_answer = true
             }
          }
@@ -64,19 +64,22 @@ dbs.forEach(function (database) {
           for (y=0; y < group_fields_list.length; y++){
               ans_group_list = form_data.answers[group_fields_list[y]]
               var g_new_answer_list = []
-              for(z=0; z < ans_group_list.length; z++){
-                  var agl = ans_group_list[z]
-                  var g_new_answer = agl
-                  for(w=0; w < group_fields_dict[group_fields_list[y]].length; w++){
-                      group_field_id = group_fields_dict[group_fields_list[y]][w]
-                      res_number = agl[group_field_id]
-                      if (typeof res_number == "string"){
-                          group_string = true
-                          has_strings = true
-                          g_new_answer[group_field_id] = parseFloat(res_number)
-                      }
-                  }
-                  g_new_answer_list.push(g_new_answer)
+              group_string = false
+              if(ans_group_list != undefined){
+                for(z=0; z < ans_group_list.length; z++){
+                    var agl = ans_group_list[z]
+                    var g_new_answer = agl
+                    for(w=0; w < group_fields_dict[group_fields_list[y]].length; w++){
+                        group_field_id = group_fields_dict[group_fields_list[y]][w]
+                        res_number = agl[group_field_id]
+                        if (typeof res_number == "string"){
+                            group_string = true
+                            has_strings = true
+                            g_new_answer[group_field_id] = parseFloat(res_number)
+                        }
+                    }
+                    g_new_answer_list.push(g_new_answer)
+                }
               }
               if(group_string == true){
                   new_answer['answers.' + group_fields_list[y]] = g_new_answer_list
@@ -86,7 +89,7 @@ dbs.forEach(function (database) {
       if (has_strings == true){
           print('folio: ' + form_data.folio)
           print('Updating Record: ' + form_data._id)
-          db.form_answer.update({_id:form_data._id},{$set:new_answer})
+          //db.form_answer.update({_id:form_data._id},{$set:new_answer})
       }
     })
 })
