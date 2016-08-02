@@ -1,11 +1,13 @@
 //db.form_answer.find({ 'voucher.fields.field_type':{$in:['integer', 'decimal']}},
 //use admin
+var search_date = new Date();
+search_date.setDate(d.getDate() - 1);
 db = db.getSiblingDB("admin");
 dbs = db.runCommand( { listDatabases: 1 } ).databases;
 dbs.forEach(function (database) {
     print ("db=" + database.name);
     db = db.getSiblingDB(database.name)
-    db.form_answer.find({deleted_at:{$exists:0}, 'voucher.fields.field_type':{$in:['integer', 'decimal']}},
+    db.form_answer.find({deleted_at:{$exists:0},'created_at':{$gte:search_date}, 'voucher.fields.field_type':{$in:['integer', 'decimal']}},
       {created_at:1, 'voucher.fields':1, 'answers':1,'folio':1}).forEach(function(form_data) {
       var fields = form_data.voucher['fields']
       var num_fields_list = []
@@ -27,10 +29,10 @@ dbs.forEach(function (database) {
                     group_fields_dict[group_id] = [field_id]
                   }
                   else { group_fields_dict[group_id].push(field_id)}
-                  } 
+                  }
               else{
                  }
-            }  
+            }
             num_fields_list.push(field_id)
           }
       }
@@ -89,7 +91,7 @@ dbs.forEach(function (database) {
       if (has_strings == true){
           print('folio: ' + form_data.folio)
           print('Updating Record: ' + form_data._id)
-          //db.form_answer.update({_id:form_data._id},{$set:new_answer})
+          db.form_answer.update({_id:form_data._id},{$set:new_answer})
       }
     })
 })
