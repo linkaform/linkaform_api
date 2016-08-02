@@ -18,10 +18,12 @@ local_port = 27017
 #testing_port = 27019
 production_port = 27019
 
+LINKAFORM_URL = "https://www.linkaform.com"
 LOGIN_URL = "https://www.linkaform.com/api/infosync/user_admin/login/"
 USERNAME = 'logistorage.infosync@gmail.com'
 PASS = '654321'
 GET_PARENT_ID_FORMS = "https://www.linkaform.com/api/infosync/item/?parent="
+REPORTS_IDS = [4583,4300,4935,4476,6636]
 
 #MONTH_DIR = {1:'2015/01',2:'2015/02',3:'2015/03',4:'2015/04',5:'2015/05',6:'2015/06',
 #7:'2015/07',8:'2015/08',9:'2015/09',10:'2015/10',11:'2015/11',12:'2015/12'}
@@ -126,7 +128,8 @@ service_price_json = {
         "00000000000000000000a102":"00000000000000000000b102",
         "00000000000000000000a103":"00000000000000000000b103",
         "00000000000000000000a104":"00000000000000000000b104",
-        "00000000000000000000a105":"00000000000000000000b105"
+        "00000000000000000000a105":"00000000000000000000b105",
+        "00000000000000000000a106":"00000000000000000000b106"
 }
 
 #service_id:price_id
@@ -200,6 +203,18 @@ def get_all_forms(folders_id):
                         forms_ids.append(obj['id'])
     return forms_ids
 
+def update_report_status(status='running'):
+    session = requests.Session()
+    report_url = '/api/infosync/report/status/'
+    service_url = LINKAFORM_URL + report_url
+    if login(session, USERNAME, PASS):
+        for item_id in REPORTS_IDS:
+            if status == 'running':
+                r = session.patch(service_url , data = simplejson.dumps({"properties":{"etl_running": True}, "report_id":item_id, "user_id":516}))
+            if status == 'done':
+                r = session.patch(service_url , data = simplejson.dumps({"properties":{"etl_running": False}, "report_id":item_id, "user_id":516}))
+    return True
+
 def get_price_id_dict():
     select_fields = {}
     #for price_id in price_fields_ids:
@@ -220,7 +235,6 @@ def set_dict_service():
 def get_user_local_connection(user_id):
     connection = {}
     connection['client'] = MongoClient(host,local_port,replicaset='birt')
-    #connection['client'] = MongoClient(host, local_port)
     user_db_name = "infosync_answers_client_{0}".format(user_id)
     if not user_db_name:
         return None
@@ -603,6 +617,7 @@ def etl():
         form_answer = user_production_conn['db']['form_answer']
         user_local_conn = get_user_local_connection(etl_model.user_id)
         # Obtener coleccion de reportes si existe, crear si aún no existe
+        update_report_status('running')
         if 'report_answer' in user_local_conn['db'].collection_names():
             report_answer = user_local_conn['db']['report_answer']
             report_answer.drop()
@@ -764,40 +779,36 @@ def get_query_service_total(record):
 
 
 def insert_services(report_answer, cr_report_total):
-    #service_query = services.get_query()
-    service_res = report_answer.aggregate(service_query)
+    service_query = services.get_query()
     service_res = report_answer.aggregate(service_query, **{'allowDiskUse':True})
     tt = 0
     tts = 0
-    for a in service_res['result']:
-         if a['total_services'] != 0 :
+    #for a in service_res:
+    #     if a['total_services'] != 0 :
     #         tt += a['total_services']
-             print  'service=', a['total_services']
-             #print 'a',a
+    #         print  'service=', a['total_services']
+    #         print 'a',a
     #     #if a['sac_total2'] != 0:
     #     #    print 'sac_total2',a['sac_total2']
     #     #    tts += a['sac_total2']
     # print 'asi queda tt= ', tt
     # print 'asi queda ts=', tts
     # print tt+tts
-    #loop_query_update(cr_report_total, service_res['result'], itype='service', operation_type='insert')
     loop_query_update(cr_report_total, service_res, itype='service', operation_type='insert')
     return True
 
 def upsert_space_unit(report_answer, cr_report_total):
     space_unit_query =space_unit.get_query()
     space_unit_res = report_answer.aggregate(space_unit_query)
-    #loop_query_update(cr_report_total, space_unit_res['result'], itype='space_unit',operation_type='insert')
     loop_query_update(cr_report_total, space_unit_res, itype='space_unit',operation_type='insert')
     return True
 
 def upsert_rent_service(report_answer, cr_report_total):
     rent_service_query = rent_fixed.get_query()
     rent_service_res = report_answer.aggregate(rent_service_query)
-    loop_query_update(cr_report_total, rent_service_res['result'], itype='fixed_rent',operation_type='insert')
+    loop_query_update(cr_report_total, rent_service_res, itype='fixed_rent',operation_type='insert')
     rent_office_query = rent_office.get_query()
     rent_office_res = report_answer.aggregate(rent_office_query)
-    #loop_query_update(cr_report_total, rent_office_res['result'], itype='office_rent',operation_type='insert')
     loop_query_update(cr_report_total, rent_office_res, itype='office_rent',operation_type='insert')
     return True
 
@@ -819,9 +830,10 @@ def set_services_total():
     upsert_rent_service(report_answer, cr_report_total)
     upsert_space_unit(report_answer ,cr_report_total)
     print 'uuuuuuupserint rentttt'
-    #upsert_rent_service(report_answer, cr_report_total)
+    upsert_rent_service(report_answer, cr_report_total)
     print 'iiiiiiiinserting services'
     insert_services(report_answer, cr_report_total)
+    update_report_status('done')
     return True
 
 

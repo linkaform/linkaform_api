@@ -1,0 +1,19 @@
+//extraer archivo .ab que es un folder comprimido con los datos guardados en los folders internos
+
+cecy@cecy-desktop:~/Desktop/db-sqlite$ adb backup  -f myAndroidBackup.ab  com.info_sync.infosync
+Now unlock your device and confirm the backup operation.
+
+
+//correr este comando para tener un tar que podamos descomprimir
+
+cecy@cecy-desktop:~/Desktop/db-sqlite$ java -jar abe.jar unpack myAndroidBackup.ab data.tar
+Strong AES encryption not allowed
+Magic: ANDROID BACKUP
+Version: 3
+Compressed: 1
+Algorithm: none
+434688 bytes written to data.tar.
+
+
+
+

@@ -7,7 +7,7 @@ config = {
     'USERNAME' : 'infosync@sanfandila.com',
     'PASS' : '123456',
     'COLLECTION' : 'form_answer',
-    'HOST' : 'db2.linkaform.com',
+    'HOST' : 'db4.linkaform.com',
     'PORT' : 27017,
     'USER_ID' : '414',
     'KEYS_POSITION' : {},

@@ -86,10 +86,10 @@ db.form_answer.find(    {form_id:2714,
      {'answers.553904c201a4de236a68ac97.553904c201a4de236a68ac99':1,
      'answers.553904c201a4de236a68ac97.5538265701a4de236b938e96':1})
 
-//Quita el id 99 de las salidas de empaque
+//Quita el id 99 de las salids de empaque
  use infosync_answers_client_414
- db.form_answer.find({form_id:2714, deleted_at:{$exists:0},'answers.553904c201a4de236a68ac97.553904c201a4de236a68ac99':{$exists:1}}).count()
- db.form_answer.find({form_id:2714, deleted_at:{$exists:0},'answers.553904c201a4de236a68ac97.5538265701a4de236b938e96':{$exists:1}}).forEach(function(data) {
+ db.form_answer.find({form_id:2725, deleted_at:{$exists:0},'answers.553904c201a4de236a68ac97.5538265701a4de236b938e96':{$exists:1}}).count()
+ db.form_answer.find({form_id:2725, deleted_at:{$exists:0},'answers.553904c201a4de236a68ac97.5538265701a4de236b938e96':{$exists:1}}).forEach(function(data) {
      var group =  data.answers['553904c201a4de236a68ac97'];
      for (i=0; i < group.length; i++){
        delete group[i]['5538265701a4de236b938e96'] ;
@@ -105,9 +105,9 @@ db.form_answer.find(    {form_id:2714,
 5538265701a4de236b938e94
 
 
-//Quita el id 96 de las salidas de empaque
+//Quita el id 99 de las recepcion de empaque
 use infosync_answers_client_414
-db.form_answer.find({form_id:2714, folio:'205645-414' , deleted_at:{$exists:0},'answers.553904c201a4de236a68ac97.553904c201a4de236a68ac99':{$exists:1}}).count()
+db.form_answer.find({form_id:2714, deleted_at:{$exists:0},'answers.553904c201a4de236a68ac97.553904c201a4de236a68ac99':{$exists:1}}).count()
 db.form_answer.find({form_id:2714,  deleted_at:{$exists:0},'answers.553904c201a4de236a68ac97.553904c201a4de236a68ac99':{$exists:1}}).forEach(function(data) {
     var group =  data.answers['553904c201a4de236a68ac97'];
     for (i=0; i < group.length; i++){
@@ -190,3 +190,54 @@ db.form_answer.find({form_id:2714,  "folio" : "289522-414", deleted_at:{$exists:
   voucher2 = data.voucher
   print('voucher' + vv)
 })
+
+
+
+    print('STARTING' + new_answer)
+##quita los nulls
+db.form_answer.find({deleted_at:{$exists:0},form_id:6015 }, {answers:1}).count()
+db.form_answer.find({deleted_at:{$exists:0}, form_id:6016, folio:'298541-126'}, {answers:1}).forEach(function(data) {
+    var new_answer =  {};
+    doc2 = db.form_answer.findOne({_id:data['_id']});
+    print('_id:' + data['_id']);
+    for (key in doc2['answers']) {
+        print('type of: ' + typeof data.answers[key])
+        if (data.answers[key] == null ){
+          delete data.answers[key]
+        }
+        else if (typeof data.answers[key] != 'object'){
+          new_answer[key] = data.answers[key]
+        }
+        if (typeof data.answers[key] == 'object' ){
+          print('answer    ' +  data.answers[key])
+          print('key: ' + key)
+          new_answer[key] = []
+          for (i=0; i < doc2['answers'][key].length; i++ ){
+            var group_empty = true;
+            print('------------------------ ' +  i)
+            var new_group_answer = {}
+            for (key_group in doc2['answers'][key][i]) {
+                print(' reading key : ' + key_group )
+                print('answer: ' + doc2['answers'][key][i][key_group])
+                if (doc2['answers'][key][i][key_group] != null && doc2['answers'][key][i][key_group] != true ){
+                  print('adding answer')
+                  group_empty = false;
+                  new_group_answer[key_group] = doc2['answers'][key][i][key_group];
+                }
+              }
+            if (group_empty == false){
+              print('pushing group: ' + i)
+              new_answer[key].push(new_group_answer)
+            }
+          }
+        }
+      }
+    db.form_answer.update({_id:data['_id']},{$set:{'answers':new_answer}});
+    print('NEXT')
+})
+    for (i=0; i < data.answers.length; i++){
+      print('answer number : ' + i)
+      print('res + ' + data.answers[i])
+    }
+    data.answers['553904c201a4de236a68ac97'] = group
+    db.form_answer.update({_id:data._id},{$set:{'answers.553904c201a4de236a68ac97':group}});
