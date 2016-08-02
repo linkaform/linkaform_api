@@ -2,6 +2,7 @@ import mongo_util
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 import psycopg2
+import sys
 
 def connect_to_db(dbname, host, port, collection_name):
     cur_db = mongo_util.connect_mongodb(dbname, host, port)
@@ -9,7 +10,13 @@ def connect_to_db(dbname, host, port, collection_name):
     return cur_db, cur_col
 
 def get_parent(user_id):
-    conn = psycopg2.connect("dbname='infosync_0415'")
+    try:
+        conn = psycopg2.connect("dbname='infosync' user='postgres' port=5434",)
+    except Exception, e:
+        print "I am unable to connect to the database"
+        print e
+        sys.exit()
+
     cur = conn.cursor()
     query = "select parent_id from users_customuser where id=%d" % user_id
     cur.execute(query)
@@ -27,9 +34,13 @@ def update_records_connections(db_data, records, user_col, user):
     visited_connections = []
     changed_folios = []
     for record in records:
-        changed_folios.append(record['folio'])
+        if not 'record' in record:
+            print record['_id']
+        else:
+            changed_folios.append(record['folio'])
         connection = record['user_id']
         if connection in visited_connections: continue
+        con_parent_id = get_parent(connection)
         user_col.update_many(
             {'form_id':record['form_id'], 'user_id': connection, 'connection_id': user} ,
             {
@@ -37,7 +48,7 @@ def update_records_connections(db_data, records, user_col, user):
                     'connection_id': connection
                 }
             } )
-        con_parent_id = get_parent(connection)
+        #con_parent_id = get_parent(connection)
         if not con_parent_id:
             con_parent_id = connection
         col_db_name = 'infosync_answers_client_%s' % con_parent_id
@@ -53,7 +64,7 @@ def update_records_connections(db_data, records, user_col, user):
     return changed_folios
 
 db_data = {
-    'host': 'localhost',
+    'host': 'db2.linkaform.com',
     'port': 27017,
     'collection': 'form_answer'
 }
