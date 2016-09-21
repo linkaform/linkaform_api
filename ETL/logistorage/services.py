@@ -271,9 +271,9 @@ def get_query():
         'CARGA_DE_DESPERDICIO_unit_price': {'$max': "$579fba39b43fdd3f835c185a.unit_price"},
         'CARGA_DE_DESPERDICIO_total': {'$sum': "$579fba39b43fdd3f835c185a.total"},
 
-	'FIJO_SERVICIOS_ESPECIALIZADOS_qty': {'$sum': "$00000000000000000000a110.qty"},
-        'FIJO_SERVICIOS_ESPECIALIZADOS_unit_price': {'$max': "$00000000000000000000a110.unit_price"},
-        'FIJO_SERVICIOS_ESPECIALIZADOS_total': {'$sum': "$00000000000000000000a110.total"},
+	'FIJO_SERVICIOS_ESPECIALIZADOS_qty': {'$sum': "$00000000000000000000a111.qty"},
+        'FIJO_SERVICIOS_ESPECIALIZADOS_unit_price': {'$max': "$00000000000000000000a111.unit_price"},
+        'FIJO_SERVICIOS_ESPECIALIZADOS_total': {'$sum': "$00000000000000000000a111.total"},
     }},
 
     {'$project': {
@@ -397,7 +397,12 @@ def get_query():
         'PLACA_IMPRESION_total': {'$multiply': ["$PLACA_IMPRESION_qty","$PLACA_IMPRESION_unit_price"]},
         'PLAYO_PARA_EMPAQUE_total': {'$multiply': ["$PLAYO_PARA_EMPAQUE_qty","$PLAYO_PARA_EMPAQUE_unit_price"]},
         'CARGA_DE_DESPERDICIO_total': {'$multiply': ["$CARGA_DE_DESPERDICIO_qty","$CARGA_DE_DESPERDICIO_unit_price"]},
+<<<<<<< HEAD
 	'FIJO_SERVICIOS_ESPEZIALIZADOS_total': {'$multiply': ["$FIJO_SERVICIOS_ESPECIALIZADOS_qty","$FIJO_SERVICIOS_ESPECIALIZADOS_unit_price"]},
+=======
+        'FIJO_SERVICIOS_ESPEZIALIZADOS_total': {'$multiply': ["$FIJO_SERVICIOS_ESPECIALIZADOS_qty","$FIJO_SERVICIOS_ESPECIALIZADOS_unit_price"]},
+
+>>>>>>> c554d1db6b6eff42971b9a29882c4c709f41068b
 
         'total_services': {'$add': [ '$SAE_total' , '$SAD_total', '$SAP_total', '$SE_total', '$SEPONY_total','$SAT_total', '$SPY_total', '$TCH_total',
         '$TCOSTCO_total', '$STD_total','$TNL_total','$TERMO_total', '$SD_total','$RM_total','$PALLET_IN_total','$PALLET_OUT_total',
@@ -411,7 +416,11 @@ def get_query():
         '$PRECIO_RENTA_OFICINA_total','$METROS_ACORDADOS_total','$SD_DESCARGA_35_total','$SD_DESCARGA_TORTON_total',
         '$SD_DESCARGA_TRAILER_total','$CM_CARGA_MATERIAL_35_total', '$CM_CARGA_MATERIAL_TORTON_total',
         '$CM_CARGA_MATERIAL_TRAILER_total','$TARIFA_GUIA_total','$TARIMAS_NEGRAS_FLEJADAS_total','$RENTA_GRUA_total','$OTROS_total' ,
+<<<<<<< HEAD
         '$MAQUILA_SPOUT_total','$MAQUILA_PERFORACION_total','$ETIQUETAS_total', '$PLACA_IMPRESION_total', '$PLAYO_PARA_EMPAQUE_total', '$CARGA_DE_DESPERDICIO_total','$FIJO_SERVICIOS_ESPEZIALIZADOS_total' ]}
+=======
+        '$MAQUILA_SPOUT_total','$MAQUILA_PERFORACION_total','$ETIQUETAS_total', '$PLACA_IMPRESION_total', '$PLAYO_PARA_EMPAQUE_total',  '$FIJO_SERVICIOS_ESPEZIALIZADOS_total' ]}
+>>>>>>> c554d1db6b6eff42971b9a29882c4c709f41068b
         }},
         {'$project':{
         '_id':1,
