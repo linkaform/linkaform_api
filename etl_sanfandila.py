@@ -3,11 +3,22 @@ from datetime import datetime
 from linkaform_api import settings
 from linkaform_api import network
 
+
+mongo_hosts = 'db2.linkaform.com:27017,db3.linkaform.com:27017,db4.linkaform.com:27017'
+mongo_replicaSet = 'linkaform_replica'
+MONGO_READPREFERENCE='primary'
+#MONGO_READPREFERENCE='secondaryPreferred'
+
+MAX_POOL_SIZE = 1000
+WAIT_QUEUE_TIMEOUT = 1000
+MONGODB_URI = 'mongodb://%s/?replicaSet=%s&readPreference=%s'%(mongo_hosts, mongo_replicaSet, MONGO_READPREFERENCE)
+
 config = {
     'USERNAME' : 'infosync@sanfandila.com',
     'PASS' : '123456',
     'COLLECTION' : 'form_answer',
-    'HOST' : 'db4.linkaform.com',
+    #'HOST' : 'db3.linkaform.com',
+    'MONGODB_URI':MONGODB_URI,
     'PORT' : 27017,
     'USER_ID' : '414',
     'KEYS_POSITION' : {},
@@ -104,6 +115,7 @@ def get_farm_inventory(farms_inventory, reception):
             print 'reception[cerdos]',reception['cerdos']
             print '----------------------------'
         return farms_inventory, reception['cerdos']
+    print ' cerdos' ,reception['cerdos']
     inventory_addup = farms_inventory[farm]['inventory'] +  reception['cerdos']
     farms_inventory[farm]['inventory'] = inventory_addup
     if farm == 'soledad':

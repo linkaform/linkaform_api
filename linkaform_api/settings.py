@@ -7,10 +7,21 @@ class ImportData:
 
 cache =Cache()
 
+mongo_hosts = 'db2.linkaform.com:27017,db3.linkaform.com:27017,db4.linkaform.com:27017'
+mongo_replicaSet = 'linkaform_replica'
+MONGO_READPREFERENCE='primary'
+#MONGO_READPREFERENCE='secondaryPreferred'
+
+MAX_POOL_SIZE = 1000
+WAIT_QUEUE_TIMEOUT = 1000
+MONGODB_URI = 'mongodb://%s/?replicaSet=%s&readPreference=%s'%(mongo_hosts, mongo_replicaSet, MONGO_READPREFERENCE)
+
+
 config = {
     'USERNAME' : 'infosync@sanfandila.com',
     'PASS' : '123456',
     'COLLECTION' : 'form_answer',
+    'MONGODB_URI':MONGODB_URI,
     'HOST' : 'localhost',
     'PORT' : 27019,
     'USER_ID' : '414',
