@@ -6,11 +6,12 @@ def get_query():
             {"$group": {
            "_id": {
                      'currency': "$currency",
-                     'client': "$5591627901a4de7bb8eb1ad5",
+                     'client': "$5591627901a4de7bb8eb1ad5", 
                      'warehouse': "$5591627901a4de7bb8eb1ad4",
                      'year': {"$year": "$created_at"},
                      'month':"$559174f601a4de7bb94f87ed",
               },
+
         'SAC_qty':{'$sum': "$5591627901a4de7bb8eb1ad9.qty"},
         'SAC_unit_price': {'$max': "$5591627901a4de7bb8eb1ad9.unit_price"},
         'SAC_total': {'$sum': "$5591627901a4de7bb8eb1ad9.total"},
@@ -270,6 +271,10 @@ def get_query():
         'CARGA_DE_DESPERDICIO_qty': {'$sum': "$579fba39b43fdd3f835c185a.qty"},
         'CARGA_DE_DESPERDICIO_unit_price': {'$max': "$579fba39b43fdd3f835c185a.unit_price"},
         'CARGA_DE_DESPERDICIO_total': {'$sum': "$579fba39b43fdd3f835c185a.total"},
+
+        'IMMEX_qty': {'$sum': "$00000000000000000000a113.qty"},
+        'IMMEX_unit_price': {'$max': "$00000000000000000000a113.unit_price"},
+        'IMMEX_total': {'$sum': "$00000000000000000000a113.total"}
     }},
 
     {'$project': {
@@ -393,6 +398,7 @@ def get_query():
         'PLACA_IMPRESION_total': {'$multiply': ["$PLACA_IMPRESION_qty","$PLACA_IMPRESION_unit_price"]},
         'PLAYO_PARA_EMPAQUE_total': {'$multiply': ["$PLAYO_PARA_EMPAQUE_qty","$PLAYO_PARA_EMPAQUE_unit_price"]},
         'CARGA_DE_DESPERDICIO_total': {'$multiply': ["$CARGA_DE_DESPERDICIO_qty","$CARGA_DE_DESPERDICIO_unit_price"]},
+        'IMMEX_total': {'$multiply': ["$IMMEX_qty","$IMMEX_unit_price"]},
 
         'total_services': {'$add': [ '$SAE_total' , '$SAD_total', '$SAP_total', '$SE_total', '$SEPONY_total','$SAT_total', '$SPY_total', '$TCH_total',
         '$TCOSTCO_total', '$STD_total','$TNL_total','$TERMO_total', '$SD_total','$RM_total','$PALLET_IN_total','$PALLET_OUT_total',
@@ -406,7 +412,8 @@ def get_query():
         '$PRECIO_RENTA_OFICINA_total','$METROS_ACORDADOS_total','$SD_DESCARGA_35_total','$SD_DESCARGA_TORTON_total',
         '$SD_DESCARGA_TRAILER_total','$CM_CARGA_MATERIAL_35_total', '$CM_CARGA_MATERIAL_TORTON_total',
         '$CM_CARGA_MATERIAL_TRAILER_total','$TARIFA_GUIA_total','$TARIMAS_NEGRAS_FLEJADAS_total','$RENTA_GRUA_total','$OTROS_total' ,
-        '$MAQUILA_SPOUT_total','$MAQUILA_PERFORACION_total','$ETIQUETAS_total', '$PLACA_IMPRESION_total', '$PLAYO_PARA_EMPAQUE_total', '$CARGA_DE_DESPERDICIO_total ]}
+        '$MAQUILA_SPOUT_total','$MAQUILA_PERFORACION_total','$ETIQUETAS_total', '$PLACA_IMPRESION_total', '$PLAYO_PARA_EMPAQUE_total', '$CARGA_DE_DESPERDICIO_total',
+        '$IMMEX_total' ]}
         }},
         {'$project':{
         '_id':1,
