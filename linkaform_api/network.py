@@ -133,7 +133,14 @@ def upload_answers_to_database(answers):
 def get_user_connection():
     connection = {}
     user_id = settings.config['USER_ID']
-    connection['client'] = MongoClient(settings.config['HOST'], settings.config['PORT'])
+    if not settings.config.has_key('REPLICASET'):
+        settings.config['REPLICASET'] = ''
+    if settings.config.has_key('MONGODB_URI'):
+        connection['client'] = MongoClient(settings.config['MONGODB_URI'])
+    elif settings.config.has_key('PORT'):
+        connection['client'] = MongoClient(settings.config['HOST'],settings.config['PORT'], replicaset=settings.config['REPLICASET'])
+    else:
+        connection['client'] = MongoClient(settings.config['HOST'], replicaset=settings.config['REPLICASET'] )
     user_db_name = "infosync_answers_client_{0}".format(user_id)
     if not user_db_name:
         return None

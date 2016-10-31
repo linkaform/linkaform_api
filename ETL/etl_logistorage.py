@@ -131,7 +131,8 @@ service_price_json = {
         "00000000000000000000a105":"00000000000000000000b105",
         "00000000000000000000a106":"00000000000000000000b106",
         "579fba39b43fdd3f835c185a":"579fbaadb43fdd3f81d52c66",
-        "00000000000000000000b113":"00000000000000000000a113"
+        "00000000000000000000a112":"00000000000000000000b112",
+        "00000000000000000000a113":"00000000000000000000b113",
 }
 
 #service_id:price_id
@@ -627,7 +628,7 @@ def etl():
         report = { "form_id": etl_model.item_id }
         count = 0
         all_forms_find = {"form_id": {"$in":all_forms}, "deleted_at": {"$exists":False}}
-        #alter_find = {'answers.5591627901a4de7bb8eb1ad5':'miller','answers.5591627901a4de7bb8eb1ad4':'monterrey', 'form_id':3486}#,'5591627901a4de7bb8eb1ad4': 'monterrey'}
+        alter_find = {'answers.5591627901a4de7bb8eb1ad5':'nortec','answers.5591627901a4de7bb8eb1ad4':'guadalajra', }#,'5591627901a4de7bb8eb1ad4': 'monterrey'}
         #all_forms_find.update(alter_find)
         #alter_find = {'answers.5591627901a4de7bb8eb1ad5':'palacio_de_hierro','form_id': {"$in":all_forms}}
         #all_forms_find = alter_find
@@ -717,10 +718,12 @@ def loop_query_update(cr_report_total, query_result, itype, operation_type='upda
             if has_id.count() > 0 and operation_type == 'update':
                 insert_res.update(has_id.next())
                 has_id.close()
+                print 'updateing', insert_res
                 cr_report_total.update({'_id':_id}, insert_res, upsert=True )
             elif has_id.count() == 0:
                 insert_res['_id'] = _id
                 has_id.close()
+                print 'updateing2', insert_res
                 cr_report_total.insert(insert_res)
                 ###TODO READFILE THEN UPDATE IT
     return True
