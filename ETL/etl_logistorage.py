@@ -718,12 +718,10 @@ def loop_query_update(cr_report_total, query_result, itype, operation_type='upda
             if has_id.count() > 0 and operation_type == 'update':
                 insert_res.update(has_id.next())
                 has_id.close()
-                print 'updateing', insert_res
                 cr_report_total.update({'_id':_id}, insert_res, upsert=True )
             elif has_id.count() == 0:
                 insert_res['_id'] = _id
                 has_id.close()
-                print 'updateing2', insert_res
                 cr_report_total.insert(insert_res)
                 ###TODO READFILE THEN UPDATE IT
     return True
@@ -786,19 +784,6 @@ def get_query_service_total(record):
 def insert_services(report_answer, cr_report_total):
     service_query = services.get_query()
     service_res = report_answer.aggregate(service_query, **{'allowDiskUse':True})
-    tt = 0
-    tts = 0
-    #for a in service_res:
-    #     if a['total_services'] != 0 :
-    #         tt += a['total_services']
-    #         print  'service=', a['total_services']
-    #         print 'a',a
-    #     #if a['sac_total2'] != 0:
-    #     #    print 'sac_total2',a['sac_total2']
-    #     #    tts += a['sac_total2']
-    # print 'asi queda tt= ', tt
-    # print 'asi queda ts=', tts
-    # print tt+tts
     loop_query_update(cr_report_total, service_res, itype='service', operation_type='insert')
     return True
 
@@ -832,7 +817,7 @@ def set_services_total():
         #space
     cr_report_total = Collection(user_local_conn['db'], "report_total", create=True)
     print 'uuuuuuuuuuuuupsertng space unit'
-    upsert_rent_service(report_answer, cr_report_total)
+    #upsert_rent_service(report_answer, cr_report_total)
     upsert_space_unit(report_answer ,cr_report_total)
     print 'uuuuuuupserint rentttt'
     upsert_rent_service(report_answer, cr_report_total)
