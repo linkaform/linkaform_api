@@ -7,9 +7,6 @@ Author Jonathan
 import datetime, base64, hashlib, json
 from urllib2 import Request, urlopen
 
-# DJANGO
-from django.conf import settings
-
 def decode(m):
     return m.decode('utf-8')
 
