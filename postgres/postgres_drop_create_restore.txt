@@ -3,6 +3,11 @@
 ###
 
 
+scp backend.linkaform.com:/backup/infosync/2016/infosync-DB-2016-28.tar.gz ./
+createdb  infosync --encoding=UNICODE --username infosync -p 5432 -h 10.1.66.19
+pg_restore --username infosync -d infosync infosync-DB-2016-28.tar.gz  -p 5432 -h 10.1.66.19
+
+
 #base de datos de infosync
 #backup
 pg_dump -Ft infosync > /var/tmp/postgres_backup_infosync.tar
@@ -13,17 +18,14 @@ scp /var/tmp/postgres_backup_openerp.tar db3.linkaform.com:/var/tmp/
 
 dropdb infosync --username infosync -p 5434
 createdb infosync --encoding=UNICODE --username infosync -p 5434
-pg_restore --username infosync -d infosync
-postgres_backup_infosync.tar
+pg_restore --username infosync -d infosync postgres_backup_infosync.tar
 
 #
 dropdb Infosync --username openerp -p 5434
 dnfosync --encoding=UNICODE --username openerp -p 5434
 createdb infosync_test --encoding=UNICODE --username openerp -p 5434
 pg_restore --username openerp -d Infosync -p 5434
-pg_restore --username openerp -d infosync_test -p 5434
-
-/var/tmp/postgres_backup_openerp.tar
+pg_restore --username openerp -d infosync_test -p 5434 /var/tmp/postgres_backup_openerp.tar
 
 
 pg_dump -Ft infosync > /var/tmp/postgres_backup_infosync_0723.tar
