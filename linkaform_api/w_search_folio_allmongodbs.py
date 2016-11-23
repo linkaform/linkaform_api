@@ -1,4 +1,4 @@
-from linkaform_api import mongo_util
+# from linkaform_api import mongo_util
 import mongo_util
 from pymongo import MongoClient
 from bson.objectid import ObjectId
@@ -147,6 +147,7 @@ def update_voucher(dbname, port, collection_name, form_list, id_voucher):
     for _id in form_list:
         query = {'form_id': _id, 'voucher.fields': {'$exists':0}, 'deleted_at' : {'$exists':0} }
         records = mongo_util.get_collection_objects(cur_col, query)
+        print records.count()
         if records.count() > 0:
             for res in records:
                 found_it.append(res['_id'])
@@ -177,18 +178,18 @@ def created_at_wrong_type(dbname, host, port, collection_name):
         return dbname
     return False
 
-host = 'db4.linkaform.com'
-host = 'localhost'
+host = 'db3.linkaform.com'
+# host = 'localhost'
 
 port = 27017
-port=27019
+# port=27019
 # collection_name = "workflow_data"
 collection_name = 'form_answer'
 cr = MongoClient()
 cr = MongoClient(host, port)
 
 databases = cr.database_names()
-databases = ['infosync_answers_client_96']#,'infosync_answers_client_9']
+# databases = ['infosync_answers_client_96']#,'infosync_answers_client_9']
 
 
 # folio_list = ['254010-96','239265-96',  '255619-96']
@@ -209,18 +210,28 @@ found_all = 0
 #folio_list = ['573b899923d3fd40a0d9c072']
 #error pdf mayo 20 2016
 #folio_list = ['57311bcc23d3fd0fc31d0a86']
-folio_list =['574f23b423d3fd18f123da4a', '576dc078b43fdd1ea9b71b72' ]
+# folio_list =['574f23b423d3fd18f123da4a', '576dc078b43fdd1ea9b71b72' ]
 #error mayo 20 2016
 #folio_list = ['5749b24823d3fd6c2df1a3b8', '5748cac923d3fd219569826d' ]
+#error octubre 28 2016
+# folio_list = ['57718cc1b43fdd39c63780ec']
 
-577c3a7eb43fdd15c725a9d7
-577c3a7eb43fdd15c725a9d7
+
+
+
+# 577c3a7eb43fdd15c725a9d7
+# 577c3a7eb43fdd15c725a9d7
 
 #error junio 1 2016
 # folio_list = ['56fda2d223d3fd0b9f7c9c67', '574f4d5423d3fd18f123da62' ,'56e87ff223d3fd60fa6c4dc9']
 
-form_list = [6248]
-
+# form_list = [6248]
+# error no voucher 11 nov 2016
+# form_list = ['10133']
+# databases = ['infosync_answers_client_558']
+# id_voucher = '5824da6ab43fdd5a2e19da3b'
+# folio_list = ['5829e3e7b43fdd12f4913d26']
+folio_list = ['5825f424b43fdd5a2f6adac7']
 dbs_with_error  = []
 
 
@@ -228,14 +239,15 @@ for dbname in databases:
     if dbname in ['infosync']:#['test', 'infosync', 'admin']:
         continue
     found_it = search_ids(dbname, port, collection_name, folio_list)
+    # found_it = update_voucher(dbname, port, collection_name, form_list, id_voucher)
     if found_it:
         found_all += 1
-        if found_all == len(form_list):
+        if found_all == len(folio_list):
             break
-    dd = created_at_wrong_type(dbname, host, port, collection_name)
-    if dd:
-        dbs_with_error.append(dd)
-print dbs_with_error
+#     dd = created_at_wrong_type(dbname, host, port, collection_name)
+#     if dd:
+#         dbs_with_error.append(dd)
+# print dbs_with_error
     #search_workflows(dbname, port, collection_name, folio_list)
 
 # for dbname in databases:
