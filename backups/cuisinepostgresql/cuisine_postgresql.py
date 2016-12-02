@@ -48,7 +48,7 @@ def set_enviorment(ssh_args):
     if ssh_args.has_key('key_filename'):
         env.key_filename = ssh_args['key_filename']
     if ssh_args.has_key('port'):
-        env.port = 2222
+        env.port = ssh_args['port']
 
 @require_fabric
 def postgresql_database_check(database_name):
@@ -217,7 +217,6 @@ def postgres_backup(database_name, dbhost='127.0.0.1', dbport=5432, **ssh_args):
     dbbackup_name = '%s_bakup_%s.tar.gz'%(database_name,date)
     cmd = "pg_dump --host %s --port %s -Ft %s >%s%s"%(dbhost, dbport, database_name, backup_dir, dbbackup_name)
     run(cmd)
-    dbbackup_name = 'infosync_bakup_20161122-2334.tar.gz'
     print 'Backup done....',cmd
     return backup_dir + dbbackup_name
 

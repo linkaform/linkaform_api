@@ -11,17 +11,10 @@ except ImportError:
 from datetime import datetime
 
 
-__version__ = '0.2.1'
-__maintainer__ = u'Atamert \xd6l\xe7gen'
-__email__ = 'muhuk@muhuk.com'
-__all__ = [
-    'postgresql_database_check',
-    'postgresql_database_create',
-    'postgresql_database_ensure',
-    'postgresql_role_check',
-    'postgresql_role_create',
-    'postgresql_role_ensure',
-]
+__version__ = '0.11.0'
+__maintainer__ = u'JosePatricio Villarreal Martinez'
+__email__ = 'josepato@linkaform.com'
+__all__ = []
 
 
 def require_fabric(f):
@@ -48,195 +41,72 @@ def set_enviorment(ssh_args):
     if ssh_args.has_key('key_filename'):
         env.key_filename = ssh_args['key_filename']
     if ssh_args.has_key('port'):
-        env.port = 2222
-
-@require_fabric
-def postgresql_database_check(database_name):
-    cmd = 'psql -tAc "SELECT 1 FROM pg_database WHERE datname = \'{}\'"'
-    return run_as_postgres_hidden(cmd.format(database_name)) == '1'
+        env.port = ssh_args['port']
 
 
 @require_fabric
-def postgresql_database_update(database_name,
-                               tablespace=None,
-                               locale=None,
-                               encoding=None,
-                               owner=None,
-                               warn_only=False):
-    if tablespace:
-        puts('Updating tablespace to "{0}"'.format(tablespace))
-        cmd = 'psql -tAc "ALTER DATABASE {database_name} SET TABLESPACE {tablespace}"'
-        run_as_postgres(cmd.format(
-                database_name=database_name,
-                tablespace=tablespace
-            )
-        )
-    if locale:
-        cmd = 'psql -tAc "SHOW lc_collate" -d {database_name}'
-        old_locale = run_as_postgres_hidden(cmd.format(database_name=database_name))
-        if old_locale != locale:
-            message = 'Trying to ensure %s locale when %s is the actual one.' % (
-                  locale, old_locale)
-            if not warn_only:
-                raise Exception(message)
-            else:
-                puts("WARNING: " + message)
-    if encoding:
-        cmd = 'psql -tAc "SHOW server_encoding" -d {database_name}'
-        old_encoding = run_as_postgres_hidden(cmd.format(database_name=database_name))
-        if old_encoding != encoding:
-            message = 'Trying to ensure %s encoding when %s is the actual one.' % (
-                encoding, old_encoding)
-            if not warn_only:
-                raise Exception(message)
-            else:
-                puts("WARNING: " + message)
-    if owner:
-        puts('Updating owner to "{0}"'.format(owner))
-        cmd = 'psql -tAc "ALTER DATABASE {database_name} OWNER TO {owner}"'
-        run_as_postgres(cmd.format(
-                database_name=database_name,
-                owner=owner
-            )
-        )
-
-
-@require_fabric
-def postgresql_database_create(database_name,
-                               tablespace=None,
-                               locale=None,
-                               encoding=None,
-                               owner=None,
-                               template=None,
+def mongodb_database_create(database_name,
                                dbhost=None,
                                dbport=None,
                                **ssh_args):
-    if ssh_args and ssh_args['ssh_args'].has_key('server'):
-       set_enviorment(ssh_args['ssh_args'])
-    opts = [
-        tablespace and '--tablespace={0}'.format(tablespace),
-        locale and '--locale={0}'.format(locale),
-        encoding and '--encoding={0}'.format(encoding),
-        owner and '--owner={0}'.format(owner),
-        template and '--template={0}'.format(template),
-        dbhost and '--host={0}'.format(dbhost),
-        dbport and '--port={0}'.format(dbport)
-    ]
-    cmd = 'createdb -U postgres {opts} {database_name}'.format(
-        opts=' '.join(opt for opt in opts if opt is not None),
-        database_name=database_name,
-    )
-
-    print 'cmd', cmd
-    run(cmd)
-
+    return True
 
 @require_fabric
-def postgresql_database_ensure(database_name,
-                               tablespace=None,
-                               locale=None,
-                               encoding=None,
-                               owner=None,
-                               template=None,
-                               warn_only=False):
-    if postgresql_database_check(database_name):
-        puts('Database "{0}" exists.'.format(database_name))
-        postgresql_database_update(
-          database_name, tablespace, locale, encoding,
-          owner, warn_only)
-    else:
-        puts('Database "{0}" doesn\'t exist. Creating...'.format(database_name))
-        postgresql_database_create(database_name,
-                                   tablespace,
-                                   locale,
-                                   encoding,
-                                   owner,
-                                   template)
-
-
-@require_fabric
-def postgresql_role_check(username):
-    cmd = 'psql -tAc "SELECT 1 FROM pg_roles WHERE rolname = \'{}\'"'
-    return run_as_postgres_hidden(cmd.format(username)) == '1'
-
-
-@require_fabric
-def postgresql_role_create(username,
-                           password,
-                           superuser=False,
-                           createdb=False,
-                           createrole=False,
-                           inherit=True,
-                           login=True):
-    opts = [
-        'SUPERUSER' if superuser else 'NOSUPERUSER',
-        'CREATEDB' if createdb else 'NOCREATEDB',
-        'CREATEROLE' if createrole else 'NOCREATEROLE',
-        'INHERIT' if inherit else 'NOINHERIT',
-        'LOGIN' if login else 'NOLOGIN'
-    ]
-    sql = 'CREATE ROLE {username} WITH {opts} PASSWORD \'{password}\''
-    sql = sql.format(username=username, opts=' '.join(opts), password=password)
-    cmd = 'psql -U postgres -c "{0}"'.format(sql)
-    run_as_postgres(cmd)
-
-
-@require_fabric
-def postgresql_role_update(username,
-                           password=None,
-                           superuser=None,
-                           createdb=None,
-                           createrole=None,
-                           inherit=None,
-                           login=None):
-    opts = [
-        '' if superuser is None else 'SUPERUSER' if superuser else 'NOSUPERUSER',
-        '' if createdb is None else 'CREATEDB' if createdb else 'NOCREATEDB',
-        '' if createrole is None else 'CREATEROLE' if createrole else 'NOCREATEROLE',
-        '' if inherit is None else 'INHERIT' if inherit else 'NOINHERIT',
-        '' if login is None else 'LOGIN' if login else 'NOLOGIN',
-        '' if password is None else 'PASSWORD \'{password}\''.format(password=password)
-    ]
-    sql = 'ALTER ROLE {username} WITH {opts} '
-    sql = sql.format(username=username, opts=' '.join(opts))
-    cmd = 'psql -c "{0}"'.format(sql)
-    return run_as_postgres(cmd)
-
-
-@require_fabric
-def postgres_backup(database_name, dbhost='127.0.0.1', dbport=5432, **ssh_args):
+def mongodb_backup(database_name, dbhost='127.0.0.1', dbport=27017, **ssh_args):
     """
-    Crear un archivo tar de directorio remoto
+    Creates a remote backup tar for the database
     """
+    print 'entra a mongodb_backup=================================='
     if ssh_args and ssh_args['ssh_args'].has_key('server'):
             set_enviorment(ssh_args['ssh_args'])
     date = datetime.now()
     date = date.strftime("%Y%m%d-%H%M")
     backup_dir = '/backup/%s/devlop/'%database_name
     dir_ensure(backup_dir)
-    dbbackup_name = '%s_bakup_%s.tar.gz'%(database_name,date)
-    cmd = "pg_dump --host %s --port %s -Ft %s >%s%s"%(dbhost, dbport, database_name, backup_dir, dbbackup_name)
+    dbbackup_name = '%s_bakup_%s'%(database_name,date)
+    cmd = "mongodump -d %s --host %s:%s --out %s%s"%(database_name, dbhost, dbport, backup_dir, dbbackup_name)
+    print cmd
     run(cmd)
-    dbbackup_name = 'infosync_bakup_20161122-2334.tar.gz'
     print 'Backup done....',cmd
     return backup_dir + dbbackup_name
 
 
 @require_fabric
-def postgres_dropdb(database_name, username, dbhost='127.0.0.1', dbport=5432 , **ssh_args):
-    #env.host_string = server
-    #env.user = username
-    #env.key_filename = key_filename
-    cmd = "dropdb %s --username %s --host %s --port %s"%(database_name, username, dbhost, dbport)
-    print 'ssh_args',ssh_args
+def mongodb_dropdb(database_name,
+                    username=None,
+                    dbhost='127.0.0.1',
+                    dbport=5432,
+                    password=None,
+                    **ssh_args):
+    """
+    Drops the database
+    """
     if ssh_args and ssh_args['ssh_args'].has_key('server'):
-            set_enviorment(ssh_args['ssh_args'])
-            #run(cmd)
-            print 'cmd', cmd
+        set_enviorment(ssh_args['ssh_args'])
+
+    opts = [
+        database_name and '{0}'.format(database_name),
+        username and '--username={0}'.format(username),
+        dbhost and '--host={0}'.format(dbhost),
+        dbport and '--port={0}'.format(dbport),
+        password and '--password={0}'.format(password),
+    ]
+
+    cmd ='mongo {opts} --eval "db.dropDatabase()"'.format(
+        opts=' '.join(opt for opt in opts if opt is not None)
+        )
+    print 'DROP DB cmd', cmd
     run(cmd)
 
+
 @require_fabric
-def postgres_restoredb(dbname, tar_name , username='postgres', dbhost='127.0.0.1', dbport=5432 , **ssh_args):
+def mongodb_restoredb(restore_location,
+                      username=None,
+                      dbhost='127.0.0.1',
+                      dbport=27017,
+                      password=None,
+                      collection=None,
+                      **ssh_args):
     """
     Restores a database from a tar file sotred on disk
     """
@@ -246,44 +116,16 @@ def postgres_restoredb(dbname, tar_name , username='postgres', dbhost='127.0.0.1
         username and '--username={0}'.format(username),
         dbhost and '--host={0}'.format(dbhost),
         dbport and '--port={0}'.format(dbport),
-        dbname and '--dbname={0}'.format(dbname),
+        password and '--password={0}'.format(password),
+        collection and '--collection={0}'.format(collection),
     ]
-    cmd = 'pg_restore {opts} {tar_name}'.format(
+    cmd = 'mongorestore {opts} {restore_location}'.format(
         opts=' '.join(opt for opt in opts if opt is not None),
-        tar_name=tar_name
+        restore_location=restore_location
     )
-    print 'cmd', cmd
     run(cmd)
-    print 'Backup done....'#,db_backup_command
     #return dbbackup_name
-
-@require_fabric
-def postgresql_role_ensure(username,
-                           password,
-                           superuser=False,
-                           createdb=False,
-                           createrole=False,
-                           inherit=True,
-                           login=True):
-    if postgresql_role_check(username):
-        puts('Role "{0}" exists. Updating attributes ...'.format(username))
-        postgresql_role_update(username,
-                               password,
-                               superuser,
-                               createdb,
-                               createrole,
-                               inherit,
-                               login)
-    else:
-        puts('Role "{0}" doesn\'t exist. Creating...'.format(username))
-        postgresql_role_create(username,
-                               password,
-                               superuser,
-                               createdb,
-                               createrole,
-                               inherit,
-                               login)
-
+    return True
 
 @require_fabric
 def run_as_postgres_hidden(cmd):
