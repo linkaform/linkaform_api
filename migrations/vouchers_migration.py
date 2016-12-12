@@ -7,7 +7,7 @@ from linkaform_api import mongo_util
 from bson.objectid import ObjectId
 
 # databases = cr.database_names()
-databases = ['infosync_answers_client_9']
+databases = ['infosync_answers_client_126']
 collection_name = 'form_answer'
 config = {
     'HOST' : 'localhost',
@@ -34,7 +34,8 @@ def migrate_vouchers(dbname):
     print 'looking on dbname ...' , dbname
     cur_db = mongo_util.connect_mongodb(dbname, config['HOST'], config['PORT'])
     cur_col = mongo_util.get_mongo_collection(cur_db, collection_name)
-    query = {'voucher.fields': {'$exists':True}}
+    # query = {'voucher.fields': {'$exists':True}}
+    query = {'form_id':561,'voucher.fields': {'$exists':True}}
     records = mongo_util.get_collection_objects(cur_col, query)
     # Voucher DB
     voucher_col = mongo_util.get_mongo_collection(cur_db, 'voucher')
@@ -64,7 +65,11 @@ def create_voucher(_col, record):
         query = 'select parent_id from users_customuser where id ={user_id};\n'.format(
             user_id=record['connection_id'])
         cur.execute(query)
-        parent_id = cur.fetchone()[0]
+        result = cur.fetchone()
+        if len(result) > 0:
+            parent_id = result[0] 
+        else:
+            parent_id = record['connection_id']
         if not parent_id: parent_id = record['connection_id']
         connection_db = 'infosync_answers_client_%s' % parent_id
         cur_db = mongo_util.connect_mongodb(connection_db, config['HOST'], config['PORT'])
@@ -93,41 +98,45 @@ def parse_voucher(voucher):
             voucher[key] = str(value['id'])
         if key == 'form_pages':
             for page in range(len(voucher[key])):
-                for page_fields in range(len(voucher['form_pages'][page]['page_fields'])):
-                    _id = str(voucher['form_pages'][page]['page_fields'][page_fields]['field_id']['id'])
-                    voucher['form_pages'][page]['page_fields'][page_fields]['field_id'] = _id
-                    if ('groups_fields' in voucher['form_pages'][page]['page_fields'][page_fields] and 
-                        len(voucher['form_pages'][page]['page_fields'][page_fields]['groups_fields']) > 0):
+                for page_fields in range(len(voucher[key][page]['page_fields'])):
+                    _id = str(voucher[key][page]['page_fields'][page_fields]['field_id']['id'])
+                    voucher[key][page]['page_fields'][page_fields]['field_id'] = _id
+                    if ('groups_fields' in voucher[key][page]['page_fields'][page_fields] and 
+                        len(voucher[key][page]['page_fields'][page_fields]['groups_fields']) > 0):
                         group_fields = []
-                        for group in range(len(voucher['form_pages'][page]['page_fields'][page_fields]['groups_fields'])):
+                        for group in range(len(voucher[key][page]['page_fields'][page_fields]['groups_fields'])):
                             try:
-                                _id = str(voucher['form_pages'][page]['page_fields'][page_fields]['groups_fields'][group]['id'])
+                                _id = str(voucher[key][page]['page_fields'][page_fields]['groups_fields'][group]['id'])
                                 group_fields.append(_id)
                             except Exception, e:
                                 print e
                                 pass
-                        voucher['form_pages'][page]['page_fields'][page_fields]['groups_fields'] = group_fields
-                    if 'group' in voucher['form_pages'][page]['page_fields'][page_fields]:
-                        _id = str(voucher['form_pages'][page]['page_fields'][page_fields]['group']['group_id']['id'])
-                        voucher['form_pages'][page]['page_fields'][page_fields]['group']['group_id'] = _id
+                        voucher[key][page]['page_fields'][page_fields]['groups_fields'] = group_fields
+                    if 'group' in voucher[key][page]['page_fields'][page_fields]:
+                        _id = str(voucher[key][page]['page_fields'][page_fields]['group']['group_id']['id'])
+                        voucher[key][page]['page_fields'][page_fields]['group']['group_id'] = _id
         if key == 'fields':
             for field in range(len(voucher[key])):
-                _id = str(voucher['fields'][field]['field_id']['id'])
-                voucher['fields'][field]['field_id'] = _id
-                if ('groups_fields' in voucher['fields'][field] and 
-                    len(voucher['fields'][field]['groups_fields']) > 0):
+                _id = str(voucher[key][field]['field_id']['id'])
+                voucher[key][field]['field_id'] = _id
+                if ('groups_fields' in voucher[key][field] and 
+                    len(voucher[key][field]['groups_fields']) > 0):
                     group_fields = []
-                    for group in range(len(voucher['fields'][field]['groups_fields'])):
+                    for group in range(len(voucher[key][field]['groups_fields'])):
+                        print 'group=', voucher[key][field]['groups_fields'][group]
                         try:
-                            _id = str(voucher['fields'][field]['groups_fields'][group]['id'])
+                            _id = str(voucher[key][field]['groups_fields'][group]['id'])
                             group_fields.append(_id)
                         except Exception, e:
                             print e
                             pass
-                    voucher['fields'][field]['groups_fields'] = group_fields
-                if 'group' in voucher['fields'][field] and len(voucher['fields'][field]['group']) > 0:
-                    _id = str(voucher['fields'][field]['group']['group_id']['id'])
-                    voucher['fields'][field]['group']['group_id'] = _id
+                    voucher[key][field]['groups_fields'] = group_fields
+                if 'group' in voucher[key][field] and len(voucher[key][field]['group']) > 0:
+                    _id = str(voucher[key][field]['group']['group_id']['id'])
+                    # if _id == '55ad0f9d23d3fd7c8949a411':
+                    #     print voucher[key][field]
+                    #     print asd
+                    voucher[key][field]['group']['group_id'] = _id
     return voucher
 
 
