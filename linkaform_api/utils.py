@@ -100,6 +100,21 @@ class Cache(object):
                     items.append(obj)
         return items
 
+    def get_all_connections(self):
+        #TODO UPDATE SELF.ITESM
+        #Returns all the connections
+        connections = []
+        all_connections = network.dispatch(api_url['connecions']['all_connections'])
+        objects = all_connections['data']
+        return objects
+
+    def get_all_users(self):
+        #TODO UPDATE SELF.ITESM
+        #Returns all the connections
+        connections = []
+        all_users = network.dispatch(api_url['users']['all_users'])
+        objects = all_users['data']
+        return objects
 
 def warning(*objs):
     '''

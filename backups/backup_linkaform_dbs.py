@@ -43,15 +43,15 @@ def backup_postgres_linkaform(server_args, db_args):
     """production_server
     Crear un archivo tar de directorio remoto
     """
-    development_server = 'slimey.linkaform.com'
-    development_db_server = '10.1.66.19'
-    production_server = 'backend.linkaform.com'
-    production_db_server = 'db4.linkaform.com'
-    dbport_dev = 5434
+    production_server = server_args['server']
+    production_db_server = db_args['dbhost']
     USERNAME = os.popen('whoami').readline()[:-1]
     key_filename = '/home/%s/.ssh/id_rsa'%(USERNAME)
     dbname_dev='infosync_prod'
-
+    development_server ='slimey.linkaform.com'
+    development_db_server ='10.1.66.19' 
+    dbname_dev='infosync'
+    dbport_dev ='5432'
     ## Va a hacer el respaldo de produccion
     dbbackup_name = cp.postgres_backup(db_args['dbname'], db_args['dbhost'], db_args['dbport'], ssh_args=server_args)
     file_name = dbbackup_name.split('/')[-1]
@@ -73,7 +73,7 @@ def backup_postgres_linkaform(server_args, db_args):
     server_args = {'server':development_server, 'username':username, 'key_filename':key_filename, 'port':server_port}
     set_enviorment(server_args)
     dir_ensure(file_path)
-    run("scp  infosync@%s:%s %s"%(production_server, dbbackup_name, file_path))
+    run("scp  %s@%s:%s %s"%(username, production_server, dbbackup_name, file_path))
     try:
         cp.postgres_dropdb(dbname_dev, username, dbhost=development_server, dbport=dbport_dev, ssh_args=server_args)
     except:
@@ -141,36 +141,6 @@ def mongodb_restoredb_linkaform(destserver_args, db_args, server_args={}):
         print 'could not restore the database %s at %s'%(db_args['dbname'], db_args['dbname'] + ':' + db_args['dbport'])
 
 
-
-
-def restores_linkaform_db():
-    """
-    Copies and restores the databse form the remote server
-    """
-    script = """dropdb infosync_prod --username infosync -h 10.1.66.19
-    drop database infosync_wp1;
-    create database infosync_wp1;
-    use infosync_wp1;
-    GRANT ALL PRIVILEGES ON infosync_wp1.* TO "infosync"@"hostname"  IDENTIFIED BY "director";
-    FLUSH PRIVILEGES;"""
-    update_script ="update infosync_wp1.wp_options set option_value ='http://%s' where option_id=1 or option_id=37;"%(production_server)
-    db_name = backup_mysqldb()
-    print 'Coping files...'
-    for server in front_servers:
-        env.host_string = server
-        env.user = 'infosync'
-        env.key_filename = '/home/infosync/.ssh/id_rsa'
-        file_write('/tmp/sql_drop.sql', script)
-        file_write('/tmp/update_script.sql', update_script )
-        run("scp  infosync@%s:%s ./"%(testing_server,db_name))
-        print 'droping db . . .'
-        run("mysql -uroot -pdirector infosync_wp1 < %s"%"/tmp/sql_drop.sql")
-        print 'Restoring . . .'
-        run("mysql -uinfosync -pdirector infosync_wp1 < infosync_wp1.sql ")
-        print 'Updates...'
-        run("mysql -uinfosync -pdirector infosync_wp1 < %s"%"/tmp/update_script.sql")
-        print 'restores_remote_db DONE'
-    return True
 
 def assing(new_val, default_val):
     if not new_val:

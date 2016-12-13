@@ -120,11 +120,12 @@ def postgresql_database_create(database_name,
         owner and '--owner={0}'.format(owner),
         template and '--template={0}'.format(template),
         dbhost and '--host={0}'.format(dbhost),
-        dbport and '--port={0}'.format(dbport)
+        dbport and '--port={0}'.format(dbport),
     ]
-    cmd = 'createdb -U postgres {opts} {database_name}'.format(
+    cmd = 'createdb -U {owner} {opts} {database_name}'.format(
         opts=' '.join(opt for opt in opts if opt is not None),
         database_name=database_name,
+	owner=owner
     )
 
     print 'cmd', cmd

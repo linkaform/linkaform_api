@@ -147,6 +147,23 @@ def get_user_connection():
     connection['db'] = connection['client'][user_db_name]
     return connection
 
+def get_infosync_connection():
+    connection = {}
+    user_id = settings.config['USER_ID']
+    if not settings.config.has_key('REPLICASET'):
+        settings.config['REPLICASET'] = ''
+    if settings.config.has_key('MONGODB_URI'):
+        connection['client'] = MongoClient(settings.config['MONGODB_URI'])
+    elif settings.config.has_key('PORT'):
+        connection['client'] = MongoClient(settings.config['HOST'],settings.config['PORT'], replicaset=settings.config['REPLICASET'])
+    else:
+        connection['client'] = MongoClient(settings.config['HOST'], replicaset=settings.config['REPLICASET'] )
+    db_name = "infosync"
+    if not db_name:
+        return None
+    connection['db'] = connection['client'][db_name]
+    return connection
+
 def create_collection(collection, user_connection):
     if config['CREATE'] and collection in user_connection['db'].collection_names():
         oldCollection = user_connection['db'][collection]
@@ -156,4 +173,8 @@ def create_collection(collection, user_connection):
 
 def get_collections(collection='form_answer', create=False):
     database = get_user_connection()
+    return Collection(database['db'], collection, create)
+
+def get_infsoync_collections(collection='form_answer', create=False):
+    database = get_infosync_connection()
     return Collection(database['db'], collection, create)

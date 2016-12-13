@@ -20,7 +20,17 @@ catalog_url = {
     'set_catalog_answer': {'url':'https://www.linkaform.com/api/infosync/catalog_answer/', 'method':'POST'},
 }
 
+users_url = {
+    'all_users': {'url':'https://www.linkaform.com/api/infosync/user_admin/', 'method':'GET'},
+}
+
+connections_url = {
+    'all_connections': {'url':'https://www.linkaform.com/api/infosync/connection/', 'method':'GET'},
+}
+
 api_url = {}
 api_url['form'] = forms_url
 api_url['global'] = global_url
 api_url['catalog'] = catalog_url
+api_url['users'] = users_url
+api_url['connecions'] = connections_url
