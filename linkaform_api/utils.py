@@ -62,6 +62,15 @@ class Cache(object):
             return response['data']
         return False
 
+    def get_form_id_fields(self, form_id):
+        url = api_url['form']['get_form_id_fields']['url']+str(form_id)
+        method = api_url['form']['get_form_id_fields']['method']
+        response = network.dispatch(url=url, method=method)
+        print 'get_form_id_fields response=', response
+        if response['status_code'] == 200:
+            return response['data']
+        return False
+
     def get_all_items(self, item_type):
         if item_type =='form':
             return self.get_all_forms()
