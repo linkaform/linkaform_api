@@ -65,8 +65,7 @@ class Cache(object):
     def get_form_id_fields(self, form_id):
         url = api_url['form']['get_form_id_fields']['url']+str(form_id)
         method = api_url['form']['get_form_id_fields']['method']
-        response = network.dispatch(url=url, method=method)
-        print 'get_form_id_fields response=', response
+        response = network.dispatch(url=url, method=method, use_api_key=True)
         if response['status_code'] == 200:
             return response['data']
         return False
@@ -124,6 +123,11 @@ class Cache(object):
         all_users = network.dispatch(api_url['users']['all_users'])
         objects = all_users['data']
         return objects
+
+    def post_upload_file(self, data, up_file):
+        upload_url = network.dispatch(api_url['form']['upload_file'], data=data, up_file=up_file)
+        print 'upload_url', upload_url
+        return upload_url
 
 def warning(*objs):
     '''

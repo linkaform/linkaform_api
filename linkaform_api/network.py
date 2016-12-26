@@ -12,7 +12,8 @@ import settings
 from urls import api_url
 
 def login(session, username, password):
-    data = simplejson.dumps({"password": settings.config['PASS'], "username": settings.config['USERNAME']})
+    #data = simplejson.dumps({"password": settings.config['PASS'], "username": settings.config['USERNAME']})
+    data = {"password": settings.config['PASS'], "username": settings.config['USERNAME']}
     response = dispatch(api_url['global']['login'], data=data, use_login=True)
     return response['status_code'] == 200
 
@@ -27,7 +28,7 @@ def get_url_method(url_method={}, url='', method=''):
         raise ("No Method found")
     return url, method.upper()
 
-def dispatch(url_method={}, url='', method='', data={}, use_login=False, use_api_key=False, encoding='utf-8'):
+def dispatch(url_method={}, url='', method='', data={}, use_login=False, use_api_key=False, encoding='utf-8', up_file=False):
     #must use the url_method or a url and method directly
     #url_method is a {} with a key url and method just like expres on urls
     #url defines the url to make the call
@@ -36,28 +37,39 @@ def dispatch(url_method={}, url='', method='', data={}, use_login=False, use_api
     #use_api_key -Optinal- forces the dispatch to be made by api_key method, if not will use  the config method
     url, method = get_url_method(url_method, url=url, method=method)
     response = False
-    if type(data) == dict:
+    print 'data type', type(data)
+    if type(data) in (dict,str):
         data = simplejson.dumps(data, encoding)
     if method == 'GET':
         response = do_get(url, use_login, use_api_key)
     if method == 'POST':
-        response = do_post(url, data, use_login, use_api_key)
+        if data == '{}' or not data:
+            raise 'No data to post, check you post method'
+        print 'post data', data
+        print 'file ', up_file
+        #print stop_post2
+        response = do_post(url, data, use_login, use_api_key, up_file=up_file)
     return response
 
 def do_get(url, use_login=False, use_api_key=False):
     response = {'data':{}, 'status_code':''}
     session = requests.Session()
     if use_api_key or (settings.config['IS_USING_APIKEY'] and not use_login):
+        print 'aPI KEY'
+        headers={'Content-type': 'application/json','Authorization':'ApiKey {0}:{1}'.format(settings.config['AUTHORIZATION_EMAIL_VALUE'],
+        settings.config['AUTHORIZATION_TOKEN_VALUE'])}
+        print 'headers',headers
         r = requests.get(url, headers={'Content-type': 'application/json','Authorization':'ApiKey {0}:{1}'.format(settings.config['AUTHORIZATION_EMAIL_VALUE'],
-        settings.config['AUTHORIZATION_TOKEN_VALUE'])})#,verify=False)
+        settings.config['AUTHORIZATION_TOKEN_VALUE'])},verify=False)
     #if use_login or not settings.config['IS_USING_APIKEY']:
     if r.status_code == 401:
         print '---------trying ---------------s'
+        print 'user name ', settings.config['USERNAME']
         if login(session, settings.config['USERNAME'], settings.config['PASS']):
             print 'loing ok'
-            print 'url/6226'
-            url ='https://www.linkaform.com/api/infosync/get_form/?form_id=6226'
-            r = session.get(url, headers={'Content-type': 'application/json'}, verify=False)
+            print 'url/6226', url
+            url ='https://app.linkaform.com/api/infosync/get_form/?form_id=10378'
+            r = session.get(url, headers={'Content-type': 'application/json'}, verify=True)
             print 'r',r
         else:
             raise('Cannot login, please check user and password, or network connection!!!')
@@ -67,17 +79,20 @@ def do_get(url, use_login=False, use_api_key=False):
         response['data'] = r_data['objects']
     return response
 
-def do_post(url, data, use_login=False, use_api_key=False, encoding='utf-8'):
+def do_post(url, data, use_login=False, use_api_key=False, encoding='utf-8' ,up_file=False):
     response = {'data':{}, 'status_code':''}
     send_data = {}
+    print 'up_file', up_file
     if use_api_key or (settings.config['IS_USING_APIKEY'] and not use_login):
+        print '111111111111111'
         r = requests.post(url, data, headers={'Content-type': 'application/json',
         'Authorization':'ApiKey {0}:{1}'.format(settings.config['AUTHORIZATION_EMAIL_VALUE'],
-        settings.config['AUTHORIZATION_TOKEN_VALUE'])},verify=False)
+        settings.config['AUTHORIZATION_TOKEN_VALUE'])},verify=False )
     else:
+        print '22222222222222'
         session = requests.Session()
         if use_login or (login(session, settings.config['USERNAME'], settings.config['PASS']) and not use_api_key):
-            r = requests.post(url, data, headers={'Content-type': 'application/json'}, verify=False)
+            r = requests.post(url, data, headers={'Content-type': 'application/json'}, verify=False, files=file)
     response['status_code'] = r.status_code
     #if r.status_code == 200:
     response['data'] = simplejson.loads(r.content)
@@ -96,14 +111,16 @@ def post_forms_answers(answers, test=False):
     if test:
         answers = [answers[0],answers[1]]
     for index, answer in enumerate(answers):
-        print 'sending answer number', index
-        r = dispatch(api_url['catalog']['set_catalog_answer'], data=answer)
+
+        r = dispatch(api_url['form']['set_form_answer'], data=answer)
+        #r = dispatch(api_url['catalog']['set_catalog_answer'], data=answer)
         print 'r status code', r['status_code']
         if r['status_code'] in  (201,200,202,204):
             print "Answer %s saved."%(index + 1)
             POST_CORRECTLY += 1
         else:
             print "Answer %s was rejected."%(index + 1)
+            print stop_post_forms
             errors_json.append(r)
     print 'Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, index+1)
     if errors_json:

@@ -7,6 +7,7 @@
 #####
 import wget
 import pyexcel
+import datetime ,time
 
 from linkaform_api import settings
 from linkaform_api import network, utils
@@ -25,6 +26,7 @@ lkf_api = utils.Cache()
 
 config = {
     'USERNAME' : 'jgemayel@pcindustrial.com.mx',
+    #'USERNAME' : 'josepato@infosync.mx',
     'PASS' : '123456',
     'COLLECTION' : 'form_answer',
     #'HOST' : 'db3.linkaform.com',
@@ -35,24 +37,13 @@ config = {
     'KEYS_POSITION' : {},
     'IS_USING_APIKEY' : True,
     'AUTHORIZATION_EMAIL_VALUE' : 'jgemayel@pcindustrial.com.mx',
-    'AUTHORIZATION_TOKEN_VALUE' : '74e5455a43b175acc93b3cc72be0ea74c2212ca5',
+    #'AUTHORIZATION_EMAIL_VALUE' : 'josepato@infosync.mx',
+    'AUTHORIZATION_TOKEN_VALUE' : '84250d7e6ae5742bc6c758ab23e57c43ac75c7aa',
+    #'AUTHORIZATION_TOKEN_VALUE' :'76d742df0353da8fd824daae2d158dc146f7eedd'
 }
 
 settings.config = config
 cr = network.get_collections()
-
-def query_get_files():
-    query = {'form_id': {'$in': [10741]}, 'deleted_at' : {'$exists':False}, 'answers.f1074100a010000000000005': 'por_cargar'}
-    select_columns = {'answers.f1074100a010000000000001':1}
-    return query, select_columns
-
-
-
-def get_files2upload():
-    query, select_columns = query_get_files()
-    orders_records = cr.find(query, select_columns)
-    print 'order find', orders_records.count()
-    return orders_records
 
 
 def read_file(file_url):
@@ -69,42 +60,109 @@ def download_file(url):
     return fileb
 
 
-def get_form_ids_json(header, form_id=10741):
+def get_pos_field_id_dict(header, form_id=10540):
+    #form_id=10378 el id de bolsa
+    #pos_field_id ={3: {'field_type': 'text', 'field_id': '584648c8b43fdd7d44ae63d1'}, 9: {'field_type': 'text', 'field_id': '58464a29b43fdd773c240163'}, 51: {'field_type': 'integer', 'field_id': '584648c8b43fdd7d44ae63d0'}}
+    #return pos_field_id
+    pos_field_id = {}
     form_fields = lkf_api.get_form_id_fields(form_id)
-    print 'form_fields', form_fields
-    print stop
+    header_dict = {}
+    for position in range(len(header)):
+        header_dict[header[position].lower().replace(' ' ,'')] = position
+    #print 'form_fields=', form_fields
+    if len(form_fields) > 0:
+        fields = form_fields[0]['fields']
+        #print 'keys', fields
+        fields_json = {}
+        if 'folio' in header_dict.keys():
+            pos_field_id[header_dict['folio']] = {'field_type':'folio'}
+        for field in fields:
+            label = field['label'].lower().replace(' ' ,'')
+            if label in header_dict.keys():
+                pos_field_id[header_dict[label]] = {'field_id':field['field_id'], 'field_type':field['field_type'], 'label':field['label']}
+    print 'pos_field_id', pos_field_id
+    return pos_field_id
 
-print 'starting get form ids'
-header= [u'FOLIO', u'TIPO', u'TELEFONO', u'NOMBRE', u'ETAPA', u'F_CONTRATA', u'DILACION', u'DILETAPA', u'Central', u'DISTRITO', u'CANAL', u'OF_C', u'AREA', u'OFICINA', u'CT', u'CM', u'F_UE', u'CLASE_SERV', u'SEGMENTO', u'area_ct', u'segpred', u'nse_amai', u'abc', u'elite', u'sky', u'warzone', u'colonia', u'DIVISION', u'SUBDIRECCION', u'SIGLAS', u'Fol_Pisaplex', u'TTarea', u'Degustacion', u'NombreTecnico', u'Expediente', u'Zona', u'IdTarea', u'GrupoAsignacion', u'RedPri', u'RedSec', u'DispositivoCoordenada', u'Empresa', u'Tipo_Sitio', u'Poligono-Zona', u'Prioritaria', u'resynores', u'AgrupaR27', u'FTTH', u'VieneDe', u'Portabilidad', u'Etiqueta', u'Prioridad', u'AgrupaDil', u'AgrupaDilEtapa', u'Pendiente_Puente', u'PRODUCTO', u'CTL', u'EMPRESA*', u'FECHA ASIGNADA', u'DIL2', u'ESTADO', u'SITIO', u'ETIQUETA2', u'RANGO', u'PRIORIDAD2', u'ATIENDE', u'FACTIBILIDAD', u'COLONIA2']
-get_form_ids_json(header, 10741)
+#print 'starting get form ids'
+#header= [u'FOLIO', u'TIPO', u'TELEFONO', u'NOMBRE', u'ETAPA', u'F_CONTRATA', u'DILACION', u'DILETAPA', u'Central', u'DISTRITO', u'CANAL', u'OF_C', u'AREA', u'OFICINA', u'CT', u'CM', u'F_UE', u'CLASE_SERV', u'SEGMENTO', u'area_ct', u'segpred', u'nse_amai', u'abc', u'elite', u'sky', u'warzone', u'colonia', u'DIVISION', u'SUBDIRECCION', u'SIGLAS', u'Fol_Pisaplex', u'TTarea', u'Degustacion', u'NombreTecnico', u'Expediente', u'Zona', u'IdTarea', u'GrupoAsignacion', u'RedPri', u'RedSec', u'DispositivoCoordenada', u'Empresa', u'Tipo_Sitio', u'Poligono-Zona', u'Prioritaria', u'resynores', u'AgrupaR27', u'FTTH', u'VieneDe', u'Portabilidad', u'Etiqueta', u'Prioridad', u'AgrupaDil', u'AgrupaDilEtapa', u'Pendiente_Puente', u'PRODUCTO', u'CTL', u'EMPRESA*', u'FECHA ASIGNADA', u'DIL2', u'ESTADO', u'SITIO', u'ETIQUETA2', u'RANGO', u'PRIORIDAD2', u'ATIENDE', u'FACTIBILIDAD', u'COLONIA2']
+#get_pos_field_id_dict(header, 6015)
+
+def addMultipleChoice(answer, element):
+    return True
+
+
+def make_infosync_json(answer,element):
+    if element['field_type'] in ('select-one', 'text', 'radio', 'textarea', 'email', 'password'):
+        return {element['field_id']:str(answer)}
+    if element['field_type'] in ('checkbox'):
+        return {element['field_id']:answer.split(',')}
+    if element['field_type'] in ('integer'):
+        return {element['field_id']:int(answer)}
+    if element['field_type'] in ('decimal','float'):
+        return {element['field_id']:float(answer)}
+    if element['field_type'] in ('date'):
+        print 'answer', answer
+        print type(answer)
+        return {element['field_id']:str(answer)}
+    return {}
+
+
+def get_metadata(form_id=10540):
+    time_started = time.time()
+    metadata = {
+        "form_id" : form_id,
+        "geolocation": [-100.3862645,25.644885499999997],
+        "start_timestamp" : time_started,
+        "end_timestamp" : time_started,
+    }
+    return metadata
+
+
+def set_custom_values(pos_field_id, record):
+    custom_answer = {}
+    #set status de la orden
+    custom_answer['f1054000a030000000000002'] = 'abierta'
+    return custom_answer
+
+
+def create_record(pos_field_id, records):
+    answer = {}
+    metadata = get_metadata()
+    for record in records:
+        count = 0
+        for pos, element in pos_field_id.iteritems():
+            count +=1
+            answer.update(make_infosync_json(record[pos], element))
+            if element['field_type'] == 'folio':
+                metadata['folio'] = str(record[pos])
+        answer.update(set_custom_values(pos_field_id, record ))
+        metadata["answers"] = answer
+        print 'metadata', metadata
+        network.post_forms_answers([metadata,])
+        print '=========================================='
+    return True
 
 
 def upload_bolsa():
-    files = get_files2upload()
+    #files = get_files2upload()
+    files = [{u'_id': ('58575ff4b43fdd35e3169665'), u'answers': {u'f1074100a010000000000001': {u'file_name': u'BASE 16-DICIEMBRES10.xls', u'file_url': u'uploads/1259_jgemayel@pcindustrial.com.mx/e201093c634a2a2ff2068b4df622401a2ac90c83.xls'}}}]
     if files:
         for file_url in files:
-            print 'file_url', file_url
             if file_url.has_key('answers') and file_url['answers'].has_key('f1074100a010000000000001'):
                 if file_url['answers']['f1074100a010000000000001'].has_key('file_url'):
                     url = file_url['answers']['f1074100a010000000000001']['file_url']
-                    print 'URL', url
+                    #print 'URL', url
                     if url.find('https') == -1:
-                        url = 'https://api.linkaform.com/media/' + url
-                    print 'url', url
-                    #header, records = read_file(url)
-                    header= [u'FOLIO', u'TIPO', u'TELEFONO', u'NOMBRE', u'ETAPA', u'F_CONTRATA', u'DILACION', u'DILETAPA', u'Central', u'DISTRITO', u'CANAL', u'OF_C', u'AREA', u'OFICINA', u'CT', u'CM', u'F_UE', u'CLASE_SERV', u'SEGMENTO', u'area_ct', u'segpred', u'nse_amai', u'abc', u'elite', u'sky', u'warzone', u'colonia', u'DIVISION', u'SUBDIRECCION', u'SIGLAS', u'Fol_Pisaplex', u'TTarea', u'Degustacion', u'NombreTecnico', u'Expediente', u'Zona', u'IdTarea', u'GrupoAsignacion', u'RedPri', u'RedSec', u'DispositivoCoordenada', u'Empresa', u'Tipo_Sitio', u'Poligono-Zona', u'Prioritaria', u'resynores', u'AgrupaR27', u'FTTH', u'VieneDe', u'Portabilidad', u'Etiqueta', u'Prioridad', u'AgrupaDil', u'AgrupaDilEtapa', u'Pendiente_Puente', u'PRODUCTO', u'CTL', u'EMPRESA*', u'FECHA ASIGNADA', u'DIL2', u'ESTADO', u'SITIO', u'ETIQUETA2', u'RANGO', u'PRIORIDAD2', u'ATIENDE', u'FACTIBILIDAD', u'COLONIA2']
-
-                    #print 'header=', header
-                    form_ids = get_form_ids_json(header)
-                    print stop
-
+                        url = 'https://app.linkaform.com/media/' + url
+                    header, records = read_file(url)
+                    #records = get_rr()
+                    pos_field_id = get_pos_field_id_dict(header)
+                    print 'pos_field_id=', pos_field_id
+                    create_record(pos_field_id, records)
                 else:
                     print 'no file found'
             else:
                 print 'no recored found'
         print stop
-
-def create_paco():
-    orders = get_orders_ready4paco()
 
 upload_bolsa()

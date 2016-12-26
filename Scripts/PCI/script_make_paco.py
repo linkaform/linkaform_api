@@ -6,13 +6,14 @@
 #
 #####
 
+import pyexcel
 
 from linkaform_api import settings
 from linkaform_api import network, utils
 
 
-#mongo_hosts = 'db2.linkaform.com:27017,db3.linkaform.com:27017,db4.linkaform.com:27017'
-mongo_hosts = "127.0.0.1"
+mongo_hosts = 'db2.linkaform.com:27017,db3.linkaform.com:27017,db4.linkaform.com:27017'
+#mongo_hosts = "127.0.0.1"
 mongo_replicaSet = 'linkaform_replica'
 MONGO_READPREFERENCE='primary'
 
@@ -38,6 +39,9 @@ config = {
 
 settings.config = config
 cr = network.get_collections()
+lkf_api = utils.Cache()
+
+
 
 def query_order4paco():
     query = [{'form_id': {'$in': [10540]}, 'deleted_at' : {'$exists':False}, 'answers.f1054000a030000000000002': 'liquidada'},
@@ -49,27 +53,52 @@ def query_order4paco():
             "folioPisaPlex": "$answers.f1054000a010000000000006",
             "telefono": "$answers.f1054000a010000000000005",
             "materiales": "$answers.f1054000a020000100000005",
+            "folio": "folio"
             }}
             ]
     return query
 
 
 
-def get_orders_ready4paco():
+def get_orders_liquidadas():
+    return [{'folio':'390569-1259', 'answers':{'f1054000a030000000000002':'liquidada'}},
+            {'folio':'41007103','answers':{'f1054000a030000000000002':'liquidada'}}]
     query = query_order4paco()
-    print 'queyr', query
-    print fstop
-    #query = {'form_id': {'$in': [10540]}, 'deleted_at' : {'$exists':False}, 'answers.f1054000a030000000000002': 'liquidada'}
-    #select_columns = {'user_id':1, 'answers':1 , 'folio':1, 'conection_id':1, 'form_id':1}
-    orders_records = cr.aggregate(query)
+    query = {'form_id': {'$in': [10540]}, 'deleted_at' : {'$exists':False}, 'answers.f1054000a030000000000002': 'liquidada'}
+    select_columns = {'folio':1, 'answers.f1054000a030000000000002':1}
+    #orders_records = cr.aggregate(query)
+    orders_records = cr.find(query, select_columns)
     print 'query', query
     print 'order find', orders_records.count()
-    for order in orders_records:
-        print 'order '
     return orders_records
 
+def make_array(orders):
+    res = [['Folio', 'Estatus']]
+    print 'orders', orders
+    for order in orders:
+        row = [order['folio'], order['answers']['f1054000a030000000000002']]
+        res.append(row)
+    return res
 
-def create_paco():
-    orders = get_orders_ready4paco()
 
-get_orders_ready4paco()
+def make_excel_file(orders):
+    rows = make_array(orders)
+    print 'rows', rows
+    sheet = pyexcel.Sheet(rows)
+    print 'sheet', sheet
+    file_name = "/tmp/output.csv"
+    sheet.save_as("/tmp/output.csv")
+    return file_name
+
+def upload_orders_liquidadas():
+    orders = get_orders_liquidadas()
+    get_file = make_excel_file(orders)
+    csv_file = open(get_file,'rb')
+    upload_data ={ 'form_id':10798, 'field_id':'586080c1b43fdd552a98e6c6'}
+    print 'upload_data',upload_data
+    csv_file = {get_file:csv_file}
+    upload_url = lkf_api.post_upload_file(data=upload_data, up_file=csv_file)
+    print 'the url', upload_url
+    print stop
+
+upload_orders_liquidadas()
