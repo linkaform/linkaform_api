@@ -83,20 +83,20 @@ def make_array(orders):
 
 def make_excel_file(orders):
     rows = make_array(orders)
-    print 'rows', rows
-    sheet = pyexcel.Sheet(rows)
-    print 'sheet', sheet
     file_name = "/tmp/output.csv"
-    sheet.save_as("/tmp/output.csv")
+    pyexcel.save_as(array=rows,
+        dest_file_name=file_name)
     return file_name
 
 def upload_orders_liquidadas():
     orders = get_orders_liquidadas()
     get_file = make_excel_file(orders)
     csv_file = open(get_file,'rb')
-    upload_data ={ 'form_id':10798, 'field_id':'586080c1b43fdd552a98e6c6'}
-    print 'upload_data',upload_data
-    csv_file = {get_file:csv_file}
+    # Mientras no usemos B2 no es necesario el id del campo
+    upload_data ={'form_id': 10798}#, 'field_id':'586080c1b43fdd552a98e6c6'}
+    csv_file = {'File': csv_file} # El back lo espera como File no como file
+    # Back retorna un diccionario con las llaves: status_code y data.
+    # data es un diccionario con la llave file que es la ruta que tiene el archivo
     upload_url = lkf_api.post_upload_file(data=upload_data, up_file=csv_file)
     print 'the url', upload_url
     print stop

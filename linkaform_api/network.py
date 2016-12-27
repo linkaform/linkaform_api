@@ -1,9 +1,7 @@
 # coding: utf-8
 #!/usr/bin/python
 
-import requests
-import simplejson
-
+import requests, simplejson
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
@@ -37,7 +35,7 @@ def dispatch(url_method={}, url='', method='', data={}, use_login=False, use_api
     #use_api_key -Optinal- forces the dispatch to be made by api_key method, if not will use  the config method
     url, method = get_url_method(url_method, url=url, method=method)
     response = False
-    print 'data type', type(data)
+
     if type(data) in (dict,str):
         data = simplejson.dumps(data, encoding)
     if method == 'GET':
@@ -45,8 +43,6 @@ def dispatch(url_method={}, url='', method='', data={}, use_login=False, use_api
     if method == 'POST':
         if data == '{}' or not data:
             raise 'No data to post, check you post method'
-        print 'post data', data
-        print 'file ', up_file
         #print stop_post2
         response = do_post(url, data, use_login, use_api_key, up_file=up_file)
     return response
@@ -82,12 +78,17 @@ def do_get(url, use_login=False, use_api_key=False):
 def do_post(url, data, use_login=False, use_api_key=False, encoding='utf-8' ,up_file=False):
     response = {'data':{}, 'status_code':''}
     send_data = {}
-    print 'up_file', up_file
     if use_api_key or (settings.config['IS_USING_APIKEY'] and not use_login):
-        print '111111111111111'
-        r = requests.post(url, data, headers={'Content-type': 'application/json',
-        'Authorization':'ApiKey {0}:{1}'.format(settings.config['AUTHORIZATION_EMAIL_VALUE'],
-        settings.config['AUTHORIZATION_TOKEN_VALUE'])},verify=False )
+        r = requests.post(
+            url, 
+            # User este header para solo datos de una forma sin archivos (imagenes, archivo, etc)
+            # 'Content-type': 'application/x-www-form-urlencoded',
+            headers={
+            'Authorization':'ApiKey {0}:{1}'.format(settings.config['AUTHORIZATION_EMAIL_VALUE'],
+                settings.config['AUTHORIZATION_TOKEN_VALUE'])},
+            verify=False, 
+            files=up_file,
+            data=simplejson.loads(data))
     else:
         print '22222222222222'
         session = requests.Session()
