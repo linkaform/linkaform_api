@@ -65,11 +65,13 @@ def upload_file(form_id, field_id ,file_path, properties):
     try:
         up_file = open(local_path)
         thumb_file = open(thumb_path)
-        remove(local_path)
         print 'UPLOADING....'
         print 'file_name=', file_name
         file_url = storage.b2_save(file_name, up_file, properties['bucket_id'])
+        remove(local_path)
         thumb_url = storage.b2_save(thumb_name, thumb_file, properties['bucket_id'])
+        remove(thumb_path)
+        return file_url
     except Exception, e:
         print 'Exception=',e
         return None
