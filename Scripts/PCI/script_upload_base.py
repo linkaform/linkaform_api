@@ -12,6 +12,7 @@ import datetime ,time
 from linkaform_api import settings
 from linkaform_api import network, utils
 
+from script_get_ordenes_liquidadas import *
 
 mongo_hosts = 'db2.linkaform.com:27017,db3.linkaform.com:27017,db4.linkaform.com:27017'
 #mongo_hosts = "127.0.0.1"
@@ -22,7 +23,9 @@ MAX_POOL_SIZE = 50
 WAIT_QUEUE_TIMEOUT = 1000
 MONGODB_URI = 'mongodb://%s/?replicaSet=%s&readPreference=%s'%(mongo_hosts, mongo_replicaSet, MONGO_READPREFERENCE)
 
+
 lkf_api = utils.Cache()
+
 
 config = {
     'USERNAME' : 'jgemayel@pcindustrial.com.mx',
@@ -33,17 +36,21 @@ config = {
     'MONGODB_URI':MONGODB_URI,
     #'MONGODB_PASSWORD': mongodb_password_here
     'PORT' : 27017,
-    'USER_ID' : '1259',
+    'USER_ID' : 1259,
     'KEYS_POSITION' : {},
     'IS_USING_APIKEY' : True,
-    'AUTHORIZATION_EMAIL_VALUE' : 'jgemayel@pcindustrial.com.mx',
-    #'AUTHORIZATION_EMAIL_VALUE' : 'josepato@infosync.mx',
-    'AUTHORIZATION_TOKEN_VALUE' : '84250d7e6ae5742bc6c758ab23e57c43ac75c7aa',
-    #'AUTHORIZATION_TOKEN_VALUE' :'76d742df0353da8fd824daae2d158dc146f7eedd'
+    'AUTHORIZATION_EMAIL_VALUE' : 'jgemayel@pcidustrial.com.mx',
+    'AUTHORIZATION_TOKEN_VALUE' : '1a84bab48214997eced5b1baa7b0bb24a4058672',
 }
+
 
 settings.config = config
 cr = network.get_collections()
+
+#Nombre del campo en la la Forma: Nombre en el Archvio
+equivalcens_map = {'Clase de Servicio':'CLASE_SERV',
+                    'Fecha Contratada':'F_CONTRATA',
+                    'Estatus':'ESTATUS de Orden'}
 
 
 def read_file(file_url):
@@ -60,6 +67,10 @@ def download_file(url):
     return fileb
 
 
+def get_element_dict(field):
+    return {'field_id':field['field_id'], 'field_type':field['field_type'], 'label':field['label']}
+
+
 def get_pos_field_id_dict(header, form_id=10540):
     #form_id=10378 el id de bolsa
     #pos_field_id ={3: {'field_type': 'text', 'field_id': '584648c8b43fdd7d44ae63d1'}, 9: {'field_type': 'text', 'field_id': '58464a29b43fdd773c240163'}, 51: {'field_type': 'integer', 'field_id': '584648c8b43fdd7d44ae63d0'}}
@@ -68,7 +79,7 @@ def get_pos_field_id_dict(header, form_id=10540):
     form_fields = lkf_api.get_form_id_fields(form_id)
     header_dict = {}
     for position in range(len(header)):
-        header_dict[header[position].lower().replace(' ' ,'')] = position
+        header_dict[str(header[position]).lower().replace(' ' ,'')] = position
     #print 'form_fields=', form_fields
     if len(form_fields) > 0:
         fields = form_fields[0]['fields']
@@ -78,9 +89,16 @@ def get_pos_field_id_dict(header, form_id=10540):
             pos_field_id[header_dict['folio']] = {'field_type':'folio'}
         for field in fields:
             label = field['label'].lower().replace(' ' ,'')
+            label_underscore = field['label'].lower().replace(' ' ,'_')
             if label in header_dict.keys():
-                pos_field_id[header_dict[label]] = {'field_id':field['field_id'], 'field_type':field['field_type'], 'label':field['label']}
-    print 'pos_field_id', pos_field_id
+                pos_field_id[header_dict[label]] = get_element_dict(field)
+            elif label_underscore in header_dict.keys():
+                pos_field_id[header_dict[label_underscore]] = get_element_dict(field)
+            elif field['label'] in equivalcens_map.keys():
+                header_lable = equivalcens_map[field['label']]
+                header_lable = header_lable.lower().replace(' ' ,'')
+                if header_lable in header_dict.keys():
+                    pos_field_id[header_dict[header_lable]] = get_element_dict(field)
     return pos_field_id
 
 #print 'starting get form ids'
@@ -91,61 +109,33 @@ def addMultipleChoice(answer, element):
     return True
 
 
-def make_infosync_json(answer,element):
-    if element['field_type'] in ('select-one', 'text', 'radio', 'textarea', 'email', 'password'):
-        return {element['field_id']:str(answer)}
-    if element['field_type'] in ('checkbox'):
-        return {element['field_id']:answer.split(',')}
-    if element['field_type'] in ('integer'):
-        return {element['field_id']:int(answer)}
-    if element['field_type'] in ('decimal','float'):
-        return {element['field_id']:float(answer)}
-    if element['field_type'] in ('date'):
-        print 'answer', answer
-        print type(answer)
-        return {element['field_id']:str(answer)}
-    return {}
-
-
-def get_metadata(form_id=10540):
-    time_started = time.time()
-    metadata = {
-        "form_id" : form_id,
-        "geolocation": [-100.3862645,25.644885499999997],
-        "start_timestamp" : time_started,
-        "end_timestamp" : time_started,
-    }
-    return metadata
-
-
 def set_custom_values(pos_field_id, record):
     custom_answer = {}
     #set status de la orden
-    custom_answer['f1054000a030000000000002'] = 'abierta'
+    #custom_answer['f1054000a030000000000002'] = 'abierta'
     return custom_answer
 
 
 def create_record(pos_field_id, records):
     answer = {}
-    metadata = get_metadata()
+    metadata = lkf_api.get_metadata(form_id=10540, user_id=settings.config['USER_ID'] )
     for record in records:
         count = 0
         for pos, element in pos_field_id.iteritems():
             count +=1
-            answer.update(make_infosync_json(record[pos], element))
+            answer.update(lkf_api.make_infosync_json(record[pos], element))
             if element['field_type'] == 'folio':
                 metadata['folio'] = str(record[pos])
         answer.update(set_custom_values(pos_field_id, record ))
         metadata["answers"] = answer
-        print 'metadata', metadata
         network.post_forms_answers([metadata,])
         print '=========================================='
     return True
 
 
 def upload_bolsa():
-    #files = get_files2upload()
-    files = [{u'_id': ('58575ff4b43fdd35e3169665'), u'answers': {u'f1074100a010000000000001': {u'file_name': u'BASE 16-DICIEMBRES10.xls', u'file_url': u'uploads/1259_jgemayel@pcindustrial.com.mx/e201093c634a2a2ff2068b4df622401a2ac90c83.xls'}}}]
+    files = get_files2upload()
+    #files = [{u'_id': ('58575ff4b43fdd35e3169665'), u'answers': {u'f1074100a010000000000001': {u'file_name': u'BASE 16-DICIEMBRES10.xls', u'file_url': u'uploads/1259_jgemayel@pcindustrial.com.mx/e201093c634a2a2ff2068b4df622401a2ac90c83.xls'}}}]
     if files:
         for file_url in files:
             if file_url.has_key('answers') and file_url['answers'].has_key('f1074100a010000000000001'):
@@ -158,11 +148,11 @@ def upload_bolsa():
                     #records = get_rr()
                     pos_field_id = get_pos_field_id_dict(header)
                     print 'pos_field_id=', pos_field_id
+
                     create_record(pos_field_id, records)
                 else:
                     print 'no file found'
             else:
                 print 'no recored found'
-        print stop
 
 upload_bolsa()
