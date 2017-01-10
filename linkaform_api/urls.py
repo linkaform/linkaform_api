@@ -10,6 +10,12 @@ forms_url = {
     'upload_file': {'url':'https://app.linkaform.com/api/infosync/upload/', 'method':'POST'},
 }
 
+records_url = {
+    'form_answer': {'url':'https://app.linkaform.com/api/infosync/form_answer/', 'method':'GET'},
+    'form_answer_patch': {'url':'https://app.linkaform.com/api/infosync/form_answer/', 'method':'PATCH'},
+
+}
+
 global_url ={
     'login': {'url':'https://app.linkaform.com/api/infosync/user_admin/login/', 'method':'POST'},
 }
@@ -31,6 +37,7 @@ connections_url = {
 
 api_url = {}
 api_url['form'] = forms_url
+api_url['record'] = records_url
 api_url['global'] = global_url
 api_url['catalog'] = catalog_url
 api_url['users'] = users_url
