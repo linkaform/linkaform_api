@@ -12,9 +12,11 @@ user_id = 9
 # local
 media_path = '/var/www/infosync-api/backend/media/'
 # dev
-media_path = '/srv/slimey.info-sync.com/infosync-api/backend/media/'
+# media_path = '/srv/slimey.info-sync.com/infosync-api/backend/media/'
+# bigbird
+# media_path = '/srv/bigbird.info-sync.com/infosync-api/backend/media/'
 # app
-media_path = '/srv/backend.linkaform.com/infosync-api/backend/media/'
+# media_path = '/srv/backend.linkaform.com/infosync-api/backend/media/'
 file_path = 'uploads/'
 
 # MONGO
@@ -24,6 +26,8 @@ port = 27017
 # dev
 # host = '10.1.66.19'
 # port = 27019
+# host = '10.1.66.14'
+# port = 27014
 # app
 # host = 'db3.linkaform.com'
 # port = 27017
@@ -34,7 +38,7 @@ print 'db_name=', mongo_dbname
 
 # POSTGRES
 # local
-postgres_dbname = 'infosync_1018'
+postgres_dbname = 'infosync_prod'
 conn = psycopg2.connect('dbname=%s'%postgres_dbname)
 # dev
 # postgres_dbname = 'infosync_prod'
@@ -46,7 +50,7 @@ conn = psycopg2.connect('dbname=%s'%postgres_dbname)
 # postgres_port = '5432'
 # conn = psycopg2.connect('dbname=%s host=%s port=%s'%(postgres_dbname, postgres_host, postgres_port))
 cur = conn.cursor()
-query = "select properties from users_integration where id ={user_id};\n".format(user_id=user_id)
+query = "select properties from users_integration where user_id ={user_id};\n".format(user_id=user_id)
 cur.execute(query)
 properties = json.loads(cur.fetchone()[0])
 
@@ -56,11 +60,16 @@ def upload_file(form_id, field_id ,file_path, properties):
     file_name = '%s/%s/%s/%s'% (properties['folder_name'],
         form_id, field_id, file_path.split('/')[-1])
     local_path = media_path + file_path
+    thumb_name = file_name.rsplit('.', 1)[0] + '.thumbnail'
+    thumb_path = local_path.rsplit('.', 1)[0] + '.thumbnail'
     try:
         up_file = open(local_path)
+        thumb_file = open(thumb_path)
         remove(local_path)
         print 'UPLOADING....'
-        return storage.b2_save(file_name, up_file, properties['bucket_id'])
+        print 'file_name=', file_name
+        file_url = storage.b2_save(file_name, up_file, properties['bucket_id'])
+        thumb_url = storage.b2_save(thumb_name, thumb_file, properties['bucket_id'])
     except Exception, e:
         print 'Exception=',e
         return None
