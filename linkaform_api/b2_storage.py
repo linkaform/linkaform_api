@@ -20,8 +20,8 @@ class B2Connection():
     # LINKAFORM BACKBLAZE ACCOUNT
     ACCOUNT_ID = 'f5fde066eaac'
     APP_KEY = '001bada2501283bc9014a905a767c55761ecb3136c'
-    # BUCKET_NAME = 'test-linkaform'
-    BUCKET_NAME = 'slimey-linkaform'
+    BUCKET_NAME = 'test-linkaform'
+    # BUCKET_NAME = 'slimey-linkaform'
 
     AUTH_ACCOUNT_URL = 'https://api.backblaze.com/b2api/v1/b2_authorize_account'
     CREATE_BUCKET_URL = '/b2api/v1/b2_create_bucket'
