@@ -45,6 +45,7 @@ cr = network.get_collections()
 lkf_api = utils.Cache()
 
 
+GLOBAL_VARS = {}
 
 def query_order4paco():
     query = [{'form_id': {'$in': [10540]}, 'deleted_at' : {'$exists':False}, 'answers.f1054000a030000000000002': 'liquidada'},
@@ -75,7 +76,6 @@ def query_get_folio(folio, form_id):
 def get_form_answers_by_folio(folio, form_id):
     query = query_get_folio(folio, form_id)
     select_columns = {'folio':1, 'answers':1 }
-    print 'queyr', query
     orders_records = cr.find(query, select_columns)
     return orders_records
 
@@ -84,15 +84,12 @@ def get_orders_liquidadas(date_to):
     #return [{'folio':'390569-1259', 'answers':{'f1054000a030000000000002':'liquidada'}},
     #        {'folio':'41007103','answers':{'f1054000a030000000000002':'liquidada'}}]
     query = query_order4paco()
-    print 'date_to', date_to
     query = {'form_id': {'$in': [10540]}, 'deleted_at' : {'$exists':False},
             'answers.f1054000a030000000000002': 'liquidada',
             'created_at':{'$lte':date_to}}
     select_columns = {'folio':1, 'answers.f1054000a030000000000002':1, }
     #orders_records = cr.aggregate(query)
     orders_records = cr.find(query, select_columns)
-    print 'query', query
-    print 'order find', orders_records.count()
     return orders_records
 
 
@@ -105,7 +102,6 @@ def get_orders_posteadas():
 
 def make_array(orders):
     res = [['Folio', 'Estatus']]
-    print 'orders', orders
     for order in orders:
         row = [order['folio'], order['answers']['f1054000a030000000000002']]
         res.append(row)
@@ -127,33 +123,34 @@ def make_answer(form_id, file_url, date_to, order_count):
     date = lkf_api.make_infosync_json(date_to, {'field_type':'date','field_id':'f1079800a010000000000001'})
     if file_url:
         status = {'f1079800a010000000000005':'subir_ordenes_posteadas'}
-        comments = {'f1079800a010000000000006':'%s Ordens encontradas como liquidadas'%order_count}
+        #comments = {'f1079800a010000000000006':'%s Ordens encontradas como liquidadas'%order_count}
+        GLOBAL_VARS['comments'] = '%s Ordens encontradas como liquidadas'%order_count
+        GLOBAL_VARS['folios_liquidados'] = order_count
         file_date = time.strftime("%Y_%m_%d")
         date = lkf_api.make_infosync_json(date_to, {'field_type':'date','field_id':'f1079800a010000000000001'})
-        file_json = {'f1079800a010000000000002':{'file_name':'Ordenes Liquidadas %s.csv'%file_date,
+        file_json = {'f1079800a010000000000002':{'file_name':'Ordenes Liquidadas %s.xlsx'%file_date,
                                     'file_url':file_url}}
         answers.update(file_json)
     else:
-        comments = {'f1079800a010000000000006':'Ninguna orden liquidada encontrada'}
+        #comments = {'f1079800a010000000000006':'Ninguna orden liquidada encontrada'}
+        GLOBAL_VARS['comments'] = 'Ninguna orden liquidada encontrada'
         status = {'f1079800a010000000000005':'subir_ordenes_posteadas'}
+        GLOBAL_VARS['folios_liquidados'] = 0
     answers.update(date)
-    answers.update(comments)
+    #answers.update(comments)
+    answers.update(get_update_answer_comments(answers))
     answers.update(status)
     metadata['answers'] = answers
-    print 'metadata',metadata
     return metadata
 
 
 def upload_orders_liquidadas(date_to=time.strftime("%Y-%m-%d")):
     file_url = False
-    print '1date to', date_to
     orders = get_orders_liquidadas(date_to)
     order_count = orders.count()
     if order_count > 0:
         get_file = make_excel_file(make_array(orders))
-        print 'csv_file'
         csv_file = open(get_file,'rb')
-        print 'uploading'
         # Mientras no usemos B2 no es necesario el id del campo
         upload_data ={'form_id': 10798, 'field_id':'586080c1b43fdd552a98e6c6'}
         csv_file = {'File': csv_file} # El back lo espera como File no como file
@@ -194,6 +191,19 @@ def read_file(file_url):
 
 def porcess_objetada(folio):
     ##TODO se necesita ir al folio y marcar la orden con estatus de objetada
+    form_id = 10540
+    records = get_form_answers_by_folio(folio, form_id)
+    for record in records:
+        record_id = record.pop('_id')
+        comments = ''
+        if record.has_key('answers') and record['answers'].has_key('f1054000a030000000000005'):
+            comments = record['answers']['f1054000a030000000000005']
+            comments += '\n'
+        comments += 'Orden objetada por Telmex'
+        record['answers']['f1054000a030000000000005'] = comments
+        record['answers']['f1054000a030000000000002'] = 'objetada'
+        record.update(lkf_api.get_metadata(10540, user_id = settings.config['USER_ID']))
+        lkf_api.patch_record(record, record_id)
     return []
 
 
@@ -203,27 +213,36 @@ def process_other_status(folio):
 
 
 def process_posteada(folio):
-    folio = ["40993482",]
+    #folio = ["40993482",]
     #Orde de servicio form_id
     form_id = 10540
     #params = {'folio__contains': "40993482"}
     #record = lkf_api.get_record_answer(params=params)
     records = get_form_answers_by_folio(folio, form_id)
     archivo = []
+    rechazos = []
+    folios_update = []
     header = ['06','CT CHAIREL','PC','2294896','1021','ptorres@pcindustrial.com.mx']
     archivo.append(header)
     for record in records:
-        print 'r=',record
         folio_row = []
         folio_row.append(record['folio'])
         answers = record['answers']
-        print 'answers', answers
         folio_row += set_construccion(answers)
-        folio_row += set_plusvalia(answers)
+        plusvalia = set_plusvalia(answers)
+        if not plusvalia:
+            rechazos.append(record)
+            continue
+        folio_row += plusvalia
         folio_row += set_recontratacion(answers)
         folio_row += set_instalacion_poste(answers)
         folio_row += set_bonificaion(answers)
-        folio_row += set_montaje_puente(answers)
+        montaje = set_montaje_puente(answers)
+        if type(montaje) == str:
+            record['comments'] = montaje
+            rechazos.append(record)
+            continue
+        folio_row += montaje
         folio_row += set_insalacion_cadena(answers)
         folio_row += set_prueba_transmicion(answers)
         folio_row += set_cableado_interior(answers)
@@ -232,8 +251,41 @@ def process_posteada(folio):
         folio_row += set_prueba_transmicion_vsdl(answers)
         folio_row += set_libreria(answers)
         archivo.append(folio_row)
-    print 'archivo=', archivo
+        folios_update.append(record['folio'])
+    ### TODO actualizar status y rechazos
+    update_records_rechazos(rechazos)
+    update_records_status(folios_update, 'proceso_de_carga')
+    GLOBAL_VARS['comments'] = 'Se cargaron %s folios al archivo de carga.\n '%(len(folios_update))
+    GLOBAL_VARS['comments'] += 'Se rechazaron %s folios.'%(len(rechazos))
+    GLOBAL_VARS['rechazo_pci'] = len(rechazos)
+    GLOBAL_VARS['archivo_carga'] = len(folios_update)
     return archivo
+
+
+def update_records_rechazos(rechazos):
+    for record in rechazos:
+        record_id = record.pop('_id')
+        comments = ''
+        print 'record=', record
+        if record.has_key('answers') and record['answers'].has_key('f1054000a030000000000005'):
+            comments = record['answers']['f1054000a030000000000005']
+            comments += '\n'
+        comments += record.pop('comments')
+        record['answers']['f1054000a030000000000005'] = comments
+        record['answers']['f1054000a030000000000002'] = 'rechazo_pci'
+        record.update(lkf_api.get_metadata(10540, user_id = settings.config['USER_ID']))
+        lkf_api.patch_record(record, record_id)
+    return True
+
+
+def update_records_status(folios, status):
+    #db.form_answer.update({_id:data._id},{$set:{'answers.552fdbf501a4de288f4275ee':parseInt(data.answers['552fdbf501a4de288f4275ee'])}});
+    query = {'folio':{'$in':folios}, 'deleted_at':{'$exists':False}}
+    cr.find(query)
+    update =  {'$set':{'answers.f1054000a030000000000002':status}}
+    tt = cr.update(query, update, multi=True)
+    print 'folioes', tt
+    return True
 
 
 def make_archivo_carga(file_rows):
@@ -248,7 +300,6 @@ def make_archivo_carga(file_rows):
             folios_objetaods.append(folio[0])
         else:
             folios_otros.append(folio[0])
-
     archivo_rows += process_posteada(folios_posteados)
     archivo_rows += porcess_objetada(folios_objetaods)
     archivo_rows += process_other_status(folios_otros)
@@ -285,8 +336,9 @@ def get_orders_for_paco():
             record['answers']['f1079800a010000000000004'] ={
                     'file_name':'Archivo de Carga Masiva %s.xlsx'%file_date,
                     'file_url':file_url}
+            #record['answers']['f1079800a010000000000006'] =  get_update_comments(record)
+            record['answers'] =  get_update_answer_comments(record)
             record.update(lkf_api.get_metadata(0, user_id = settings.config['USER_ID']))
-            print 'record', record
             lkf_api.patch_record(record, record_id)
             print 'csv_file'
             print 'uploading'
@@ -294,10 +346,30 @@ def get_orders_for_paco():
     return True
 
 
+def get_update_answer_comments(record):
+    answers = {}
+    if record.has_key('answers'):
+        answers = record['answers']
+    comments = ''
+    if answers.has_key('f1079800a010000000000006'):
+        comments = answers['f1079800a010000000000006']
+        comments += '\n'
+    comments += GLOBAL_VARS['comments']
+    answers['f1079800a010000000000006'] = comments
+    if GLOBAL_VARS.has_key('folios_liquidados'):
+        answers['f1079800a010000000000007'] = GLOBAL_VARS['folios_liquidados']
+    if GLOBAL_VARS.has_key('rechazo_pci'):
+        answers['f1079800a010000000000008'] = GLOBAL_VARS['rechazo_pci']
+    if GLOBAL_VARS.has_key('rechazo_telmex'):
+        answers['f1079800a010000000000009'] = GLOBAL_VARS['rechazo_telmex']
+    if GLOBAL_VARS.has_key('archivo_carga'):
+        answers['f1079800a010000000000010'] = GLOBAL_VARS['archivo_carga']
+    return answers
+
+
 def isItADate(arg):
     try:
         valid_date = datetime.datetime.strptime(arg, '%Y-%m-%d')#time.strptime(arg, '%Y-%m-%d')
-        print 'valid_date', valid_date
     except ValueError:
         error = 'Invalid date or date format, format should look like this Y-M-d.'
         error += ' Insted you send this %s'%arg

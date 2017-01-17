@@ -163,10 +163,11 @@ class Cache(object):
         #this should contain ['field_type'] and ['field_id']
         if answer:
             try:
+
                 if not element.has_key('field_type') or not element.has_key('field_id'):
                     raise ValueError('element should have the keys field_type and field_id')
                 if element['field_type'] in ('select-one', 'text', 'radio', 'textarea', 'email', 'password'):
-                    return {element['field_id']:answer}
+                    return {element['field_id']:str(answer)}
                 if element['field_type'] in ('select-one', 'radio', 'select'):
                     answer = str(answer).lower().replace(' ', '_')
                     return {element['field_id']:answer}

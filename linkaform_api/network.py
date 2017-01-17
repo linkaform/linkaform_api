@@ -39,7 +39,6 @@ def dispatch(url_method={}, url='', method='', data={}, params={},
     url, method = get_url_method(url_method, url=url, method=method)
     response = False
     if type(data) in (dict,str):
-        #if use_login == False:
         data = simplejson.dumps(data, encoding)
     if method == 'GET':
         if params:
@@ -59,8 +58,6 @@ def dispatch(url_method={}, url='', method='', data={}, params={},
 
 def do_get(url, params= {}, use_login=False, use_api_key=False):
     response = {'data':{}, 'status_code':''}
-    print 'use_api_key', use_api_key
-    print 'use_login', use_login
     if use_api_key or (settings.config['IS_USING_APIKEY'] and not use_login):
         headers={'Content-type': 'application/json','Authorization':'ApiKey {0}:{1}'.format(settings.config['AUTHORIZATION_EMAIL_VALUE'],
         settings.config['AUTHORIZATION_TOKEN_VALUE'])}
@@ -188,6 +185,7 @@ def post_forms_answers(answers, test=False):
     if test:
         answers = [answers[0],answers[1]]
     for index, answer in enumerate(answers):
+        print 'answer', answer
         r = dispatch(api_url['form']['set_form_answer'], data=answer)
         #r = dispatch(api_url['catalog']['set_catalog_answer'], data=answer)
         if r['status_code'] in  (201,200,202,204):
@@ -231,6 +229,7 @@ def patch_forms_answers(answers, record_id):
         if test:
             settings.GLOBAL_ERRORS.append(errors_json)
 
+
 def upload_answers_to_database(answers):
     print "> Uploading Content ..."
     user_connection = get_user_connection(config['USER_ID'])
@@ -256,6 +255,7 @@ def get_user_connection():
     if not settings.config.has_key('REPLICASET'):
         settings.config['REPLICASET'] = ''
     if settings.config.has_key('MONGODB_URI'):
+        print 'url=', settings.config['MONGODB_URI']
         connection['client'] = MongoClient(settings.config['MONGODB_URI'])
     elif settings.config.has_key('PORT'):
         connection['client'] = MongoClient(settings.config['HOST'],settings.config['PORT'], replicaset=settings.config['REPLICASET'])

@@ -49,7 +49,7 @@ def backup_postgres_linkaform(server_args, db_args):
     key_filename = '/home/%s/.ssh/id_rsa'%(USERNAME)
     dbname_dev='infosync_prod'
     development_server ='slimey.linkaform.com'
-    development_db_server ='10.1.66.19' 
+    development_db_server ='10.1.66.19'
     dbname_dev='infosync'
     dbport_dev ='5432'
     ## Va a hacer el respaldo de produccion
@@ -72,10 +72,10 @@ def backup_postgres_linkaform(server_args, db_args):
     raw_input("Just push the red botton when you want me to start...")
     server_args = {'server':development_server, 'username':username, 'key_filename':key_filename, 'port':server_port}
     set_enviorment(server_args)
-    dir_ensure(file_path)
+    dir_ensure(file_path, recursive=True)
     run("scp  %s@%s:%s %s"%(username, production_server, dbbackup_name, file_path))
     try:
-        cp.postgres_dropdb(dbname_dev, username, dbhost=development_server, dbport=dbport_dev, ssh_args=server_args)
+        cp.postgres_dropdb(dbname_dev, username, dbhost=dbhost_dev, dbport=dbport_dev, ssh_args=server_args)
     except:
         'no db with that name :S'
 
@@ -112,6 +112,7 @@ def backup_mongodb_linkaform(server_args, db_args):
     return dbbackup_name
 
 
+
 def mongodb_restoredb_linkaform(destserver_args, db_args, server_args={}):
     """
     Restarua al base de datos a partir de un tar y la restablece en el servidor
@@ -122,7 +123,7 @@ def mongodb_restoredb_linkaform(destserver_args, db_args, server_args={}):
     file_path = dbbackup_name.strip(file_name)
     dbname = file_name.split('_')[0]
     set_enviorment(destserver_args)
-    dir_ensure(file_path)
+    dir_ensure(file_path, recursive=True)
     if server_args.has_key('server'):
         server = server_args['server']
         cmd = "scp %s:%s %s"%(server, dbbackup_name, file_path)

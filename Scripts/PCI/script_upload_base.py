@@ -12,7 +12,7 @@ import datetime ,time
 from linkaform_api import settings
 from linkaform_api import network, utils
 
-from script_get_ordenes_liquidadas import *
+from script_get_ordenes_liquidadas import get_files2upload
 
 mongo_hosts = 'db2.linkaform.com:27017,db3.linkaform.com:27017,db4.linkaform.com:27017'
 #mongo_hosts = "127.0.0.1"
@@ -50,7 +50,9 @@ cr = network.get_collections()
 #Nombre del campo en la la Forma: Nombre en el Archvio
 equivalcens_map = {'Clase de Servicio':'CLASE_SERV',
                     'Fecha Contratada':'F_CONTRATA',
-                    'Estatus':'ESTATUS de Orden'}
+                    'Estatus':'ESTATUS de Orden',
+                    'Metros Bajante':'MTS. BAJANTE (PARALELO)',
+                    'Tipo':'TIPO DE OS'}
 
 
 def read_file(file_url):
@@ -83,7 +85,6 @@ def get_pos_field_id_dict(header, form_id=10540):
     #print 'form_fields=', form_fields
     if len(form_fields) > 0:
         fields = form_fields[0]['fields']
-        #print 'keys', fields
         fields_json = {}
         if 'folio' in header_dict.keys():
             pos_field_id[header_dict['folio']] = {'field_type':'folio'}
@@ -112,24 +113,30 @@ def addMultipleChoice(answer, element):
 def set_custom_values(pos_field_id, record):
     custom_answer = {}
     #set status de la orden
-    #custom_answer['f1054000a030000000000002'] = 'abierta'
+    custom_answer['f1054000a030000000000002'] = 'abierta'
     return custom_answer
 
 
 def create_record(pos_field_id, records):
-    answer = {}
+    records_to_upload = []
     metadata = lkf_api.get_metadata(form_id=10540, user_id=settings.config['USER_ID'] )
     for record in records:
+        answer = {}
+        this_record = {}
         count = 0
+        this_record.update(metadata)
         for pos, element in pos_field_id.iteritems():
             count +=1
-            answer.update(lkf_api.make_infosync_json(record[pos], element))
             if element['field_type'] == 'folio':
-                metadata['folio'] = str(record[pos])
+                this_record['folio'] = str(record[pos])
+            else:
+                answer.update(lkf_api.make_infosync_json(record[pos], element))
         answer.update(set_custom_values(pos_field_id, record ))
-        metadata["answers"] = answer
-        network.post_forms_answers([metadata,])
-        print '=========================================='
+        this_record["answers"] = answer
+        records_to_upload.append(this_record)
+
+    print '=========================================='
+    network.post_forms_answers(records_to_upload)
     return True
 
 
@@ -146,7 +153,7 @@ def upload_bolsa():
                         url = 'https://app.linkaform.com/media/' + url
                     header, records = read_file(url)
                     #records = get_rr()
-                    pos_field_id = get_pos_field_id_dict(header)
+                    pos_field_id = get_pos_field_id_dict(header, 10540)
                     print 'pos_field_id=', pos_field_id
 
                     create_record(pos_field_id, records)
