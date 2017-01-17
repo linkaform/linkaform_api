@@ -1,21 +1,98 @@
-import json, psycopg2
-import mongo_util
-from os import remove
+# PYTHON
+import json, psycopg2, mongo_util
+from PIL import Image
+from os import path, remove
 
+# MONGO
 from bson.objectid import ObjectId
-
-from b2_storage import B2Connection
 from pymongo import MongoClient
 
+# LINKAFORM
+from b2_storage import B2Connection
+
+def get_user_email(user_id):
+    query = 'select email from users_customuser where id ={id};\n'.format(id=user_id)
+    cur.execute(query)
+    return cur.fetchone()[0]
+
+def get_properties(user_id):
+    query = 'select properties from users_integration where user_id ={user_id};\n'.format(user_id=user_id)
+    cur.execute(query)
+    return json.loads(cur.fetchone()[0])
+
+def create_or_get_thumbnail(image, file_name):
+    """
+    Creates a temp thumbnail image and returns its path.
+    """
+    thumb_path = path.splitext(file_name)[0] + '.thumbnail'
+    x, extension = path.splitext(image.name)
+    try:
+        image.seek(0) # move the file position
+        im = Image.open(image)
+        if '.png' in extension.lower():
+            im.convert('RGBA')
+        else:
+            im.convert('RGB')
+        (width, height) = im.size
+
+        if width >= height:
+            im.thumbnail(THUMB_SIZE_H, Image.ANTIALIAS)
+        else:
+            im.thumbnail(THUMB_SIZE_V, Image.ANTIALIAS)
+
+        im.save(thumb_path, 'JPEG')
+        return thumb_path
+    except Exception as e:
+        print "Cannot create thumbnail for '%s'. %s."%(image.name, e)
+    return None
+
+def create_thumbnail(file_name, thumbnail):
+    """
+    Creates and save thumbnail from the given image.
+    """
+    thumb_name = path.splitext(file_name)[0] + '.thumbnail'
+    thumb_path = create_or_get_thumbnail(thumbnail, file_name)
+    thumb_up = open(thumb_path, 'r')
+    return thumb_up
+
+def upload_file(form_id, field_id ,file_path, properties):
+    file_url = None
+    file_name = '%s/%s/%s/%s'% (properties['folder_name'],
+        form_id, field_id, file_path.split('/')[-1])
+    local_path = media_path + file_path
+    thumb_name = file_name.rsplit('.', 1)[0] + '.thumbnail'
+    thumb_path = local_path.rsplit('.', 1)[0] + '.thumbnail'
+    try:
+        if path.exists(local_path):   
+            print 'UPLOADING....'
+            print 'file_name=', file_name
+            up_file = open(local_path)
+            file_url = storage.b2_save(file_name, up_file, properties['bucket_id'])
+            if path.exists(thumb_path):
+                thumb_file = open(thumb_path)
+            else:
+                thumb_file = create_thumbnail(local_path, up_file)
+            remove(local_path)
+            remove(thumb_path)
+            thumb_url = storage.b2_save(thumb_name, thumb_file, properties['bucket_id'])
+        return file_url
+    except Exception, e:
+        print 'Exception=',e
+        return None
 
 user_id = 9
 # local
 media_path = '/var/www/infosync-api/backend/media/'
 # dev
-media_path = '/srv/slimey.info-sync.com/infosync-api/backend/media/'
+# media_path = '/srv/slimey.info-sync.com/infosync-api/backend/media/'
+# bigbird
+# media_path = '/srv/bigbird.info-sync.com/infosync-api/backend/media/'
 # app
-media_path = '/srv/backend.linkaform.com/infosync-api/backend/media/'
+# media_path = '/srv/backend.linkaform.com/infosync-api/backend/media/'
 file_path = 'uploads/'
+
+THUMB_SIZE_H = (90, 141)
+THUMB_SIZE_V = (141, 90)
 
 # MONGO
 # local
@@ -24,6 +101,8 @@ port = 27017
 # dev
 # host = '10.1.66.19'
 # port = 27019
+# host = '10.1.66.14'
+# port = 27014
 # app
 # host = 'db3.linkaform.com'
 # port = 27017
@@ -33,8 +112,8 @@ mongo_dbname = 'infosync_answers_client_%s'%user_id
 print 'db_name=', mongo_dbname
 
 # POSTGRES
-# local
-postgres_dbname = 'infosync_1018'
+# local y bigbird
+postgres_dbname = 'infosync_prod'
 conn = psycopg2.connect('dbname=%s'%postgres_dbname)
 # dev
 # postgres_dbname = 'infosync_prod'
@@ -46,24 +125,12 @@ conn = psycopg2.connect('dbname=%s'%postgres_dbname)
 # postgres_port = '5432'
 # conn = psycopg2.connect('dbname=%s host=%s port=%s'%(postgres_dbname, postgres_host, postgres_port))
 cur = conn.cursor()
-query = "select properties from users_integration where id ={user_id};\n".format(user_id=user_id)
-cur.execute(query)
-properties = json.loads(cur.fetchone()[0])
-
+# query = "select properties from users_integration where user_id ={user_id};\n".format(user_id=user_id)
+# cur.execute(query)
+# properties = json.loads(cur.fetchone()[0])
+user_email = get_user_email(user_id)
+properties = get_properties(user_id)
 storage = B2Connection()
-
-def upload_file(form_id, field_id ,file_path, properties):
-    file_name = '%s/%s/%s/%s'% (properties['folder_name'],
-        form_id, field_id, file_path.split('/')[-1])
-    local_path = media_path + file_path
-    try:
-        up_file = open(local_path)
-        remove(local_path)
-        print 'UPLOADING....'
-        return storage.b2_save(file_name, up_file, properties['bucket_id'])
-    except Exception, e:
-        print 'Exception=',e
-        return None
 
 
 cur_db = mongo_util.connect_mongodb(mongo_dbname, host, port)
@@ -75,7 +142,12 @@ for record in records:
         if isinstance(record['answers'][_key], dict):
             if 'file_url' in record['answers'][_key].keys():
                 file_url = record['answers'][_key]['file_url']
-                new_url = upload_file(record['form_id'], _key, file_url, properties)
+                if user_email in file_url:
+                    new_url = upload_file(record['form_id'], _key, file_url, properties)
+                elif file_url:
+                    connection_id = file_url.split('/')[1].split('_')[0]
+                    connection_properties = get_properties(connection_id)
+                    new_url = upload_file(record['form_id'], _key, file_url, connection_properties)
                 if new_url:
                     record['answers'][_key]['file_url'] = new_url
                     cur_col.update(
