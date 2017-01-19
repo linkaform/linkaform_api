@@ -6,6 +6,8 @@
 #
 #####
 
+#import os, sys
+#sys.path.insert(0, os.path.abspath("../.."))
 import pyexcel, time, datetime
 from sys import argv
 
@@ -36,7 +38,7 @@ config = {
     'USER_ID' : '1259',
     'KEYS_POSITION' : {},
     'IS_USING_APIKEY' : True,
-    'AUTHORIZATION_EMAIL_VALUE' : 'jgemayel@pcidustrial.com.mx',
+    'AUTHORIZATION_EMAIL_VALUE' : 'jgemayel@pcindustrial.com.mx',
     'AUTHORIZATION_TOKEN_VALUE' : '1a84bab48214997eced5b1baa7b0bb24a4058672',
 }
 
