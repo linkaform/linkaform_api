@@ -137,6 +137,7 @@ cur_db = mongo_util.connect_mongodb(mongo_dbname, host, port)
 cur_col = mongo_util.get_mongo_collection(cur_db, collection_name)
 query = {'deleted_at':{'$exists':0}}
 records = mongo_util.get_collection_objects(cur_col, query)
+new_url = None
 for record in records:
     for _key in record['answers']:
         if isinstance(record['answers'][_key], dict):
@@ -146,8 +147,9 @@ for record in records:
                     new_url = upload_file(record['form_id'], _key, file_url, properties)
                 elif file_url:
                     connection_id = file_url.split('/')[1].split('_')[0]
-                    connection_properties = get_properties(connection_id)
-                    new_url = upload_file(record['form_id'], _key, file_url, connection_properties)
+                    if connection_id:
+                        connection_properties = get_properties(connection_id)
+                        new_url = upload_file(record['form_id'], _key, file_url, connection_properties)
                 if new_url:
                     record['answers'][_key]['file_url'] = new_url
                     cur_col.update(
