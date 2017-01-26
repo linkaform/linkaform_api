@@ -141,7 +141,6 @@ def get_folios_user():
     query ={ 'form_id': {'$in': [6180, 6143]},'deleted_at' : {'$exists':False}}
     select_columns = {'user_id':1, 'duration':1, 'version':1, 'folio':1, 'connection_id':1, 'start_timestamp':1, 'end_timestamp':1, 'properties':1}
     records = cr.find(query, select_columns)
-    print 'records count', records.count()
     count =0
     users_ids = [u['id'] for u in USERS]
     for rec in records:
@@ -168,8 +167,6 @@ def get_folios_user():
         update = {'id':record_id}, {"$set":{'properties':properties}}
         cr.update({'_id':record_id}, {'$unset':{'properites':1}})
         cr.update({'_id':record_id}, {"$set":{'properties':properties}})
-        print 'result =', update
-        print '==========================================='
 
 
 get_folios_user()
