@@ -27,11 +27,11 @@ MAX_POOL_SIZE = 50
 WAIT_QUEUE_TIMEOUT = 1000
 MONGODB_URI = 'mongodb://%s/?replicaSet=%s&readPreference=%s'%(mongo_hosts, mongo_replicaSet, MONGO_READPREFERENCE)
 
-LINKAFORM_URL = "https://www.linkaform.com"
-LOGIN_URL = "https://www.linkaform.com/api/infosync/user_admin/login/"
+LINKAFORM_URL = "https://app.linkaform.com"
+LOGIN_URL = "https://app.linkaform.com/api/infosync/user_admin/login/"
 USERNAME = 'logistorage.infosync@gmail.com'
 PASS = '654321'
-GET_PARENT_ID_FORMS = "https://www.linkaform.com/api/infosync/item/?parent="
+GET_PARENT_ID_FORMS = "https://app.linkaform.com/api/infosync/item/?parent="
 REPORTS_IDS = [4583,4300,4935,4476,6636]
 
 #MONTH_DIR = {1:'2015/01',2:'2015/02',3:'2015/03',4:'2015/04',5:'2015/05',6:'2015/06',
