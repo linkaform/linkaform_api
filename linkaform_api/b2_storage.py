@@ -123,3 +123,30 @@ class B2Connection():
         Returns download url for using the name of the bucket and the name of the file.
         """
         return self.download_url + '/file/' + bucket_name + '/' + file_name
+
+    def b2_list_file_names(self, bucket_id, max_file_count, start_file_name=None):
+        """
+        Returns an array of objects, each one describing one file
+        """
+        try:
+            # bucket_data = self.connection.bucket_data(bucket_id)
+            url = '%s/b2api/v1/b2_list_file_names' % self.api_url
+            headers = {
+                'Authorization' : self.auth_token
+            }
+            params = {
+                'bucketId': bucket_id,
+                'startFileName': start_file_name,
+                'maxFileCount': max_file_count,
+            }
+            request = Request(url, json.dumps(params), headers)
+            response = urlopen(request)
+            if response.getcode() != 200:
+                response.close()
+                return None
+            response_data = json.loads(decode(response.read()))
+            response.close()
+            return response_data['files']
+        except Exception, e:
+            print e
+            return []
