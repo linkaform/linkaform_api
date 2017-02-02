@@ -16,13 +16,22 @@ import json, re, locale, requests, simplejson
 host = 'localhost'
 local_port = 27017
 #testing_port = 27019
-production_port = 27019
+production_port = 27017
 
-LINKAFORM_URL = "https://www.linkaform.com"
-LOGIN_URL = "https://www.linkaform.com/api/infosync/user_admin/login/"
+mongo_hosts = 'db2.linkaform.com:27017,db3.linkaform.com:27017,db4.linkaform.com:27017'
+#mongo_hosts = "127.0.0.1"
+mongo_replicaSet = 'linkaform_replica'
+MONGO_READPREFERENCE='primary'
+
+MAX_POOL_SIZE = 50
+WAIT_QUEUE_TIMEOUT = 1000
+MONGODB_URI = 'mongodb://%s/?replicaSet=%s&readPreference=%s'%(mongo_hosts, mongo_replicaSet, MONGO_READPREFERENCE)
+
+LINKAFORM_URL = "https://app.linkaform.com"
+LOGIN_URL = "https://app.linkaform.com/api/infosync/user_admin/login/"
 USERNAME = 'logistorage.infosync@gmail.com'
 PASS = '654321'
-GET_PARENT_ID_FORMS = "https://www.linkaform.com/api/infosync/item/?parent="
+GET_PARENT_ID_FORMS = "https://app.linkaform.com/api/infosync/item/?parent="
 REPORTS_IDS = [4583,4300,4935,4476,6636]
 
 #MONTH_DIR = {1:'2015/01',2:'2015/02',3:'2015/03',4:'2015/04',5:'2015/05',6:'2015/06',
@@ -246,7 +255,8 @@ def get_user_local_connection(user_id):
 
 def get_user_production_connection(user_id):
     connection = {}
-    connection['client'] = MongoClient(host, production_port)
+    #connection['client'] = MongoClient(host, production_port)
+    connection['client'] = MongoClient(MONGODB_URI)
     user_db_name = "infosync_answers_client_{0}".format(user_id)
     if not user_db_name:
         return None

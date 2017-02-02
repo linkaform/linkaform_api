@@ -30,7 +30,7 @@ from sys import argv
 from datetime import datetime
 
 testing_server = 'test.linkaform.com'
-production_server = 'www.linkaform.com'
+production_server = 'app.linkaform.com'
 front_servers = ['ernie.linkaform.com', 'ernie2.linkaform.com']
 production_server_tetengo = 'ernie.tetengo.com'
 
