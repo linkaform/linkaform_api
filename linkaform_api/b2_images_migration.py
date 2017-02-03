@@ -1,5 +1,6 @@
 # PYTHON
 import json, psycopg2, mongo_util
+from datetime import datetime
 from PIL import Image
 from os import path, remove
 
@@ -137,13 +138,12 @@ postgres_host = 'db3.linkaform.com'
 postgres_port = '5432'
 conn = psycopg2.connect('dbname=%s host=%s port=%s'%(postgres_dbname, postgres_host, postgres_port))
 cur = conn.cursor()
-# query = "select properties from users_integration where user_id ={user_id};\n".format(user_id=user_id)
-# cur.execute(query)
-# properties = json.loads(cur.fetchone()[0])
+
 records_with_errors = {}
+date = datetime.strptime('2017-02-02 12:00:00', "%Y-%m-%d %H:%M:%S")
 
 for dbname in databases:
-    if dbname in ['infosync']:
+    if dbname in ['infosync', 'local']:
         continue
     cur_db = mongo_util.connect_mongodb(dbname, host, port)
     cur_col = mongo_util.get_mongo_collection(cur_db, collection_name)
@@ -154,7 +154,7 @@ for dbname in databases:
     bucket_files = get_bucket_files(properties['bucket_id'], 
         properties['bucket_name'], properties['folder_name'])
     bucket_files = [ _file['fileName'] for _file in bucket_files]
-    query = {'deleted_at':{'$exists':0}}
+    query = {'deleted_at':{'$exists':0}, 'created_at': {"$lte": date}}
     records = mongo_util.get_collection_objects(cur_col, query)
     new_url = None
     for record in records:
