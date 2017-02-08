@@ -155,12 +155,13 @@ for dbname in databases:
         properties['bucket_name'], properties['folder_name'])
     bucket_files = [ _file['fileName'] for _file in bucket_files]
     query = {'deleted_at':{'$exists':0}, 'created_at': {"$lte": date}}
-    records = mongo_util.get_collection_objects(cur_col, query)
-    new_url = None
+    result = mongo_util.get_collection_objects(cur_col, query)
+    records = result[:]
     for record in records:
         for _key in record['answers']:
             if isinstance(record['answers'][_key], dict):
                 if 'file_url' in record['answers'][_key].keys():
+                    new_url = None
                     file_url = record['answers'][_key]['file_url']
                     if user_email in file_url:
                         new_url = upload_file(record['form_id'], _key, file_url, 
@@ -169,8 +170,11 @@ for dbname in databases:
                         connection_id = file_url.split('/')[1].split('_')[0]
                         if connection_id:
                             connection_properties = get_properties(connection_id)
+                            connection_bucket_files = get_bucket_files(properties['bucket_id'], 
+                                properties['bucket_name'], properties['folder_name'])
+                            connection_bucket_files = [ _file['fileName'] for _file in connection_bucket_files]
                             new_url = upload_file(record['form_id'], _key, file_url, 
-                                connection_properties, bucket_files)
+                                connection_properties, connection_bucket_files)
                     if not new_url:
                         records_with_errors.setdefault(dbname,[]).append(record['_id'])
                     # if new_url:
@@ -189,9 +193,23 @@ for dbname in databases:
                     if isinstance(group, dict):
                         for group_key in group.keys():
                             if isinstance(group[group_key], dict) and 'file_url' in group[group_key]:
+                                new_url = None
                                 file_url = group[group_key]['file_url']
-                                new_url = upload_file(record['form_id'], _key, file_url, 
-                                    properties, bucket_files)
+                                if user_email in file_url:
+                                    new_url = upload_file(record['form_id'], _key, file_url, 
+                                        properties, bucket_files)
+                                elif file_url:
+                                    connection_id = file_url.split('/')[1].split('_')[0]
+                                    if connection_id:
+                                        connection_properties = get_properties(connection_id)
+                                        connection_bucket_files = get_bucket_files(properties['bucket_id'], 
+                                            properties['bucket_name'], properties['folder_name'])
+                                        connection_bucket_files = [ _file['fileName'] for _file in connection_bucket_files]
+                                        new_url = upload_file(record['form_id'], _key, file_url, 
+                                            connection_properties, connection_bucket_files)
+                                # new_url = upload_file(record['form_id'], _key, file_url, 
+                                #     properties, bucket_files)
+                                
                                 if not new_url:
                                     records_with_errors.setdefault(dbname,[]).append(record['_id'])
                                 # if new_url:
