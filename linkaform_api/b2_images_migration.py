@@ -1,5 +1,6 @@
 # PYTHON
 import json, psycopg2, mongo_util
+from datetime import datetime
 from PIL import Image
 from os import path, remove
 
@@ -55,10 +56,21 @@ def create_thumbnail(file_name, thumbnail):
     thumb_up = open(thumb_path, 'r')
     return thumb_up
 
-def upload_file(form_id, field_id ,file_path, properties):
+def get_bucket_files(bucket_id, bucket_name, folder_name):
+    return storage.b2_list_file_names(bucket_id=bucket_id, max_file_count=0,start_file_name=folder_name)    
+
+def upload_file(form_id, field_id ,file_path, properties, bucket_files):
+    bucket_id = properties['bucket_id']
+    bucket_name = properties['bucket_name']
+    folder_name = properties['folder_name']
     file_url = None
-    file_name = '%s/%s/%s/%s'% (properties['folder_name'],
+    file_name = '%s/%s/%s/%s'% (folder_name,
         form_id, field_id, file_path.split('/')[-1])
+
+    if file_name in bucket_files:
+        print 'file already en B2'
+        return file_name
+
     local_path = media_path + file_path
     thumb_name = file_name.rsplit('.', 1)[0] + '.thumbnail'
     thumb_path = local_path.rsplit('.', 1)[0] + '.thumbnail'
@@ -67,14 +79,14 @@ def upload_file(form_id, field_id ,file_path, properties):
             print 'UPLOADING....'
             print 'file_name=', file_name
             up_file = open(local_path)
-            file_url = storage.b2_save(file_name, up_file, properties['bucket_id'])
+            file_url = storage.b2_save(file_name, up_file, bucket_id)
             if path.exists(thumb_path):
                 thumb_file = open(thumb_path)
             else:
                 thumb_file = create_thumbnail(local_path, up_file)
             # remove(local_path)
             # remove(thumb_path)
-            thumb_url = storage.b2_save(thumb_name, thumb_file, properties['bucket_id'])
+            thumb_url = storage.b2_save(thumb_name, thumb_file, bucket_id)
         return file_url
     except Exception, e:
         print 'Exception=',e
@@ -124,35 +136,47 @@ databases = cr.database_names()
 postgres_dbname = 'infosync'
 postgres_host = 'db3.linkaform.com'
 postgres_port = '5432'
-# conn = psycopg2.connect('dbname=%s host=%s port=%s'%(postgres_dbname, postgres_host, postgres_port))
+conn = psycopg2.connect('dbname=%s host=%s port=%s'%(postgres_dbname, postgres_host, postgres_port))
 cur = conn.cursor()
-# query = "select properties from users_integration where user_id ={user_id};\n".format(user_id=user_id)
-# cur.execute(query)
-# properties = json.loads(cur.fetchone()[0])
-user_email = get_user_email(user_id)
-properties = get_properties(user_id)
-storage = B2Connection()
+
+records_with_errors = {}
+date = datetime.strptime('2017-02-02 12:00:00', "%Y-%m-%d %H:%M:%S")
 
 for dbname in databases:
-    if dbname in ['infosync']:
+    if dbname in ['infosync', 'local']:
         continue
     cur_db = mongo_util.connect_mongodb(dbname, host, port)
     cur_col = mongo_util.get_mongo_collection(cur_db, collection_name)
-    query = {'deleted_at':{'$exists':0}}
-    records = mongo_util.get_collection_objects(cur_col, query)
-    new_url = None
+    user_id = dbname.split('_')[-1]
+    user_email = get_user_email(user_id)
+    properties = get_properties(user_id)
+    storage = B2Connection()
+    bucket_files = get_bucket_files(properties['bucket_id'], 
+        properties['bucket_name'], properties['folder_name'])
+    bucket_files = [ _file['fileName'] for _file in bucket_files]
+    query = {'deleted_at':{'$exists':0}, 'created_at': {"$lte": date}}
+    result = mongo_util.get_collection_objects(cur_col, query)
+    records = result[:]
     for record in records:
         for _key in record['answers']:
             if isinstance(record['answers'][_key], dict):
                 if 'file_url' in record['answers'][_key].keys():
+                    new_url = None
                     file_url = record['answers'][_key]['file_url']
                     if user_email in file_url:
-                        new_url = upload_file(record['form_id'], _key, file_url, properties)
+                        new_url = upload_file(record['form_id'], _key, file_url, 
+                            properties, bucket_files)
                     elif file_url:
                         connection_id = file_url.split('/')[1].split('_')[0]
                         if connection_id:
                             connection_properties = get_properties(connection_id)
-                            new_url = upload_file(record['form_id'], _key, file_url, connection_properties)
+                            connection_bucket_files = get_bucket_files(properties['bucket_id'], 
+                                properties['bucket_name'], properties['folder_name'])
+                            connection_bucket_files = [ _file['fileName'] for _file in connection_bucket_files]
+                            new_url = upload_file(record['form_id'], _key, file_url, 
+                                connection_properties, connection_bucket_files)
+                    if not new_url:
+                        records_with_errors.setdefault(dbname,[]).append(record['_id'])
                     # if new_url:
                     #     record['answers'][_key]['file_url'] = new_url
                     #     cur_col.update(
@@ -169,8 +193,25 @@ for dbname in databases:
                     if isinstance(group, dict):
                         for group_key in group.keys():
                             if isinstance(group[group_key], dict) and 'file_url' in group[group_key]:
+                                new_url = None
                                 file_url = group[group_key]['file_url']
-                                new_url = upload_file(record['form_id'], _key, file_url, properties)
+                                if user_email in file_url:
+                                    new_url = upload_file(record['form_id'], _key, file_url, 
+                                        properties, bucket_files)
+                                elif file_url:
+                                    connection_id = file_url.split('/')[1].split('_')[0]
+                                    if connection_id:
+                                        connection_properties = get_properties(connection_id)
+                                        connection_bucket_files = get_bucket_files(properties['bucket_id'], 
+                                            properties['bucket_name'], properties['folder_name'])
+                                        connection_bucket_files = [ _file['fileName'] for _file in connection_bucket_files]
+                                        new_url = upload_file(record['form_id'], _key, file_url, 
+                                            connection_properties, connection_bucket_files)
+                                # new_url = upload_file(record['form_id'], _key, file_url, 
+                                #     properties, bucket_files)
+                                
+                                if not new_url:
+                                    records_with_errors.setdefault(dbname,[]).append(record['_id'])
                                 # if new_url:
                                 #     group[group_key]['file_url'] = new_url
                                 #     cur_col.update(
@@ -182,3 +223,4 @@ for dbname in databases:
                                 #                 }
                                 #             }
                                 #         } )
+    print 'records_with_errors=', records_with_errors
