@@ -65,7 +65,7 @@ class Cache(object):
     def get_form_id_fields(self, form_id):
         url = api_url['form']['get_form_id_fields']['url']+str(form_id)
         method = api_url['form']['get_form_id_fields']['method']
-        response = network.dispatch(url=url, method=method, use_api_key=True)
+        response = network.dispatch(url=url, method=method, use_api_key=False)
         if response['status_code'] == 200:
             return response['data']
         return False
@@ -169,6 +169,7 @@ class Cache(object):
                 if element['field_type'] in ('text', 'radio', 'textarea', 'email', 'password'):
                     return {element['field_id']:str(answer)}
                 if element['field_type'] in ('select-one', 'radio', 'select'):
+                    print 'answer++++++++++++++++++++++++++++++++++', answer
                     answer = str(answer).lower().replace(' ', '_')
                     return {element['field_id']:answer}
                 if element['field_type'] in ('checkbox'):
@@ -180,8 +181,8 @@ class Cache(object):
                 if element['field_type'] in ('date'):
                     return {element['field_id']:str(answer)[:10]}
             except ValueError, e:
-                print 'error', e
-                print 'value', answer
+                #print 'error', e
+                #print 'value', answer
                 return {}
         return {}
 
