@@ -47,7 +47,7 @@ cr = network.get_collections()
 
 def query_get_files():
     query = {'form_id': {'$in': [10741]}, 'deleted_at' : {'$exists':False}, 'answers.f1074100a010000000000005': 'por_cargar'}
-    select_columns = {'answers.f1074100a010000000000001':1}
+    select_columns = {'answers.f1074100a010000000000001':1, 'answers.f1074100a0100000000000c1':1}
     return query, select_columns
 
 

@@ -67,11 +67,12 @@ def do_get(url, params= {}, use_login=False, use_api_key=False):
         else:
             r = requests.get(url, headers={'Content-type': 'application/json','Authorization':'ApiKey {0}:{1}'.format(settings.config['AUTHORIZATION_EMAIL_VALUE'],
             settings.config['AUTHORIZATION_TOKEN_VALUE'])},verify=False)
-    #if use_login or not settings.config['IS_USING_APIKEY']:
-    if r.status_code == 401:
+    if use_login or not settings.config['IS_USING_APIKEY'] or r.status_code == 401:
+    #if r.status_code == 401:
         session = requests.Session()
         if login(session, settings.config['USERNAME'], settings.config['PASS']):
             #url ='https://app.linkaform.com/api/infosync/get_form/?form_id=10378'
+            print 'login -------------------------------------'
             if params:
                 r = session.get(url, params=params, headers={'Content-type': 'application/json'}, verify=True)
             else:
@@ -90,6 +91,8 @@ def do_post(url, data, use_login=False, use_api_key=False, encoding='utf-8' ,up_
     send_data = {}
     if use_api_key or (settings.config['IS_USING_APIKEY'] and not use_login):
         if not up_file:
+            print 'url', url
+            print 'data', data
             r = requests.post(
                 url,
                 data,
@@ -98,8 +101,6 @@ def do_post(url, data, use_login=False, use_api_key=False, encoding='utf-8' ,up_
                         settings.config['AUTHORIZATION_TOKEN_VALUE'])},
                 verify=True )
         if up_file:
-            print 'data', data
-            print 'up_file', up_file
             r = requests.post(
                 url,
                 # User este header para solo datos de una forma sin archivos (imagenes, archivo, etc)
@@ -122,9 +123,11 @@ def do_post(url, data, use_login=False, use_api_key=False, encoding='utf-8' ,up_
     response['status_code'] = r.status_code
     if r.status_code == 200:
         r_data = simplejson.loads(r.content)
-        print 'r_data',r_data
         if up_file:
             response['data'] = r_data
+        elif r_data.has_key('success'):
+            if r_data['success']:
+                return response
         else:
             response['data'] = r_data['objects']
     return response
@@ -135,14 +138,10 @@ def do_patch(url, data, use_login=False, use_api_key=False, encoding='utf-8' ,up
     send_data = {}
     if use_api_key or (settings.config['IS_USING_APIKEY'] and not use_login):
         if not up_file:
-            print 'va a hacer el request================='
-            print 'url=',url
-            print 'data=',data
-            print 'data type', type(data)
-            print 'headers=', {'Content-type': 'application/json',
-                        'Authorization':'ApiKey {0}:{1}'.format(settings.config['AUTHORIZATION_EMAIL_VALUE'],
-                        settings.config['AUTHORIZATION_TOKEN_VALUE'])}
-
+            # print 'headers=', {'Content-type': 'application/json',
+            #             'Authorization':'ApiKey {0}:{1}'.format(settings.config['AUTHORIZATION_EMAIL_VALUE'],
+            #             settings.config['AUTHORIZATION_TOKEN_VALUE'])}
+            #
             r = requests.request("patch",
                 url,
                 data=data,
@@ -185,7 +184,7 @@ def post_forms_answers(answers, test=False):
     if test:
         answers = [answers[0],answers[1]]
     for index, answer in enumerate(answers):
-        print 'answer', answer
+        #print 'answer', answer
         r = dispatch(api_url['form']['set_form_answer'], data=answer)
         #r = dispatch(api_url['catalog']['set_catalog_answer'], data=answer)
         if r['status_code'] in  (201,200,202,204):
@@ -193,12 +192,12 @@ def post_forms_answers(answers, test=False):
             POST_CORRECTLY += 1
         else:
             print "Answer %s was rejected."%(index + 1)
-            print 'data',answer
+            #print 'data',answer
             #print stop_post_forms
             errors_json.append(r)
     print 'Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, index+1)
     if errors_json:
-        print 'errors_json=', errors_json
+        #print 'errors_json=', errors_json
         if test:
             settings.GLOBAL_ERRORS.append(errors_json)
 
@@ -209,6 +208,9 @@ def patch_forms_answers(answers, record_id):
     POST_CORRECTLY=0
     errors_json = []
     for index, answer in enumerate(answers):
+        #print 'answers', answer
+        if answer.has_key('_id') and answer['_id']:
+            record_id = answer.pop('_id')
         url = api_url['record']['form_answer_patch']['url'] +  str(record_id) + '/'
         method = api_url['record']['form_answer_patch']['method']
         print 'url', url
@@ -219,15 +221,14 @@ def patch_forms_answers(answers, record_id):
             print "Answer %s saved."%(index + 1)
             POST_CORRECTLY += 1
         else:
+            print 'url', url
             print "Answer %s was rejected."%(index + 1)
             print 'data',answer
-            print stop_post_forms
             errors_json.append(r)
     print 'Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, index+1)
     if errors_json:
         print 'errors_json=', errors_json
-        if test:
-            settings.GLOBAL_ERRORS.append(errors_json)
+        settings.GLOBAL_ERRORS.append(errors_json)
 
 
 def upload_answers_to_database(answers):
