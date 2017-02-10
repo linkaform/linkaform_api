@@ -17,9 +17,12 @@ def get_user_email(user_id):
     return cur.fetchone()[0]
 
 def get_properties(user_id):
-    query = 'select properties from users_integration where user_id ={user_id};\n'.format(user_id=user_id)
-    cur.execute(query)
-    return json.loads(cur.fetchone()[0])
+    try:
+        query = 'select properties from users_integration where user_id ={user_id};\n'.format(user_id=user_id)
+        cur.execute(query)
+        return json.loads(cur.fetchone()[0])
+    except:
+        return None
 
 def create_or_get_thumbnail(image, file_name):
     """
@@ -57,7 +60,7 @@ def create_thumbnail(file_name, thumbnail):
     return thumb_up
 
 def get_bucket_files(bucket_id, bucket_name, folder_name):
-    return storage.b2_list_file_names(bucket_id=bucket_id, max_file_count=0,start_file_name=folder_name)    
+    return storage.b2_list_file_names(bucket_id=bucket_id, max_file_count=10000, start_file_name=folder_name)
 
 def upload_file(form_id, field_id ,file_path, properties, bucket_files):
     bucket_id = properties['bucket_id']
@@ -140,6 +143,7 @@ conn = psycopg2.connect('dbname=%s host=%s port=%s'%(postgres_dbname, postgres_h
 cur = conn.cursor()
 
 records_with_errors = {}
+databases_with_errors = []
 date = datetime.strptime('2017-02-02 12:00:00', "%Y-%m-%d %H:%M:%S")
 
 for dbname in databases:
@@ -148,15 +152,22 @@ for dbname in databases:
     cur_db = mongo_util.connect_mongodb(dbname, host, port)
     cur_col = mongo_util.get_mongo_collection(cur_db, collection_name)
     user_id = dbname.split('_')[-1]
+    if not user_id:
+        print dbname
+        databases_with_errors.append(dbname)
+        continue
     user_email = get_user_email(user_id)
     properties = get_properties(user_id)
+    if not properties:
+        print 'user_id=', user_id
+        continue
     storage = B2Connection()
     bucket_files = get_bucket_files(properties['bucket_id'], 
         properties['bucket_name'], properties['folder_name'])
     bucket_files = [ _file['fileName'] for _file in bucket_files]
     query = {'deleted_at':{'$exists':0}, 'created_at': {"$lte": date}}
     result = mongo_util.get_collection_objects(cur_col, query)
-    records = result[:]
+    records = [record for record in result]
     for record in records:
         for _key in record['answers']:
             if isinstance(record['answers'][_key], dict):
@@ -170,8 +181,8 @@ for dbname in databases:
                         connection_id = file_url.split('/')[1].split('_')[0]
                         if connection_id:
                             connection_properties = get_properties(connection_id)
-                            connection_bucket_files = get_bucket_files(properties['bucket_id'], 
-                                properties['bucket_name'], properties['folder_name'])
+                            connection_bucket_files = get_bucket_files(connection_properties['bucket_id'], 
+                                connection_properties['bucket_name'], connection_properties['folder_name'])
                             connection_bucket_files = [ _file['fileName'] for _file in connection_bucket_files]
                             new_url = upload_file(record['form_id'], _key, file_url, 
                                 connection_properties, connection_bucket_files)
@@ -202,8 +213,8 @@ for dbname in databases:
                                     connection_id = file_url.split('/')[1].split('_')[0]
                                     if connection_id:
                                         connection_properties = get_properties(connection_id)
-                                        connection_bucket_files = get_bucket_files(properties['bucket_id'], 
-                                            properties['bucket_name'], properties['folder_name'])
+                                        connection_bucket_files = get_bucket_files(connection_properties['bucket_id'], 
+                                            connection_properties['bucket_name'], connection_properties['folder_name'])
                                         connection_bucket_files = [ _file['fileName'] for _file in connection_bucket_files]
                                         new_url = upload_file(record['form_id'], _key, file_url, 
                                             connection_properties, connection_bucket_files)
@@ -223,4 +234,5 @@ for dbname in databases:
                                 #                 }
                                 #             }
                                 #         } )
-    print 'records_with_errors=', records_with_errors
+print 'records_with_errors=', records_with_errors
+print 'dbs_with_errors=', databases_with_errors
