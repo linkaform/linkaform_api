@@ -532,8 +532,8 @@ def create_record(pos_field_id, pre_os_field_id, records, header):
     for record in records:
         cc += 1
         print '*', cc
-        if cc < 70:
-            continue
+        #if cc < 70:
+        #    continue
         this_record = {}
         cont = False
         is_assigned = check_assignation(exp_cols, record)
