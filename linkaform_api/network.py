@@ -99,7 +99,7 @@ def do_post(url, data, use_login=False, use_api_key=False, encoding='utf-8' ,up_
                 headers={'Content-type': 'application/json',
                         'Authorization':'ApiKey {0}:{1}'.format(settings.config['AUTHORIZATION_EMAIL_VALUE'],
                         settings.config['AUTHORIZATION_TOKEN_VALUE'])},
-                verify=True )
+                        verify=True )
         if up_file:
             r = requests.post(
                 url,
