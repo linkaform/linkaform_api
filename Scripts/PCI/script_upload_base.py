@@ -129,7 +129,7 @@ def get_expedientes():
 
 
 def check_assignation(exp_cols, record):
-    is_assigned = False
+    is_assigned = {False:[]}
     expedientes = get_expedientes()
     for col in exp_cols:
         try:
