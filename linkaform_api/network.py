@@ -91,8 +91,8 @@ def do_post(url, data, use_login=False, use_api_key=False, encoding='utf-8' ,up_
     send_data = {}
     if use_api_key or (settings.config['IS_USING_APIKEY'] and not use_login):
         if not up_file:
-            print 'url', url
-            print 'data', data
+            #print 'url', url
+            #print 'data', data
             r = requests.post(
                 url,
                 data,
@@ -176,11 +176,19 @@ def do_patch(url, data, use_login=False, use_api_key=False, encoding='utf-8' ,up
     return response
 
 
-def post_forms_answers(answers, test=False):
+def post_forms_answers(answers):
+    answers = [answers,]
+    POST_CORRECTLY=0
+    errors_json = []
+    return post_forms_answers_list(answers, test=False)[0][1]
+
+
+def post_forms_answers_list(answers, test=False):
     if type(answers) == dict:
         answers = [answers,]
     POST_CORRECTLY=0
     errors_json = []
+    res = []
     if test:
         answers = [answers[0],answers[1]]
     for index, answer in enumerate(answers):
@@ -195,25 +203,33 @@ def post_forms_answers(answers, test=False):
             #print 'data',answer
             #print stop_post_forms
             errors_json.append(r)
+        res.append((index, r))
     print 'Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, index+1)
     if errors_json:
         #print 'errors_json=', errors_json
         if test:
             settings.GLOBAL_ERRORS.append(errors_json)
+    return res
 
 
 def patch_forms_answers(answers, record_id):
     if type(answers) == dict:
         answers = [answers,]
+    return patch_forms_answers_list(answers, record_id)[0][1]
+
+
+def patch_forms_answers_list(answers, record_id):
+    if type(answers) == dict:
+        answers = [answers,]
     POST_CORRECTLY=0
     errors_json = []
+    res = []
     for index, answer in enumerate(answers):
         #print 'answers', answer
         if answer.has_key('_id') and answer['_id']:
             record_id = answer.pop('_id')
         url = api_url['record']['form_answer_patch']['url'] +  str(record_id) + '/'
         method = api_url['record']['form_answer_patch']['method']
-        print 'url', url
         r = dispatch(url=url, method=method, data=answer)
         #r = dispatch(api_url['catalog']['set_catalog_answer'], data=answer)
         print 'r status code', r['status_code']
@@ -223,12 +239,14 @@ def patch_forms_answers(answers, record_id):
         else:
             print 'url', url
             print "Answer %s was rejected."%(index + 1)
-            print 'data',answer
+            r['id'] = str(record_id)
             errors_json.append(r)
+        res.append((index, r))
     print 'Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, index+1)
     if errors_json:
         print 'errors_json=', errors_json
         settings.GLOBAL_ERRORS.append(errors_json)
+    return res
 
 
 def upload_answers_to_database(answers):
@@ -249,6 +267,7 @@ def upload_answers_to_database(answers):
 ###
 ### Database Connection
 ###
+
 
 def get_user_connection():
     connection = {}
