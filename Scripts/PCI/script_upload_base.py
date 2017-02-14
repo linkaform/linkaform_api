@@ -651,13 +651,15 @@ def upload_bolsa():
 def get_bolsa_update_communication(file_url, create_json):
     file_url['answers']['f1074100a010000000000a10'] = create_json['created']['preorder'] or 0
     file_url['answers']['f1074100a010000000000a11'] = create_json['created']['authorization'] or 0
-    file_url['answers']['f1074100a010000000000a12'] = create_json['created']['total'] or 0
+    file_url['answers']['f1074100a010000000000a12'] = create_json['created']['order'] or 0
     file_url['answers']['f1074100a010000000000a13'] = create_json['created']['errores'] or 0
+    file_url['answers']['f1074100a010000000000a14'] = create_json['created']['total'] or 0
 
     file_url['answers']['f1074100a010000000000b10'] = create_json['uploaded']['preorder'] or 0
     file_url['answers']['f1074100a010000000000b11'] = create_json['uploaded']['authorization'] or 0
-    file_url['answers']['f1074100a010000000000b12'] = create_json['uploaded']['total'] or 0
+    file_url['answers']['f1074100a010000000000b12'] = create_json['uploaded']['order'] or 0
     file_url['answers']['f1074100a010000000000b13'] = create_json['uploaded']['errores'] or 0
+    file_url['answers']['f1074100a010000000000b14'] = create_json['uploaded']['total'] or 0
 
     if create_json['file_url']:
         file_url['answers']['f1074100a010000000000002'] = 'Existieron en la carga. %s al crear y %s al acutalizar.\
