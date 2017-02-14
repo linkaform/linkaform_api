@@ -500,7 +500,7 @@ def update_preorder(exiting_record, record, metadata, pos_field_id, folio):
 def update_create_json(create_json, this_record, is_assigned):
     if this_record.has_key('create') and this_record['create']:
         create_json['created']['total'] += 1
-        if is_assigned == False:
+        if is_assigned.has_key(False):
             create_json['created']['preorder'] += 1
         elif this_record['create']['tipo'] == 'A9':
             create_json['created']['authorization'] += 1
@@ -508,7 +508,7 @@ def update_create_json(create_json, this_record, is_assigned):
             create_json['created']['order'] += 1
     if this_record.has_key('update') and this_record['update']:
         create_json['uploaded']['total'] += 1
-        if is_assigned == False:
+        if is_assigned.has_key(False):
             create_json['uploaded']['preorder'] += 1
         elif this_record['update']['tipo'] == 'A9':
             create_json['uploaded']['authorization'] += 1
@@ -538,8 +538,7 @@ def create_record(pos_field_id, pre_os_field_id, records, header):
         cont = False
         is_assigned = check_assignation(exp_cols, record)
         folio = get_record_folio(header_dict, record)
-
-        if is_assigned:
+        if is_assigned.has_key(True):
             this_record = assigned_record(record, metadata, pos_field_id, pre_os_field_id, folio, is_assigned)
         else:
             this_record = record_not_assigned(record, metadata, pre_os_field_id, folio)
