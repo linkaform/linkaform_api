@@ -454,7 +454,6 @@ def create_preorder_format(record, metadata, pre_os_field_id, folio, is_update=F
     if not is_update:
         answer.update(set_status_values(pre_os_field_id, record ))
     if this_record.has_key('form_id') and this_record["form_id"] == 11149:
-        print 'answer=', answer
         answer.update(set_prioridad_value(pre_os_field_id, record))
     this_record["answers"] = answer
     return this_record
@@ -548,8 +547,7 @@ def create_record(pos_field_id, pre_os_field_id, records, header):
         if this_record.has_key('create') and this_record['create']:
             #records_to_upload.append(this_record['create'])
             #if True:
-            response = network.post_forms_answers([this_record['create'],])
-            print 'response create', response
+            response = network.post_forms_answers(this_record['create'])
         elif this_record.has_key('update') and this_record['update']:
             #records_to_update.append(this_record['update'])
             #if True:
@@ -565,13 +563,10 @@ def create_record(pos_field_id, pre_os_field_id, records, header):
             print '$#@!$#@!%$$##!'
             record_errors.append(record)
 
-
     if record_errors:
-        print 'else', len(record_errors)
+        print 'errors', len(record_errors)
         create_json['file_url'] = upload_error_file(header, record_errors)
-        print 'file_url', create_json['file_url']
     print 'fin ============================='
-    print 'ERROERS', settings.GLOBAL_ERRORS
     return create_json
 
 
@@ -602,9 +597,10 @@ def upload_bolsa():
         for record in files:
             file_list.append(record.copy())
         for ffile in file_list:
+            print 'ffile' ,ffile
             if ffile.has_key('answers'):
                 ### Updates. Actualiza el registro y pone procesando
-                #ffile['answers']['f1074100a010000000000005'] = 'procesando'
+                ffile['answers']['f1074100a010000000000005'] = 'procesando'
                 record_id = ffile.pop('_id')
                 ffile.update(lkf_api.get_metadata(10741, user_id = settings.config['USER_ID']))
                 network.patch_forms_answers(ffile, record_id)
@@ -617,7 +613,7 @@ def upload_bolsa():
                 print '===== starting ======'
                 if file_url['answers']['f1074100a010000000000001'].has_key('file_url'):
                     url = file_url['answers']['f1074100a010000000000001']['file_url']
-                    #print 'URL', url
+                    print 'URL', url
                     if url.find('https') == -1:
                         url = 'https://app.linkaform.com/media/' + url
                     try:
@@ -625,7 +621,8 @@ def upload_bolsa():
                     except:
                         file_url['answers']['f1074100a010000000000002'] = 'El formato del archvio adjunto esta mal. Favor de revisar que el formato sea xlsx o csv. Recuerda actualizar el estatus a Por Cargar'
                         file_url['answers']['f1074100a010000000000005'] = 'error'
-                        #utils.patch_forms_answers(file_url, file_url['_id'])
+                        network.patch_forms_answers(file_url, file_url['_id'])
+                        print 'error reading'
                         continue
                     #records = get_rr()
                     pos_field_id = get_pos_field_id_dict(header, 10540, cope=cope)
@@ -643,21 +640,24 @@ def upload_bolsa():
                 if settings.GLOBAL_ERRORS:
                     print 'todo with errors'
                     file_url['answers']['f1074100a010000000000004'] = settings.GLOBAL_ERRORS
+
                 network.patch_forms_answers(file_url, file_url['_id'])
-        else:
-            print 'no recored found'
+            else:
+                    print 'no FILE found'
+    else:
+        print 'no recored found'
 
 
 def get_bolsa_update_communication(file_url, create_json):
-    file_url['answers']['f1074100a010000000000a11'] = create_json['created']['preorder'] or 0
-    file_url['answers']['f1074100a010000000000a12'] = create_json['created']['authorization'] or 0
+    file_url['answers']['f1074100a010000000000a10'] = create_json['created']['preorder'] or 0
+    file_url['answers']['f1074100a010000000000a11'] = create_json['created']['authorization'] or 0
+    file_url['answers']['f1074100a010000000000a12'] = create_json['created']['total'] or 0
     file_url['answers']['f1074100a010000000000a13'] = create_json['created']['errores'] or 0
-    file_url['answers']['f1074100a010000000000a14'] = create_json['created']['total'] or 0
 
-    file_url['answers']['f1074100a010000000000b11'] = create_json['uploaded']['preorder'] or 0
-    file_url['answers']['f1074100a010000000000b12'] = create_json['uploaded']['authorization'] or 0
+    file_url['answers']['f1074100a010000000000b10'] = create_json['uploaded']['preorder'] or 0
+    file_url['answers']['f1074100a010000000000b11'] = create_json['uploaded']['authorization'] or 0
+    file_url['answers']['f1074100a010000000000b12'] = create_json['uploaded']['total'] or 0
     file_url['answers']['f1074100a010000000000b13'] = create_json['uploaded']['errores'] or 0
-    file_url['answers']['f1074100a010000000000b14'] = create_json['uploaded']['total'] or 0
 
     if create_json['file_url']:
         file_url['answers']['f1074100a010000000000002'] = 'Existieron en la carga. %s al crear y %s al acutalizar.\
