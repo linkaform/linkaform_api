@@ -600,7 +600,7 @@ def upload_bolsa():
             print 'ffile' ,ffile
             if ffile.has_key('answers'):
                 ### Updates. Actualiza el registro y pone procesando
-                #ffile['answers']['f1074100a010000000000005'] = 'procesando'
+                ffile['answers']['f1074100a010000000000005'] = 'procesando'
                 record_id = ffile.pop('_id')
                 ffile.update(lkf_api.get_metadata(10741, user_id = settings.config['USER_ID']))
                 network.patch_forms_answers(ffile, record_id)
@@ -621,7 +621,7 @@ def upload_bolsa():
                     except:
                         file_url['answers']['f1074100a010000000000002'] = 'El formato del archvio adjunto esta mal. Favor de revisar que el formato sea xlsx o csv. Recuerda actualizar el estatus a Por Cargar'
                         file_url['answers']['f1074100a010000000000005'] = 'error'
-                        #utils.patch_forms_answers(file_url, file_url['_id'])
+                        network.patch_forms_answers(file_url, file_url['_id'])
                         print 'error reading'
                         continue
                     #records = get_rr()
