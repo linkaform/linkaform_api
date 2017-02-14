@@ -41,7 +41,7 @@ config = {
     'KEYS_POSITION' : {},
     'IS_USING_APIKEY' : True,
     'AUTHORIZATION_EMAIL_VALUE' : 'jgemayel@pcindustrial.com.mx',
-    'AUTHORIZATION_TOKEN_VALUE' : '5883aea4cb2aa56d690de473af0d6a5672b32709',
+    'AUTHORIZATION_TOKEN_VALUE' : '829df5615c166a9eb1b7f36f4494b1fe27059644',
 }
 
 
@@ -73,6 +73,15 @@ def read_file(file_url):
     header = records.pop(0)
     header = [col.lower().replace(' ', '_') for col in header]
     return header, records
+
+
+def make_excel_file(rows):
+    #rows = make_array(orders)
+    date = time.strftime("%Y_%m_%d")
+    file_name = "/tmp/output_%s.xlsx"%(date)
+    pyexcel.save_as(array=rows,
+        dest_file_name=file_name)
+    return file_name
 
 
 def download_file(url):
@@ -230,14 +239,10 @@ def set_status_values(pos_field_id, record):
     custom_answer['f1054000a030000000000002'] = 'por_asignar'
     return custom_answer
 
+
 def set_prioridad_value(form_field_id, record):
-    print 'form_field_id=', form_field_id
-    print 'record=', record
-    print '============================================='
-    print 'ME quede revisando el darle un valor aproximadao a los campos select'
-    print 'definitivamente que tenemos que hacer algo en al api, o no ponerlo o poner un opc de best efort'
-    print stop
-####
+    print '###TODO SETUP a priority if the file dosent cotains any'
+    return {}
 #### Record Not Assinged
 ####
 
@@ -425,9 +430,9 @@ def create_preorder_format(record, metadata, pre_os_field_id, folio, is_update=F
                 this_record.update({'tipo de tarea': str(record[pos])})
         if type(pos) != int:
             if pos not in ['clase','tipo','tipo de tarea', 'etapa']:
-                answer.update(lkf_api.make_infosync_json(pos, element))
+                answer.update(lkf_api.make_infosync_json(pos, element, best_effort=True))
         else:
-            answer.update(lkf_api.make_infosync_json(record[pos], element))
+            answer.update(lkf_api.make_infosync_json(record[pos], element, best_effort=True))
     if not etapa:
         this_record.update({'etapa': get_etapa_tipo_class(this_record, 'etapa')})
     if not tipo:
@@ -452,8 +457,6 @@ def create_preorder_format(record, metadata, pre_os_field_id, folio, is_update=F
         print 'answer=', answer
         answer.update(set_prioridad_value(pre_os_field_id, record))
     this_record["answers"] = answer
-    print 'this_record',this_record
-    print stop
     return this_record
 
 
@@ -495,77 +498,188 @@ def update_preorder(exiting_record, record, metadata, pos_field_id, folio):
 #### END of Record Not Assinged
 ####
 
+def update_create_json(create_json, this_record, is_assigned):
+    if this_record.has_key('create') and this_record['create']:
+        create_json['created']['total'] += 1
+        if is_assigned == False:
+            create_json['created']['preorder'] += 1
+        elif this_record['create']['tipo'] == 'A9':
+            create_json['created']['authorization'] += 1
+        else:
+            create_json['created']['order'] += 1
+    if this_record.has_key('update') and this_record['update']:
+        create_json['uploaded']['total'] += 1
+        if is_assigned == False:
+            create_json['uploaded']['preorder'] += 1
+        elif this_record['update']['tipo'] == 'A9':
+            create_json['uploaded']['authorization'] += 1
+        else:
+            create_json['uploaded']['order'] += 1
+    return create_json
+
+
 def create_record(pos_field_id, pre_os_field_id, records, header):
     records_to_upload = []
     records_to_update = []
+    record_errors = []
+    create_json = {'created':{'preorder':0, 'order':0, 'authorization':0 ,'total':0, 'errores':0},
+                    'uploaded':{'preorder':0, 'order':0, 'authorization':0, 'total':0, 'errores':0},
+                    'file_url' : False}
     metadata = lkf_api.get_metadata(form_id=10540, user_id=settings.config['USER_ID'] )
     header_dict = make_header_dict(header)
     exp_cols = get_asignacion_pci_col(header_dict)
     print 'records count', len(records)
+    cc = 0
     for record in records:
+        cc += 1
+        print '*', cc
+        if cc < 70:
+            continue
+        this_record = {}
         cont = False
         is_assigned = check_assignation(exp_cols, record)
         folio = get_record_folio(header_dict, record)
+
         if is_assigned:
-            print '*ASSIGNED*'
             this_record = assigned_record(record, metadata, pos_field_id, pre_os_field_id, folio, is_assigned)
         else:
-            print '==NOT ASSIGNED=='
             this_record = record_not_assigned(record, metadata, pre_os_field_id, folio)
-        # answer = {}
-        # this_record = {}
-        # count = 0
-        # this_record.update(metadata)
-        # for pos, element in pos_field_id.iteritems():
-        #     count +=1
-        #     if element['field_type'] == 'folio':
-        #         this_record['folio'] = str(record[pos])
-        #     else:
-        #         answer.update(lkf_api.make_infosync_json(record[pos], element))
-        # answer.update(set_status_values(pos_field_id, record ))
-        # this_record["answers"] = answer
+
         if this_record.has_key('create') and this_record['create']:
-            records_to_upload.append(this_record['create'])
-        if this_record.has_key('update') and this_record['update']:
-            records_to_update.append(this_record['update'])
-    print '=========================================='
-    if records_to_upload:
-        network.post_forms_answers(records_to_upload)
-    if records_to_update:
-        network.patch_forms_answers(records_to_update,0)
+            #records_to_upload.append(this_record['create'])
+            #if True:
+            response = network.post_forms_answers([this_record['create'],])
+            print 'response create', response
+        elif this_record.has_key('update') and this_record['update']:
+            #records_to_update.append(this_record['update'])
+            #if True:
+            response = network.patch_forms_answers(this_record['update'],this_record['update']['_id'])
+            #No se subio nada
+        else:
+            response= {'status_code': 205}
+
+        if response['status_code'] in (200,201,202,204, 205):
+            if response['status_code'] != 205:
+                create_json.update(update_create_json(create_json, this_record, is_assigned))
+        else:
+            print '$#@!$#@!%$$##!'
+            record_errors.append(record)
+
+
+    if record_errors:
+        print 'else', len(record_errors)
+        create_json['file_url'] = upload_error_file(header, record_errors)
+        print 'file_url', create_json['file_url']
     print 'fin ============================='
     print 'ERROERS', settings.GLOBAL_ERRORS
-    return True
+    return create_json
 
+
+def upload_error_file(header, record_errors):
+            record_errors.insert(0,header)
+            archivo_file_name = make_excel_file(record_errors)
+            csv_file = open(archivo_file_name,'rb')
+            csv_file_dir = {'File': csv_file}
+            upload_data ={'form_id': 10741, 'field_id':'f1074100a010000000000003'}
+            upload_url = lkf_api.post_upload_file(data=upload_data, up_file=csv_file_dir)
+            csv_file.close()
+            file_url = upload_url['data']['file']
+            try:
+                file_url = upload_url['data']['file']
+                record['answers']['f1074100a010000000000003'] ={
+                'file_name':'Errores de Carga %s.xlsx'%file_date,
+                'file_url':file_url}
+            except KeyError:
+                print 'could not save file Errores'
+            return file_url
 
 
 def upload_bolsa():
     files = get_files2upload()
     #files = [{u'_id': ('58575ff4b43fdd35e3169665'), u'answers': {u'f1074100a010000000000001': {u'file_name': u'BASE 16-DICIEMBRES10.xls', u'file_url': u'uploads/1259_jgemayel@pcindustrial.com.mx/e201093c634a2a2ff2068b4df622401a2ac90c83.xls'}}}]
     if files:
-        for file_url in files:
+        file_list = []
+        for record in files:
+            file_list.append(record.copy())
+        for ffile in file_list:
+            if ffile.has_key('answers'):
+                ### Updates. Actualiza el registro y pone procesando
+                #ffile['answers']['f1074100a010000000000005'] = 'procesando'
+                record_id = ffile.pop('_id')
+                ffile.update(lkf_api.get_metadata(10741, user_id = settings.config['USER_ID']))
+                network.patch_forms_answers(ffile, record_id)
+                ffile['_id'] = record_id
+        for file_url in file_list:
             if file_url.has_key('answers') and file_url['answers'].has_key('f1074100a010000000000001') \
                 and file_url['answers'].has_key('f1074100a0100000000000c1'):
                 cope = file_url['answers']['f1074100a0100000000000c1']
                 cope = cope.replace('_', ' ').title()
+                print '===== starting ======'
                 if file_url['answers']['f1074100a010000000000001'].has_key('file_url'):
                     url = file_url['answers']['f1074100a010000000000001']['file_url']
                     #print 'URL', url
                     if url.find('https') == -1:
                         url = 'https://app.linkaform.com/media/' + url
-                    #try:
-                    if True:
+                    try:
                         header, records = read_file(url)
-                    #except:
-                        print '####TODO mandar comunicado de recordad que el formato mandado esta mal'
-                        #continue
+                    except:
+                        file_url['answers']['f1074100a010000000000002'] = 'El formato del archvio adjunto esta mal. Favor de revisar que el formato sea xlsx o csv. Recuerda actualizar el estatus a Por Cargar'
+                        file_url['answers']['f1074100a010000000000005'] = 'error'
+                        #utils.patch_forms_answers(file_url, file_url['_id'])
+                        continue
                     #records = get_rr()
                     pos_field_id = get_pos_field_id_dict(header, 10540, cope=cope)
                     pre_os_field_id = get_pos_field_id_dict(header, 11149, cope=cope)
-                    create_record(pos_field_id, pre_os_field_id, records, header)
+                    create_json = create_record(pos_field_id, pre_os_field_id, records, header)
+                    print 'create_json', create_json
+                    file_url.update(get_bolsa_update_communication(file_url, create_json))
                 else:
+                    file_url['answers']['f1074100a010000000000002'] = 'No se encontro ningun archivo adjunto'
+                    file_url['answers']['f1074100a010000000000005'] = 'error'
                     print 'no file found'
-            else:
-                print 'no recored found'
 
+
+                #Actualiza el status del la bolsa
+                if settings.GLOBAL_ERRORS:
+                    print 'todo with errors'
+                    file_url['answers']['f1074100a010000000000004'] = settings.GLOBAL_ERRORS
+                network.patch_forms_answers(file_url, file_url['_id'])
+        else:
+            print 'no recored found'
+
+
+def get_bolsa_update_communication(file_url, create_json):
+    file_url['answers']['f1074100a010000000000a11'] = create_json['created']['preorder'] or 0
+    file_url['answers']['f1074100a010000000000a12'] = create_json['created']['authorization'] or 0
+    file_url['answers']['f1074100a010000000000a13'] = create_json['created']['errores'] or 0
+    file_url['answers']['f1074100a010000000000a14'] = create_json['created']['total'] or 0
+
+    file_url['answers']['f1074100a010000000000b11'] = create_json['uploaded']['preorder'] or 0
+    file_url['answers']['f1074100a010000000000b12'] = create_json['uploaded']['authorization'] or 0
+    file_url['answers']['f1074100a010000000000b13'] = create_json['uploaded']['errores'] or 0
+    file_url['answers']['f1074100a010000000000b14'] = create_json['uploaded']['total'] or 0
+
+    if create_json['file_url']:
+        file_url['answers']['f1074100a010000000000002'] = 'Existieron en la carga. %s al crear y %s al acutalizar.\
+         Favor ver el archivo Registros no cargados'%(create_json['created']['errores'],create_json['uploaded']['errores'])
+        file_url['f1074100a010000000000003'] = create_json['file_url']
+        file_url['answers']['f1074100a010000000000005'] = 'error'
+    else:
+        file_url['answers']['f1074100a010000000000002'] = 'Archivo cargado con exito'
+        file_url['answers']['f1074100a010000000000005'] = 'cargado'
+
+    return file_url
+
+# def upload_test():
+#     cope='mixcoac'
+#     header= [u'folio', u'tipo', u'telefono', u'nombre', u'etapa', u'f_contrata', u'dilacion', u'diletapa', u'central', u'distrito', u'canal', u'of_c', u'area', u'oficina', u'ct', u'cm', u'f_ue', u'clase_serv', u'segmento', u'area_ct', u'segpred', u'nse_amai', u'abc', u'elite', u'sky', u'warzone', u'colonia', u'division', u'subdireccion', u'siglas', u'fol_pisaplex', u'ttarea', u'estado', u'nombretecnico', u'expediente', u'zona', u'idtarea', u'grupoasignacion', u'empresa', u'tipo_sitio', u'poligono-zona', u'prioritaria', u'resynores', u'agrupar27', u'ftth', u'vienede', u'portabilidad', u'etiqueta', u'prioridad', u'agrupadil', u'agrupadiletapa', u'pendiente_puente', u'producto', u'fech_meta', u'sema_aten', u'empresas', u'responsab', u'entity', u'fielder', u'fo']
+#     records= [[40627946, u'A0', 5570370944, u'ALVAREZ TREJO LEONOR', u'PF', u'11/28/2016', 51, 43, u'TR_', u'TR_0034', u'', u'LO', u'MIXCOAC', u'LOR', u'SLI', u'CAS', 42710, 10, u'', u'MIXCOAC', u'C-', u'C', 0, 0, 0, 0, u'LOS PADRES', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'CONCENTRADOR', u'SAN JERONIMO', u'', u'RESIDENCIAL', u'RESIDENCIAL', 0, u'BESTPHONE        ', 1, u'Portabilidad', 1, u'> 25 d\xedas', u'> 25 d\xedas', u'NO', u'ALTAS VOZ', u'23-Jan-17', u'En Tiempo', u'FUERA', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41189934, u'TI', 5556689488, u'NETSHELL SA DE CV', u'Y2', u'12/20/2016', 29, 29, u'SJ_', u'SJ_0029', u'', u'WTG', u'MIXCOAC', u'LOR', u'SLI', u'CAS', u'12/20/2016', u'2L', u'CP', u'MIXCOAC', u'C-', u'C+', 1, 0, 0, 1, u'SAN JERONIMO ACULCO', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'EDIFICIO', u'SAN JERONIMO', u'', u'NO RESIDENCIAL', u'INFINITUM COMERCIAL', 1, u'', 0, u'TI', 8, u'> 25 d\xedas', u'> 25 d\xedas', u'NO', u'TI', u'', u'', u'FUERA', u'', u'', u'-', ''], [41250733, u'D3', 5556358515, u'URQUIZA GARCIATORRES JUAN CARL', u'CO', u'12/22/2016', 27, 1, u'SL_', u'SL_0095', u'', u'LO', u'MIXCOAC', u'MIC', u'SLI', u'CAS', u'1/17/2017', u'1L', u'R5', u'MIXCOAC', u'A+', u'A/B', 1, 0, 0, 0, u'RESIDENCIAL DE TARANGO', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'EDIFICIO', u'SANTA LUCIA', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 0, u'', 0, u'Cambio Domicilio', 2, u'> 25 d\xedas', 1, u'NO', u'CD INF', u'', u'', u'FUERA', u'', u'', u'-', ''], [41236521, u'TI', 5555503527, u'CANO GARCIA MARIA DEL ROCIO', u'Y2', u'12/22/2016', 27, 27, u'CA_', u'CA_0010', u'', u'WCP', u'MIXCOAC', u'MIC', u'SLI', u'CAS', u'12/22/2016', u'1L', u'R2', u'MIXCOAC', u'A+', u'C+', 1, 0, 0, 0, u'LAS AGUILAS', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'EDIFICIO', u'SANTA LUCIA', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 1, u'', 0, u'TI', 8, u'> 25 d\xedas', u'> 25 d\xedas', u'NO', u'TI', u'', u'', u'FUERA', u'', u'', u'-', ''], [41408045, u'TV', 5552927878, u'DINTEC CONSULTING SA DE CV', u'PS', u'12/29/2016', 20, 1, u'GI_', u'GI_0029', u'', u'PRM', u'MIXCOAC', u'MIC', u'MIC', u'CAS', u'1/17/2017', u'2L', u'CP', u'MIXCOAC', u'CM', u'A/B', 1, 0, 0, 1, u'FLORIDA', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'EDIFICIO', u'SAN JOSE INSURGENTES', u'', u'NO RESIDENCIAL', u'INFINITUM COMERCIAL', 1, u'', 0, u'1 Play Inf', 6, u'11 a 25 d\xedas', 1, u'NO', u'TV', u'12-Jan-17', u'Fuera de Tiempo', u'ASISTENCIA', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41407830, u'D3', 5555858216, u'MARTINEZ MARTINEZ MARIA ELENA', u'PA', u'12/29/2016', 20, 1, u'BB_', u'BB_0003', u'', u'LO', u'MIXCOAC', u'LOR', u'SLI', u'CAS', u'1/17/2017', u'1L', u'R5', u'MIXCOAC', u'C-', u'C+', 1, 0, 0, 0, u'LOMAS DE SAN BERNABE', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'CONTENEDOR', u'SAN JERONIMO', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 0, u'', 0, u'Cambio Domicilio', 2, u'11 a 25 d\xedas', 1, u'NO', u'CD INF', u'', u'', u'FUERA', u'', u'', u'-', ''], [41425665, u'TI', 5555685628, u'MATUK KANAN CARLOS', u'Y2', u'12/30/2016', 19, 19, u'PD_', u'PD_0015', u'', u'LO', u'MIXCOAC', u'LOR', u'MIC', u'CAS', u'12/30/2016', u'1L', u'R4', u'MIXCOAC', u'A+', u'A/B', 1, 0, 0, 0, u'JARDINES DEL PEDREGAL', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'CONCENTRADOR', u'PEDREGAL', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 1, u'', 0, u'TI', 8, u'11 a 25 d\xedas', u'11 a 25 d\xedas', u'NO', u'TI', u'26-Jan-17', u'En Tiempo', u'FUERA', u'JORGE VIVAR', u'SISTEMAS DIVISIONAL', u'-', ''], [41451080, u'TI', 5555507521, u'SOLUCIONES Y CONSTRUCCIONES EC', u'PS', u'1/2/2017', 16, 7, u'GI_', u'GI_0003', u'', u'WMX', u'MIXCOAC', u'MIC', u'MIC', u'CAS', u'1/11/2017', u'2L', u'CM', u'MIXCOAC', u'A+', u'A/B', 1, 0, 0, 0, u'GUADALUPE INN', u'METRO', u'METRO SUR', u'MIX', 56660028, u'TI2LPAFPI', u'PENDIENTE', u'', u'.', u'MI_GI_01 CTLS', 56660028, u'MI_CTLS', u'', u'EDIFICIO', u'SAN JOSE INSURGENTES', u'', u'NO RESIDENCIAL', u'INFINITUM COMERCIAL', 1, u'', 0, u'TI', 8, u'11 a 25 d\xedas', u'4 a 10 d\xedas', u'SI', u'TI', u'12-Jan-17', u'Fuera de Tiempo', u'NO ASIGNADO', u'PLANTA', u'OPERACI\xd3N', u'-', u'FO'], [41454533, u'D2', 5522234397, u'LOPEZ MEJIA ANGELA FERNANDA', u'SU', u'1/2/2017', 16, 1, u'RX_', u'RX_0008', u'', u'MI', u'MIXCOAC', u'MIC', u'SLI', u'CAS', u'1/17/2017', u'1L', u'R5', u'MIXCOAC', u'C-', u'D+', 0, 0, 0, 0, u'OLIVAR DEL CONDE 2A SECCION', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'CONTENEDOR', u'SANTA LUCIA', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 0, u'', 0, u'Cambio Domicilio', 2, u'11 a 25 d\xedas', 1, u'NO', u'CD INF', u'', u'', u'FUERA', u'', u'', u'-', ''], [41477098, u'A0', 5555503183, u'SEGOB/INSURGENTES SUR SPF', u'E3', u'1/3/2017', 15, 1, u'SA_', u'SA_0003', u'', u'AC2', u'MIXCOAC', u'LOR', u'MIC', u'CAS', u'1/17/2017', u'2L', u'CM', u'MIXCOAC', u'A+', u'C+', 1, 0, 0, 1, u'SAN ANGEL', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'EDIFICIO', u'CORREDOR INSURGENTES', u'CORREDOR INSURGENTES', u'NO RESIDENCIAL', u'INFINITUM COMERCIAL', 1, u'', 0, u'2 Play Com', 3, u'11 a 25 d\xedas', 1, u'NO', u'ALTAS INF', u'22-Jan-17', u'En Tiempo', u'FUERA', u'CENTRAL', u'CENTRAL', u'-', ''], [41482901, u'D2', 5555952564, u'MONTOYA DUARTE MANUEL', u'E7', u'1/3/2017', 15, 1, u'SA_', u'SA_0058', u'', u'PL', u'MIXCOAC', u'LOR', u'MIC', u'CAS', u'1/17/2017', u'1L', u'R5', u'MIXCOAC', u'C-', u'C', 0, 0, 0, 0, u'PROGRESO', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'EDIFICIO', u'PEDREGAL', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 0, u'', 0, u'Cambio Domicilio', 2, u'11 a 25 d\xedas', 1, u'NO', u'CD INF', u'22-Jan-17', u'En Tiempo', u'FUERA', u'CENTRAL', u'CENTRAL', u'-', ''], [41482027, u'D2', 5555633850, u'DOMINGUEZ GONZALEZ RITA', u'PS', u'1/3/2017', 15, 1, u'MI_', u'MI_0037', u'', u'MI', u'MIXCOAC', u'MIC', u'MIC', u'TYB', u'1/17/2017', u'1L', u'R5', u'MIXCOAC', u'A+', u'A/B', 1, 0, 0, 1, u'INSURGENTES MIXCOAC', u'METRO', u'METRO SUR', u'MIX', 56867622, u'D21LP4HPI', u'ASIGNADO', u'CIMAQSA_BOLSA NUEVA COPE MI', 2220100, u'MI_MI_02 INST', 56867622, u'MI_ INST', u'CIMAQSA', u'EDIFICIO', u'MIXCOAC', u'MIXCOAC', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 1, u'', 0, u'Cambio Domicilio', 2, u'11 a 25 d\xedas', 1, u'NO', u'CD INF', u'11-Jan-17', u'Fuera de Tiempo', u'CIMAQSA', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41481740, u'TV', 5556524756, u'LUC HAUSE DE BELLER ROSA MARIA', u'PS', u'1/3/2017', 15, 14, u'PD_', u'PD_0133', u'', u'WMX', u'MIXCOAC', u'LOR', u'MIC', u'CAS', u'1/4/2017', u'2L', u'CE', u'MIXCOAC', u'A+', u'C+', 1, 0, 0, 1, u'SANTA TERESA', u'METRO', u'METRO SUR', u'MIX', 56692270, u'TV2LPBD', u'ASIGNADO', u'GARDU\xc3\u2018O CONTRERAS  SANDRA ROCIO', 1404537, u'MI_PD_01 CTLS', 56692270, u'MI_CTLS', u'TELMEX', u'CONCENTRADOR', u'PEDREGAL', u'', u'NO RESIDENCIAL', u'INFINITUM COMERCIAL', 0, u'', 0, u'1 Play Inf', 6, u'11 a 25 d\xedas', u'11 a 25 d\xedas', u'SI', u'TV', u'13-Jan-17', u'Fuera de Tiempo', u'TELMEX', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41477714, u'TV', 5555688398, u'SANCHEZ HUESCA OLGA', u'PS', u'1/3/2017', 15, 15, u'PD_', u'PD_0005', u'', u'WTL', u'MIXCOAC', u'LOR', u'MIC', u'CAS', u'1/3/2017', u'1L', u'R6', u'MIXCOAC', u'A+', u'A/B', 1, 0, 0, 0, u'JARDINES DEL PEDREGAL', u'METRO', u'METRO SUR', u'MIX', 56681323, u'TV1LPB', u'ASIGNADO', u'GARDU\xc3\u2018O CONTRERAS  SANDRA ROCIO', 1404537, u'MI_PD_01 INST', 56681323, u'MI_CTLS', u'TELMEX', u'CONCENTRADOR', u'PEDREGAL', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 1, u'', 0, u'1 Play Inf', 6, u'11 a 25 d\xedas', u'11 a 25 d\xedas', u'SI', u'TV', u'12-Jan-17', u'Fuera de Tiempo', u'TELMEX', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41500312, u'TI', 5551353993, u'MUCI O MUCI O HECTOR', u'Y2', u'1/4/2017', 14, 14, u'PD_', u'PD_0111', u'', u'WMX', u'MIXCOAC', u'LOR', u'MIC', u'CAS', u'1/4/2017', u'2L', u'CP', u'MIXCOAC', u'A+', u'A/B', 1, 0, 1, 0, u'FUENTES DEL PEDREGAL', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'CONCENTRADOR', u'PEDREGAL', u'', u'NO RESIDENCIAL', u'INFINITUM COMERCIAL', 1, u'', 0, u'TI', 8, u'11 a 25 d\xedas', u'11 a 25 d\xedas', u'NO', u'TI', u'10-Jan-17', u'Fuera de Tiempo', u'FUERA', u'JORGE VIVAR', u'SISTEMAS DIVISIONAL', u'-', ''], [41507484, u'A4', 5556806410, u'VARGAS SILVA ENRIQUE', u'PS', u'1/4/2017', 14, 9, u'CA_', u'CA_0025', u'', u'WTX', u'MIXCOAC', u'MIC', u'SLI', u'CAS', u'1/9/2017', 10, u'R6', u'MIXCOAC', u'C-', u'C+', 1, 0, 0, 0, u'UHAB LOMAS DE PLATEROS', u'METRO', u'METRO SUR', u'MIX', 56741487, u'A410PBG', u'ASIGNADO', u'MORENO CRUZ JOSE ARMANDO', 8523039, u'SL_CA_05 INST', 56741487, u'SL_ INST', u'TELMEX', u'EDIFICIO', u'MIXCOAC', u'MIXCOAC', u'RESIDENCIAL', u'RESIDENCIAL', 1, u'', 0, u'1 Play', 7, u'11 a 25 d\xedas', u'4 a 10 d\xedas', u'NO', u'ALTAS VOZ', u'23-Jan-17', u'En Tiempo', u'TELMEX', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41508680, u'D2', 5555758144, u'RICZAM S.DE R.L. DE C.V.', u'EP', u'1/4/2017', 14, 1, u'BY_', u'BY_0001', u'', u'LO', u'MIXCOAC', u'LOR', u'SLI', u'CAS', u'1/17/2017', 20, u'CM', u'MIXCOAC', u'A+', u'A/B', 1, 0, 0, 0, u'RANCHO SAN FRANCISCO', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'GABINETE', u'SAN JERONIMO', u'', u'NO RESIDENCIAL', u'COMERCIAL', 0, u'', 0, u'Cambio Domicilio', 2, u'11 a 25 d\xedas', 1, u'SI', u'CD VOZ', u'', u'', u'FUERA', u'', u'', u'-', ''], [41505088, u'D3', 5554255109, u'MARTINEZ CALDERON AMALIA', u'EQ', u'1/4/2017', 14, 4, u'BB_', u'BB_0013', u'', u'LO', u'MIXCOAC', u'LOR', u'SLI', u'CAS', u'1/14/2017', 10, u'R6', u'MIXCOAC', u'C-', u'D+', 0, 0, 0, 0, u'LAS CRUCES', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'CONTENEDOR', u'SAN JERONIMO', u'', u'RESIDENCIAL', u'RESIDENCIAL', 0, u'', 0, u'Cambio Domicilio', 2, u'11 a 25 d\xedas', u'4 a 10 d\xedas', u'NO', u'CD VOZ', u'', u'', u'FUERA', u'', u'', u'-', ''], [41505963, u'A9', 5521249919, u'ORTEGA MONTES DE OCA MAYRA MIR', u'C6', 42739, 14, 1, u'TY_', u'TY_0110', u'', u'PL', u'MIXCOAC', u'VAL', u'TYB', u'TYB', 42752, u'1L', u'', u'MIXCOAC', u'C-', u'C', 0, 0, 0, 0, u'TACUBAYA', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'EDIFICIO', u'MIXCOAC', u'MIXCOAC', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 1, u'', 0, u'2 Play Res', 4, u'11 a 25 d\xedas', 1, u'NO', u'ALTAS INF', u'', u'', u'FUERA', u'', u'', u'-', ''], [41529224, u'A0', 5550854142, u'SECRETARIA DE GOBERNACION SERV', u'PO', u'1/5/2017', 13, 1, u'SA_', u'SA_0003', u'', u'AC2', u'MIXCOAC', u'LOR', u'MIC', u'CAS', 42752, u'2L', u'', u'MIXCOAC', u'A+', u'C+', 1, 0, 0, 1, u'SAN ANGEL', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'EDIFICIO', u'CORREDOR INSURGENTES', u'CORREDOR INSURGENTES', u'NO RESIDENCIAL', u'INFINITUM COMERCIAL', 1, u'', 0, u'2 Play Com', 3, u'11 a 25 d\xedas', 1, u'NO', u'ALTAS INF', u'22-Jan-17', u'En Tiempo', u'FUERA', u'ANDRES HDZ', u'CCR', u'-', ''], [41537568, u'A4', 5551356254, u'CERVANTES SUAREZ JUAN CARLOS', u'O2', u'1/5/2017', 13, 1, u'PD_', u'PD_0106', u'', u'API', u'MIXCOAC', u'LOR', u'MIC', u'CAS', u'1/17/2017', 10, u'R5', u'MIXCOAC', u'A+', u'C+', 1, 0, 0, 1, u'SAN JERONIMO ACULCO', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'CONCENTRADOR', u'PEDREGAL', u'', u'RESIDENCIAL', u'RESIDENCIAL', 1, u'', 0, u'1 Play', 7, u'11 a 25 d\xedas', 1, u'NO', u'ALTAS VOZ', u'23-Jan-17', u'En Tiempo', u'FUERA', u'VICTOR MANOATH ESQUIVEL', u'SISTEMAS COMERCIALES', u'-', ''], [41533915, u'TV', 5551350154, u'TORRES ROCHA ALICIA', u'ES', u'1/5/2017', 13, 1, u'PD_', u'PD_0185', u'', u'PC', u'MIXCOAC', u'LOR', u'MIC', u'CAS', 42752, u'1L', u'R6', u'MIXCOAC', u'A+', u'A/B', 1, 0, 1, 0, u'FUENTES DEL PEDREGAL', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'CONCENTRADOR', u'PEDREGAL', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 1, u'', 0, u'1 Play Inf', 6, u'11 a 25 d\xedas', 1, u'NO', u'TV', u'25-Jan-17', u'En Tiempo', u'FUERA', u'CENTRAL', u'CENTRAL', u'-', ''], [41533792, u'TV', 5556525201, u'Y DESARROLLOS PEDREGAL JUEGOS', u'PS', u'1/5/2017', 13, 13, u'PD_', u'PD_0014', u'', u'WTG', u'MIXCOAC', u'LOR', u'MIC', u'CAS', u'1/5/2017', u'2L', u'C+', u'MIXCOAC', u'A+', u'A/B', 1, 0, 0, 0, u'JARDINES DEL PEDREGAL', u'METRO', u'METRO SUR', u'MIX', 56709654, u'TV2LPBD', u'ASIGNADO', u'GARDU\xc3\u2018O CONTRERAS  SANDRA ROCIO', 1404537, u'MI_PD_01 CTLS', 56709654, u'MI_CTLS', u'TELMEX', u'CONCENTRADOR', u'PEDREGAL', u'', u'NO RESIDENCIAL', u'INFINITUM COMERCIAL', 1, u'', 0, u'1 Play Inf', 6, u'11 a 25 d\xedas', u'11 a 25 d\xedas', u'SI', u'TV', u'25-Jan-17', u'En Tiempo', u'TELMEX', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41537578, u'A0', 5591551895, u'COI CENTRO ONCOLOGICO INTERNAC', u'PS', u'1/5/2017', 13, 4, u'TU_', u'TU_0008', u'', u'ACW', u'MIXCOAC', u'LOR', u'SLI', u'CAS', u'1/14/2017', u'2L', u'', u'MIXCOAC', u'C-', u'D+', 0, 0, 1, 0, u'EL OCOTAL', u'METRO', u'METRO SUR', u'MIX', 56742470, u'A02LP4D', u'ASIGNADO', u'UNE_BOLSA NUEVA, COPE SL', 2220142, u'SL_TU_02 INST', 56742470, u'SL_ INST', u'TEICO', u'CONCENTRADOR', u'SAN JERONIMO', u'', u'NO RESIDENCIAL', u'INFINITUM COMERCIAL', 1, u'', 0, u'2 Play Com', 3, u'11 a 25 d\xedas', u'4 a 10 d\xedas', u'NO', u'ALTAS INF', u'07-Jan-17', u'Fuera de Tiempo', u'UNE', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41529420, u'A0', 5556603318, u'PEREZ MARTINEZ OSCAR MARTIN', u'S9', u'1/5/2017', 13, 2, u'CA_', u'CA_0018', u'', u'MI', u'MIXCOAC', u'MIC', u'SLI', u'CAS', u'1/16/2017', u'1L', u'R6', u'MIXCOAC', u'C-', u'C+', 1, 0, 0, 0, u'UHAB LOMAS DE PLATEROS', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'EDIFICIO', u'MIXCOAC', u'MIXCOAC', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 1, u'TELMEX           ', 1, u'Portabilidad', 1, u'11 a 25 d\xedas', 2, u'NO', u'ALTAS INF', u'21-Jan-17', u'En Tiempo', u'FUERA', u'TIENDAS', u'COMERCIAL', u'-', ''], [41524095, u'A9', 5510569191, u'FLORES MADIN JOSELINE', u'PS', u'1/5/2017', 13, 4, u'SL_', u'SL_0063', u'', u'MI', u'MIXCOAC', u'MIC', u'SLI', u'CAS', u'1/14/2017', u'1L', u'R6', u'MIXCOAC', u'C-', u'D+', 0, 0, 0, 0, u'CORPUS CHRISTI', u'METRO', u'METRO SUR', u'MIX', 56744296, u'A91LP4D', u'ASIGNADO', u'FILIAL ORDENES _ITCR', 2220111, u'SL_UY_01 INST', 56744296, u'SL_ INST', u'ITCR', u'EDIFICIO', u'SANTA LUCIA', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 0, u'', 0, u'2 Play Res', 4, u'11 a 25 d\xedas', u'4 a 10 d\xedas', u'NO', u'ALTAS INF', u'', u'', u'ITCR', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41542685, u'A4', 5515202241, u'SAN JERONIMO MOTORS SA DE CV', u'PS', u'1/5/2017', 13, 9, u'SJ_', u'SJ_0041', u'', u'ACW', u'MIXCOAC', u'LOR', u'SLI', u'CAS', u'1/9/2017', 20, u'A', u'MIXCOAC', u'A+', u'C+', 1, 0, 0, 1, u'SAN JERONIMO LIDICE', u'METRO', u'METRO SUR', u'MIX', 56741490, u'A420PBD', u'ASIGNADO', u'MORENO CRUZ JOSE ARMANDO', 8523039, u'SL_SJ_03 INST', 56741490, u'SL_ INST', u'TELMEX', u'EDIFICIO', u'SAN JERONIMO', u'', u'NO RESIDENCIAL', u'COMERCIAL', 0, u'', 0, u'PYME', 5, u'11 a 25 d\xedas', u'4 a 10 d\xedas', u'NO', u'ALTAS VOZ', u'15-Jan-17', u'En Tiempo', u'TELMEX', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41529499, u'D2', 5554250768, u'VALENCIA GARCIAJOSE LUIS', u'YS', u'1/5/2017', 13, 2, u'BB_', u'BB_0012', u'', u'LO', u'MIXCOAC', u'LOR', u'SLI', u'CAS', u'1/16/2017', u'1L', u'R5', u'MIXCOAC', u'C-', u'D+', 0, 0, 0, 0, u'LAS CRUCES', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'CONTENEDOR', u'SAN JERONIMO', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 0, u'', 0, u'Cambio Domicilio', 2, u'11 a 25 d\xedas', 2, u'NO', u'CD INF', u'', u'', u'FUERA', u'', u'', u'-', ''], [41561924, u'A0', 5555240641, u'PM ONSTREET SADE CV', u'KB', u'1/6/2017', 12, 1, u'SR_', u'SR_0028', u'', u'AG', u'MIXCOAC', u'VAL', u'MIC', u'TYB', u'1/17/2017', u'2L', u'R5', u'MIXCOAC', u'CM', u'A/B', 1, 0, 0, 0, u'DEL VALLE', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'EDIFICIO', u'DEL VALLE', u'DEL VALLE', u'NO RESIDENCIAL', u'INFINITUM COMERCIAL', 1, u'', 0, u'2 Play Com', 3, u'11 a 25 d\xedas', 1, u'NO', u'ALTAS INF', u'22-Jan-17', u'En Tiempo', u'FUERA', u'INFORMATEC', u'TEC', u'-', ''], [41556319, u'TI', 5556811801, u'ROFES GARCIA BARTOLOME', u'PS', u'1/6/2017', 12, 12, u'PD_', u'PD_0055', u'', u'WVA', u'MIXCOAC', u'LOR', u'MIC', u'CAS', u'1/6/2017', u'1L', u'R2', u'MIXCOAC', u'C-', u'C', 0, 0, 0, 0, u'BARRIO SAN FRANCISCO', u'METRO', u'METRO SUR', u'MIX', 56718987, u'TI1LPBFPI', u'PENDIENTE', u'', u'.', u'MI_PD_01 INST', 56718987, u'MI_ INST', u'', u'CONCENTRADOR', u'PEDREGAL', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 1, u'', 0, u'TI', 8, u'11 a 25 d\xedas', u'11 a 25 d\xedas', u'NO', u'TI', u'08-Jan-17', u'Fuera de Tiempo', u'NO ASIGNADO', u'PLANTA', u'OPERACI\xd3N', u'-', u'FO'], [41561708, u'A9', 5556674311, u'PARRA RODRIGUEZ JERSAIN', u'PS', u'1/6/2017', 12, 11, u'TU_', u'TU_0010', u'', u'LO', u'MIXCOAC', u'LOR', u'SLI', u'CAS', u'1/7/2017', u'1L', u'R6', u'MIXCOAC', u'C-', u'D+', 0, 0, 0, 0, u'PUEBLO NUEVO ALTO', u'METRO', u'METRO SUR', u'MIX', 56723669, u'A91LP4D', u'ASIGNADO', u'UNE_BOLSA NUEVA, COPE SL', 2220142, u'SL_TU_02 INST', 56723669, u'SL_ INST', u'TEICO', u'CONCENTRADOR', u'SAN JERONIMO', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 0, u'', 0, u'2 Play Res', 4, u'11 a 25 d\xedas', u'11 a 25 d\xedas', u'NO', u'ALTAS INF', u'22-Dec-16', u'Fuera de Tiempo', u'UNE', u'PLANTA', u'OPERACI\xd3N', u'JUDA CONSTRUCCIONES SA DE CV', ''], [41560378, u'A9', 5550359921, u'LEYVA GONZALEZ JORGE ALBERTO', u'XO', u'1/6/2017', 12, 1, u'SJ_', u'SJ_0047', u'', u'LO', u'MIXCOAC', u'LOR', u'SLI', u'CAS', u'1/17/2017', u'1L', u'', u'MIXCOAC', u'A+', u'C+', 1, 0, 0, 1, u'LOMAS QUEBRADAS', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'EDIFICIO', u'SAN JERONIMO', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 1, u'', 0, u'2 Play Res', 4, u'11 a 25 d\xedas', 1, u'NO', u'ALTAS INF', u'21-Jan-17', u'En Tiempo', u'FUERA', u'GIANLUCA SOTRES D\xcdAZ', u'SISTEMAS GESTION', u'-', ''], [41556596, u'A9', 5556674033, u'ORTEGA REYES BRENDA VIANEY', u'PS', u'1/6/2017', 12, 11, u'TU_', u'TU_0012', u'', u'WFC', u'MIXCOAC', u'LOR', u'SLI', u'CAS', u'1/7/2017', u'1L', u'TC', u'MIXCOAC', u'C-', u'D+', 0, 0, 0, 0, u'EL ERMITANO', u'METRO', u'METRO SUR', u'MIX', 56720130, u'A91LP4D', u'ASIGNADO', u'UNE_BOLSA NUEVA, COPE SL', 2220142, u'SL_TU_01 INST', 56720130, u'SL_ INST', u'TEICO', u'CONCENTRADOR', u'SAN JERONIMO', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 0, u'', 0, u'2 Play Res', 4, u'11 a 25 d\xedas', u'11 a 25 d\xedas', u'NO', u'ALTAS INF', u'07-Jan-17', u'Fuera de Tiempo', u'UNE', u'PLANTA', u'OPERACI\xd3N', u'JUDA CONSTRUCCIONES SA DE CV', ''], [41554275, u'A9', 5516733754, u'GARCIA NU\xd0EZ ANA MARIA', u'PS', u'1/6/2017', 12, 1, u'UY_', u'UY_0004', u'', u'MI', u'MIXCOAC', u'MIC', u'SLI', u'CAS', u'1/17/2017', u'1L', u'', u'MIXCOAC', u'C-', u'D+', 0, 0, 0, 0, u'2 RIOS', u'METRO', u'METRO SUR', u'MIX', 56870490, u'A91LPBD', u'ASIGNADO', u'HIPOLITO GONZALEZ GERARDO', 8755108, u'SL_UY_01 CTLS', 56870490, u'SL_CTLS', u'TELMEX', u'CONCENTRADOR', u'SANTA LUCIA', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 0, u'', 0, u'2 Play Res', 4, u'11 a 25 d\xedas', 1, u'SI', u'ALTAS INF', u'', u'', u'TELMEX', u'PLANTA', u'OPERACI\xd3N', u'MARNA IMAGEN CREATIVA SA DE CV', ''], [41550218, u'A0', 5515203509, u'COMERCIALIZADORA FARMACEUTICA', u'PS', u'1/6/2017', 12, 1, u'TR_', u'TR_0008', u'', u'AC4', u'MIXCOAC', u'LOR', u'SLI', u'CAS', u'1/17/2017', u'2L', u'R4', u'MIXCOAC', u'A+', u'C', 0, 0, 0, 1, u'ALCANTARILLA', u'METRO', u'METRO SUR', u'MIX', 56723606, u'A02LPBD', u'ASIGNADO', u'PACHECO BARCENAS ROBERTO', 8747462, u'SL_TR_01 CTLS', 56723606, u'SL_CTLS', u'TELMEX', u'CONCENTRADOR', u'SAN JERONIMO', u'', u'NO RESIDENCIAL', u'INFINITUM COMERCIAL', 0, u'', 0, u'2 Play Com', 3, u'11 a 25 d\xedas', 1, u'SI', u'ALTAS INF', u'', u'', u'TELMEX', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41549369, u'A0', 5566477090, u'GARCIA PADILLA JULIO CESAR', u'PS', u'1/6/2017', 12, 1, u'TR_', u'TR_0035', u'', u'WTL', u'MIXCOAC', u'LOR', u'SLI', u'CAS', u'1/17/2017', u'1L', u'', u'MIXCOAC', u'C-', u'D+', 0, 0, 0, 0, u'PUEBLO SAN BERNABE OCOTEPEC', u'METRO', u'METRO SUR', u'MIX', 56714026, u'A01LP4MPE', u'ASIGNADO', u'FILIAL_UNE_ SL', 2610222, u'SL_TR_03 INST', 56714026, u'SL_ INST', u'UNE', u'CONCENTRADOR', u'SAN JERONIMO', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 0, u'BESTPHONE        ', 1, u'Portabilidad', 1, u'11 a 25 d\xedas', 1, u'NO', u'ALTAS INF', u'14-Jan-17', u'Fuera de Tiempo', u'UNE', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41553833, u'A4', 5517130985, u'PEREZ ZAVALETA FELIX FERNANDO', u'PS', u'1/6/2017', 12, 12, u'EY_', u'EY_0002', u'', u'CUJ', u'MIXCOAC', u'MIC', u'SLI', u'CAS', u'1/6/2017', 10, u'R6', u'MIXCOAC', u'C-', u'C+', 1, 0, 0, 1, u'PRESIDENTES', u'METRO', u'METRO SUR', u'MIX', 56717487, u'A410PBG', u'ASIGNADO', u'MORENO CRUZ JOSE ARMANDO', 8523039, u'SL_EY_01 INST', 56717487, u'SL_ INST', u'TELMEX', u'CONTENEDOR', u'SANTA LUCIA', u'', u'RESIDENCIAL', u'RESIDENCIAL', 0, u'', 0, u'1 Play', 7, u'11 a 25 d\xedas', u'11 a 25 d\xedas', u'NO', u'ALTAS VOZ', u'16-Jan-17', u'En Tiempo', u'TELMEX', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41553398, u'A4', 5556813884, u'PULLMAN DE CHIAPAS SA DE CV', u'PS', u'1/6/2017', 12, 6, u'SJ_', u'SJ_0029', u'', u'LO', u'MIXCOAC', u'LOR', u'SLI', u'CAS', u'1/12/2017', 20, u'C-', u'MIXCOAC', u'C-', u'C+', 1, 0, 0, 1, u'SAN JERONIMO ACULCO', u'METRO', u'METRO SUR', u'MIX', 56790042, u'A420PBG', u'ASIGNADO', u'MORENO CRUZ JOSE ARMANDO', 8523039, u'SL_SJ_03 INST', 56790042, u'SL_ INST', u'TELMEX', u'EDIFICIO', u'SAN JERONIMO', u'', u'NO RESIDENCIAL', u'COMERCIAL', 1, u'', 0, u'PYME', 5, u'11 a 25 d\xedas', u'4 a 10 d\xedas', u'NO', u'ALTAS VOZ', u'21-Jan-17', u'En Tiempo', u'TELMEX', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41551806, u'A4', 5554237559, u'ROMO MORALES ESPERANZA', u'PS', u'1/6/2017', 12, 9, u'SL_', u'SL_0142', u'', u'API', u'MIXCOAC', u'MIC', u'SLI', u'CAS', u'1/9/2017', 10, u'R5', u'MIXCOAC', u'C-', u'C+', 1, 0, 0, 0, u'LOMAS DE TARANGO', u'METRO', u'METRO SUR', u'MIX', 56745569, u'A410PBDPI', u'ASIGNADO', u'MORENO CRUZ JOSE ARMANDO', 8523039, u'SL_SL_02 INST', 56745569, u'SL_ INST', u'TELMEX', u'EDIFICIO', u'SANTA LUCIA', u'', u'RESIDENCIAL', u'RESIDENCIAL', 0, u'', 0, u'1 Play', 7, u'11 a 25 d\xedas', u'4 a 10 d\xedas', u'NO', u'ALTAS VOZ', u'22-Jan-17', u'En Tiempo', u'TELMEX', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41559671, u'TV', 5555955143, u'CORRALES AYALA RAFAEL', u'KC', u'1/6/2017', 12, 1, u'OV_', u'OV_0004', u'', u'WMX', u'MIXCOAC', u'LOR', u'SLI', u'CAS', u'1/17/2017', u'1L', u'R6', u'MIXCOAC', u'A+', u'A/B', 1, 0, 0, 0, u'OLIVAR DE LOS PADRES', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'CONTENEDOR', u'SAN JERONIMO', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 1, u'', 0, u'1 Play Inf', 6, u'11 a 25 d\xedas', 1, u'NO', u'TV', u'', u'', u'FUERA', u'', u'', u'-', ''], [41561840, u'A9', 5552771052, u'VILLEGAS CAMPOS ROCIO', u'PS', 42741, 12, 4, u'TY_', u'TY_0167', u'', u'LO', u'MIXCOAC', u'VAL', u'TYB', u'TYB', 42749, u'1L', u'TC', u'MIXCOAC', u'C-', u'D+', 0, 0, 0, 0, u'LOMAS DE BECERRA GRANADA', u'METRO', u'METRO SUR', u'MIX', 56723358, u'A91LPXT', u'PENDIENTE', u'', u'.', u'TY_TY_01 INST', 56723358, u'TY_ INST', u'', u'EDIFICIO', u'TACUBAYA', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 0, u'', 0, u'2 Play Res', 4, u'11 a 25 d\xedas', u'4 a 10 d\xedas', u'NO', u'ALTAS INF', u'', u'', u'NO ASIGNADO', u'', u'', u'JUDA CONSTRUCCIONES SA DE CV', ''], [41562751, u'D2', 5555209610, u'GRUPO ICA', u'XO', 42741, 12, 1, u'TY_', u'TY_0244', u'', u'AC3', u'MIXCOAC', u'VAL', u'TYB', u'TYB', 42752, u'2L', u'N', u'MIXCOAC', u'CM', u'C+', 1, 0, 0, 1, u'ESCANDON', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'EDIFICIO', u'MIXCOAC', u'MIXCOAC', u'NO RESIDENCIAL', u'INFINITUM COMERCIAL', 1, u'', 0, u'Cambio Domicilio', 2, u'11 a 25 d\xedas', 1, u'NO', u'CD INF', u'', u'', u'FUERA', u'', u'', u'-', ''], [41562356, u'D2', 5552761672, u'GRUPO ICA SA DECV', u'XO', 42741, 12, 1, u'TY_', u'TY_0244', u'', u'LO', u'MIXCOAC', u'VAL', u'TYB', u'TYB', 42752, 20, u'N', u'MIXCOAC', u'CM', u'C+', 1, 0, 0, 1, u'ESCANDON', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'EDIFICIO', u'MIXCOAC', u'MIXCOAC', u'NO RESIDENCIAL', u'COMERCIAL', 1, u'', 0, u'Cambio Domicilio', 2, u'11 a 25 d\xedas', 1, u'NO', u'CD VOZ', u'', u'', u'FUERA', u'', u'', u'-', ''], [41568827, u'D2', 5555503874, u'SANCHEZ COS MARIA ROSA', u'PS', u'1/7/2017', 11, 10, u'SA_', u'SA_0023', u'', u'WFC', u'MIXCOAC', u'LOR', u'MIC', u'CAS', u'1/8/2017', u'1L', u'R1', u'MIXCOAC', u'A+', u'A/B', 1, 0, 0, 1, u'SAN ANGEL INN', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'EDIFICIO', u'CORREDOR INSURGENTES', u'CORREDOR INSURGENTES', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 1, u'', 0, u'Cambio Domicilio', 2, u'11 a 25 d\xedas', u'4 a 10 d\xedas', u'NO', u'CD INF', u'15-Jan-17', u'En Tiempo', u'ASISTENCIA', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41571060, u'TV', 5556529292, u'ELIZALDE DI MARTINO CARINA MAR', u'V2', u'1/7/2017', 11, 1, u'PD_', u'PD_0055', u'', u'PC', u'MIXCOAC', u'LOR', u'MIC', u'CAS', u'1/17/2017', u'1L', u'R6', u'MIXCOAC', u'C-', u'C', 0, 0, 0, 0, u'BARRIO SAN FRANCISCO', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'CONCENTRADOR', u'PEDREGAL', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 1, u'', 0, u'1 Play Inf', 6, u'11 a 25 d\xedas', 1, u'NO', u'TV', u'26-Jan-17', u'En Tiempo', u'FUERA', u'CARLOS AGUILAR OCHIQUI', u'UNINET', u'-', ''], [41569116, u'TV', 5555247703, u'HERNANDEZ VELAZQUEZ JESUS ALBE', u'PS', u'1/7/2017', 11, 11, u'GI_', u'GI_0096', u'', u'TKE', u'MIXCOAC', u'MIC', u'MIC', u'CAS', u'1/7/2017', u'1L', u'R5', u'MIXCOAC', u'A+', u'A/B', 1, 0, 0, 1, u'FLORIDA', u'METRO', u'METRO SUR', u'MIX', 56730107, u'TV1LPBGPI', u'ASIGNADO', u'FILIAL_ITCR_DOMNGO G JOSE_MI', 2610227, u'MI_GI_02 INST', 56730107, u'MI_ INST', u'ITCR', u'EDIFICIO', u'CORREDOR INSURGENTES', u'CORREDOR INSURGENTES', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 1, u'', 0, u'1 Play Inf', 6, u'11 a 25 d\xedas', u'11 a 25 d\xedas', u'NO', u'TV', u'12-Jan-17', u'Fuera de Tiempo', u'ITCR', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41567904, u'A4', 5517134191, u'GONZALEZ JIMENEZ ERIKA', u'PS', u'1/7/2017', 11, 11, u'', u'', u'', u'WTM', u'MIX', u'MIC', u'SLI', u'CAS', u'1/7/2017', 10, u'R6', u'MIXCOAC', u'', u'', 0, 0, 0, 0, u'', u'METRO', u'METRO SUR', u'MIX', 56730070, u'A410PBDPI', u'ASIGNADO', u'MORENO CRUZ JOSE ARMANDO', 8523039, u'SL_RX_01 INST', 56730070, u'SL_ INST', u'TELMEX', u'NO IDENTIFICADO', u'', u'', u'RESIDENCIAL', u'RESIDENCIAL', 0, u'', 0, u'1 Play', 7, u'11 a 25 d\xedas', u'11 a 25 d\xedas', u'NO', u'ALTAS VOZ', u'16-Jan-17', u'En Tiempo', u'TELMEX', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41611369, u'A9', 5555688087, u'ADOLFO GUTIERREZ MARROQUIN', u'PO', u'1/9/2017', 9, 1, u'PD_', u'PD_0054', u'', u'TMC', u'MIXCOAC', u'LOR', u'MIC', u'CAS', 42752, u'2L', u'R6', u'MIXCOAC', u'', u'C+', 1, 0, 0, 0, u'', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'CONCENTRADOR', u'PEDREGAL', u'', u'NO RESIDENCIAL', u'INFINITUM COMERCIAL', 0, u'', 0, u'2 Play Com', 3, u'8 a 10 d\xedas', 1, u'NO', u'ALTAS INF', u'14-Jan-17', u'Fuera de Tiempo', u'FUERA', u'ANDRES HDZ', u'CCR', u'-', ''], [41606954, u'A0', 5567230990, u'BALCARCEL DOMINGUEZ JORGE RAMO', u'E9', u'1/9/2017', 9, 1, u'PD_', u'PD_0113', u'', u'WTG', u'MIXCOAC', u'LOR', u'MIC', u'CAS', u'1/17/2017', u'2L', u'', u'MIXCOAC', u'A+', u'A/B', 1, 0, 0, 0, u'JARDINES DEL PEDREGAL', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'CONCENTRADOR', u'PEDREGAL', u'', u'NO RESIDENCIAL', u'INFINITUM COMERCIAL', 1, u'AXTEL            ', 1, u'Portabilidad', 1, u'8 a 10 d\xedas', 1, u'NO', u'ALTAS INF', u'22-Jan-17', u'En Tiempo', u'FUERA', u'CENTRAL', u'CENTRAL', u'-', ''], [41603595, u'A9', 5555503360, u'PPP INNOVATION CORPORATE SA DE', u'PO', u'1/9/2017', 9, 1, u'SA_', u'SA_0033', u'', u'LO', u'MIXCOAC', u'LOR', u'MIC', u'CAS', u'1/17/2017', u'2L', u'R5', u'MIXCOAC', u'A+', u'A/B', 1, 0, 0, 1, u'SAN ANGEL INN', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'EDIFICIO', u'CORREDOR INSURGENTES', u'CORREDOR INSURGENTES', u'NO RESIDENCIAL', u'INFINITUM COMERCIAL', 1, u'', 0, u'2 Play Com', 3, u'8 a 10 d\xedas', 1, u'NO', u'ALTAS INF', u'22-Jan-17', u'En Tiempo', u'FUERA', u'ANDRES HDZ', u'CCR', u'-', ''], [41600241, u'A9', 5555502941, u'GUERRERO MUZQUIZ NAVARRO DULCE', u'E3', u'1/9/2017', 9, 1, u'SA_', u'SA_0023', u'', u'WFC', u'MIXCOAC', u'LOR', u'MIC', u'CAS', 42752, u'1L', u'CP', u'MIXCOAC', u'A+', u'A/B', 1, 0, 0, 1, u'SAN ANGEL INN', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'EDIFICIO', u'CORREDOR INSURGENTES', u'CORREDOR INSURGENTES', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 1, u'', 0, u'2 Play Res', 4, u'8 a 10 d\xedas', 1, u'NO', u'ALTAS INF', u'22-Jan-17', u'En Tiempo', u'FUERA', u'CENTRAL', u'CENTRAL', u'-', ''], [41599837, u'A0', 5521244227, u'HERNANDEZ GONZALEZ MARIA DEL R', u'PS', u'1/9/2017', 9, 9, u'GI_', u'GI_0101', u'', u'UN', u'MIXCOAC', u'MIC', u'MIC', u'CAS', u'1/9/2017', 10, u'', u'MIXCOAC', u'C-', u'A/B', 1, 0, 0, 0, u'PUEBLO AXOTLA', u'METRO', u'METRO SUR', u'MIX', 56742138, u'A010PBG', u'ASIGNADO', u'FILIAL_ITCR_DOMNGO G JOSE_MI', 2610227, u'MI_GI_02 INST', 56742138, u'MI_ INST', u'ITCR', u'EDIFICIO', u'SAN JOSE INSURGENTES', u'', u'RESIDENCIAL', u'RESIDENCIAL', 1, u'', 0, u'1 Play', 7, u'8 a 10 d\xedas', u'4 a 10 d\xedas', u'NO', u'ALTAS VOZ', u'21-Jan-17', u'En Tiempo', u'ITCR', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41594194, u'A0', 5515184181, u'JACUINDE CORTES RAFAEL', u'PS', u'1/9/2017', 9, 1, u'BN_', u'BN_0001', u'', u'MI', u'MIXCOAC', u'MIC', u'MIC', u'TYB', u'1/17/2017', 10, u'', u'MIXCOAC', u'C-', u'D+', 0, 0, 0, 0, u'BARRIO NORTE', u'METRO', u'METRO SUR', u'MIX', 56832349, u'A010PBD', u'ASIGNADO', u'CIMAQSA_BOLSA NUEVA COPE MI', 2220100, u'MI_MI_04 INST', 56832349, u'MI_ INST', u'CIMAQSA', u'BANQUETERO', u'SANTA LUCIA', u'', u'RESIDENCIAL', u'RESIDENCIAL', 0, u'', 0, u'1 Play', 7, u'8 a 10 d\xedas', 1, u'NO', u'ALTAS VOZ', u'22-Jan-17', u'En Tiempo', u'CIMAQSA', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41606961, u'D3', 5556682213, u'ALVAREZ RONQUILLO ELIZABETH', u'S2', u'1/9/2017', 9, 2, u'PD_', u'PD_0031', u'', u'WVH', u'MIXCOAC', u'LOR', u'MIC', u'CAS', u'1/16/2017', u'1L', u'R4', u'MIXCOAC', u'A+', u'A/B', 1, 0, 1, 0, u'FUENTES DEL PEDREGAL', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'CONCENTRADOR', u'PEDREGAL', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 1, u'', 0, u'Cambio Domicilio', 2, u'8 a 10 d\xedas', 2, u'NO', u'CD INF', u'', u'', u'FUERA', u'VICTOR MANOATH ESQUIVEL', u'SISTEMAS COMERCIALES', u'-', ''], [41605467, u'D2', 5555503609, u'OPERADORA DE FAST FOOD CHINO S', u'PS', u'1/9/2017', 9, 1, u'GI_', u'GI_0192', u'', u'AC4', u'MIXCOAC', u'MIC', u'MIC', u'CAS', u'1/17/2017', u'2L', u'CE', u'MIXCOAC', u'A+', u'A/B', 1, 0, 0, 0, u'GUADALUPE INN', u'METRO', u'METRO SUR', u'MIX', 56752449, u'D22LPADPI', u'PENDIENTE', u'', u'.', u'MI_GI_01 INST', 56752449, u'MI_CTLS', u'', u'EDIFICIO', u'CORREDOR INSURGENTES', u'CORREDOR INSURGENTES', u'NO RESIDENCIAL', u'INFINITUM COMERCIAL', 1, u'', 0, u'Cambio Domicilio', 2, u'8 a 10 d\xedas', 1, u'SI', u'CD INF', u'', u'', u'NO ASIGNADO', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41601007, u'D2', 5591552074, u'GOMEZ GALAZ RODRIGO DE JESUS', u'PS', u'1/9/2017', 9, 5, u'PD_', u'PD_0042', u'', u'PC', u'MIXCOAC', u'LOR', u'MIC', u'CAS', u'1/13/2017', u'1L', u'R5', u'MIXCOAC', u'A+', u'A/B', 1, 0, 0, 0, u'JARDINES DEL PEDREGAL', u'METRO', u'METRO SUR', u'MIX', 56761130, u'D21LP4DPI', u'ASIGNADO', u'FILIAL_PC_ MIXCOAC MIXCOAC', 2610423, u'MI_PD_04 INST', 56761130, u'MI_ INST', u'PC', u'CONCENTRADOR', u'PEDREGAL', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 1, u'', 0, u'Cambio Domicilio', 2, u'8 a 10 d\xedas', u'4 a 10 d\xedas', u'NO', u'CD INF', u'01-Jan-00', u'Sin Programa', u'PC', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41598455, u'D2', 5555687095, u'ARMAS AGUILAR ANA LETICIA', u'ER', u'1/9/2017', 9, 1, u'PD_', u'PD_0027', u'', u'API', u'MIXCOAC', u'LOR', u'MIC', u'CAS', 42752, u'1L', u'R2', u'MIXCOAC', u'A+', u'A/B', 1, 0, 0, 0, u'JARDINES DEL PEDREGAL', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'CONCENTRADOR', u'PEDREGAL', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 1, u'', 0, u'Cambio Domicilio', 2, u'8 a 10 d\xedas', 1, u'NO', u'CD INF', u'01-Jan-00', u'Sin Programa', u'FUERA', u'CENTRAL', u'CENTRAL', u'-', ''], [41592143, u'D2', 5556899961, u'HERNANDEZ LOPEZ ROSA MARIA', u'ER', u'1/9/2017', 9, 1, u'GI_', u'GI_0075', u'', u'LO', u'MIXCOAC', u'MIC', u'MIC', u'CAS', 42752, 10, u'R6', u'MIXCOAC', u'A+', u'A/B', 1, 0, 0, 0, u'GUADALUPE INN', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'EDIFICIO', u'CORREDOR INSURGENTES', u'CORREDOR INSURGENTES', u'RESIDENCIAL', u'RESIDENCIAL', 1, u'', 0, u'Cambio Domicilio', 2, u'8 a 10 d\xedas', 1, u'NO', u'CD VOZ', u'27-Jan-17', u'En Tiempo', u'FUERA', u'CENTRAL', u'CENTRAL', u'-', ''], [41608367, u'TV', 5559083029, u'MIGUEL GALVAN MARIA MAGDALENA', u'PS', u'1/9/2017', 9, 6, u'PD_', u'PD_0022', u'', u'LO', u'MIXCOAC', u'LOR', u'MIC', u'CAS', u'1/12/2017', u'1L', u'R5', u'MIXCOAC', u'A+', u'A/B', 1, 0, 0, 0, u'JARDINES DEL PEDREGAL', u'METRO', u'METRO SUR', u'MIX', 56748222, u'TV1LPBGPE', u'ASIGNADO', u'AZ_FILIAL_FO_UNE ALFONSO ARENAS', 2220660, u'AZ_PO_02_MIXTO', 56748222, u'AZ_MIXTO', u'UNE', u'CONCENTRADOR', u'PEDREGAL', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 1, u'', 0, u'1 Play Inf', 6, u'8 a 10 d\xedas', u'4 a 10 d\xedas', u'NO', u'TV', u'26-Jan-17', u'En Tiempo', u'UNE', u'PLANTA', u'OPERACI\xd3N', u'-', ''], [41605993, u'TI', 5556528171, u'SERVS GASTRONOMICOS MONT ALCE', u'PS', u'1/9/2017', 9, 9, u'PD_', u'PD_0006', u'', u'WTG', u'MIXCOAC', u'LOR', u'MIC', u'CAS', u'1/9/2017', u'2L', u'C-', u'MIXCOAC', u'A+', u'A/B', 1, 0, 0, 0, u'JARDINES DEL PEDREGAL', u'METRO', u'METRO SUR', u'MIX', 56746401, u'TI2LPBF', u'ASIGNADO', u'FILIAL CIMAQSA_ GARCIA NIETO FCO_MI', 2220112, u'MI_PD_03 INST', 56746401, u'MI_ INST', u'CIMAQSA', u'CONCENTRADOR', u'PEDREGAL', u'', u'NO RESIDENCIAL', u'INFINITUM COMERCIAL', 1, u'', 0, u'TI', 8, u'8 a 10 d\xedas', u'4 a 10 d\xedas', u'NO', u'TI', u'19-Jan-17', u'En Tiempo', u'CIMAQSA', u'PLANTA', u'OPERACI\xd3N', u'-', u'FO'], [41605194, u'A0', 5527930281, u'ALFARO APANCO MARIA GUADALUPE', u'C4', u'1/9/2017', 9, 1, u'TU_', u'TU_0009', u'', u'WFC', u'MIXCOAC', u'LOR', u'SLI', u'CAS', u'1/17/2017', u'1L', u'R6', u'MIXCOAC', u'C-', u'D+', 0, 0, 1, 0, u'EL OCOTAL', u'METRO', u'METRO SUR', u'MIX', u'', u'', u'', u'', u'', u'', u'', u'', u'', u'CONCENTRADOR', u'SAN JERONIMO', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 0, u'TELMEX           ', 1, u'Portabilidad', 1, u'8 a 10 d\xedas', 1, u'NO', u'ALTAS INF', u'22-Jan-17', u'En Tiempo', u'FUERA', u'TIENDAS', u'COMERCIAL', u'MARNA IMAGEN CREATIVA SA DE CV', ''], [41603950, u'A9', 5517185859, u'X NAJERA MARTHA', u'PS', u'1/9/2017', 9, 8, u'BB_', u'BB_0003', u'', u'WFC', u'MIXCOAC', u'LOR', u'SLI', u'CAS', u'1/10/2017', u'1L', u'', u'MIXCOAC', u'C-', u'C+', 1, 0, 0, 0, u'LOMAS DE SAN BERNABE', u'METRO', u'METRO SUR', u'MIX', 56745974, u'A91LP4D', u'ASIGNADO', u'ITCR_BOLSA NUEVA, COPE SL', 2220120, u'SL_BB_01 INST', 56745974, u'SL_ INST', u'ITCR', u'CONTENEDOR', u'SAN JERONIMO', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 0, u'', 0, u'2 Play Res', 4, u'8 a 10 d\xedas', u'4 a 10 d\xedas', u'NO', u'ALTAS INF', u'08-Jan-17', u'Fuera de Tiempo', u'ITCR', u'PLANTA', u'OPERACI\xd3N', u'JUDA CONSTRUCCIONES SA DE CV', ''], [41603070, u'A9', 5550359256, u'RONQUILLO CERVANTES ALEJANDRO', u'PS', u'1/9/2017', 9, 7, u'EY_', u'EY_0002', u'', u'MI', u'MIXCOAC', u'MIC', u'SLI', u'CAS', u'1/11/2017', u'1L', u'', u'MIXCOAC', u'C-', u'C+', 1, 0, 0, 1, u'PRESIDENTES', u'METRO', u'METRO SUR', u'MIX', 56778524, u'A91LPBG', u'ASIGNADO', u'FILIAL_UNE_ SL', 2610222, u'SL_EY_01 INST', 56778524, u'SL_ INST', u'UNE', u'CONTENEDOR', u'SANTA LUCIA', u'', u'RESIDENCIAL', u'INFINITUM RESIDENCIAL', 0, u'', 0, u'2 Play Res', 4, u'8 a 10 d\xedas', u'4 a 10 d\xedas', u'NO', u'ALTAS INF', u'08-Jan-17', u'Fuera de Tiempo', u'UNE', u'PLANTA', u'OPERACI\xd3N', u'JUDA CONSTRUCCIONES SA DE CV', ''], [41601634, u'A9', 5510560687, u'SSID HI SA DE CV', u'PS', u'1/9/2017', 9, 8, u'AI_', u'AI_0020', u'', u'ACP', u'MIXCOAC', u'MIC', u'SLI', u'CAS', u'1/10/2017', u'2L', u'R6', u'MIXCOAC', u'C-', u'C', 0, 0, 0, 0, u'SAN CLEMENTE', u'METRO', u'METRO SUR', u'MIX', 56744760, u'A92LP4S', u'ASIGNADO', u'ITCR_BOLSA NUEVA, COPE SL', 2220120, u'SL_AI_03 INST', 56744760, u'SL_ INST', u'ITCR', u'CONCENTRADOR', u'SAN JERONIMO', u'', u'NO RESIDENCIAL', u'INFINITUM COMERCIAL', 0, u'', 0, u'2 Play Com', 3, u'8 a 10 d\xedas', u'4 a 10 d\xedas', u'NO', u'ALTAS INF', u'18-Jan-17', u'En Tiempo', u'ITCR', u'PLANTA', u'OPERACI\xd3N', u'-', '']]
+#     pos_field_id = get_pos_field_id_dict(header, 10540, cope=cope)
+#     pre_os_field_id = get_pos_field_id_dict(header, 11149, cope=cope)
+#     create_record(pos_field_id, pre_os_field_id, records, header)
+#
+
+
+
+#upload_test()
 upload_bolsa()

@@ -159,6 +159,7 @@ def upload_orders_liquidadas(date_to=time.strftime("%Y-%m-%d")):
         # Back retorna un diccionario con las llaves: status_code y data.
         # data es un diccionario con la llave file que es la ruta que tiene el archivo
         upload_url = lkf_api.post_upload_file(data=upload_data, up_file=csv_file)
+        csv_file.close()
         #upload_url = {'status_code': 200, 'data': {'file': 'uploads/1259_jgemayel@pcindustrial.com.mx/b04f64aa25291ed7055dbcd4c49a90c51c59427d.csv'}}
         print 'the url', upload_url
         try:
@@ -325,6 +326,7 @@ def get_orders_for_paco():
             csv_file = {'File': csv_file}
             upload_data ={'form_id': 10798, 'field_id':'f1079800a010000000000004'}
             upload_url = lkf_api.post_upload_file(data=upload_data, up_file=csv_file)
+            csv_file.close()
             try:
                 file_url = upload_url['data']['file']
             except KeyError:

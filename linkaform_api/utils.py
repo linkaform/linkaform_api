@@ -50,6 +50,7 @@ class Cache(object):
             return response['data']
         return False
 
+
     def get_item_fields(self, item_type, item_id):
         if item_type =='form':
             url = api_url['form']['get_form_id_fields']['url'] + str(item_id)
@@ -62,6 +63,7 @@ class Cache(object):
             return response['data']
         return False
 
+
     def get_form_id_fields(self, form_id):
         url = api_url['form']['get_form_id_fields']['url']+str(form_id)
         method = api_url['form']['get_form_id_fields']['method']
@@ -70,11 +72,13 @@ class Cache(object):
             return response['data']
         return False
 
+
     def get_all_items(self, item_type):
         if item_type =='form':
             return self.get_all_forms()
         if item_type == 'catalog':
             return self.get_all_catalogs()
+
 
     def get_item_id(self, item_type, item_id):
         if item_type =='form':
@@ -85,6 +89,7 @@ class Cache(object):
             method = api_url['catalog']['get_catalog_id']['method']
         response = network.dispatch(url=url, method=method)
         return response
+
 
     def get_all_forms(self):
         #TODO UPDATE SELF.ITESM
@@ -97,6 +102,7 @@ class Cache(object):
                     items.append(obj)
         return items
 
+
     def get_all_catalogs(self):
         #TODO UPDATE SELF.ITESM
         #recives the url name on the config file,GET_FORMS or GET_CATALOGS
@@ -108,6 +114,7 @@ class Cache(object):
                     items.append(obj)
         return items
 
+
     def get_all_connections(self):
         #TODO UPDATE SELF.ITESM
         #Returns all the connections
@@ -115,6 +122,7 @@ class Cache(object):
         all_connections = network.dispatch(api_url['connecions']['all_connections'])
         objects = all_connections['data']
         return objects
+
 
     def get_all_users(self):
         #TODO UPDATE SELF.ITESM
@@ -133,13 +141,20 @@ class Cache(object):
             return response['data']
         return False
 
+
     def post_upload_file(self, data, up_file):
+        #data:
+        #up_file:
         upload_url = network.dispatch(api_url['form']['upload_file'], data=data, up_file=up_file)
         return upload_url
 
 
     def patch_record(self, data, record_id):
         return network.patch_forms_answers(data, record_id)
+
+
+    def post_forms_answers(answers, test=False):
+        return network.post_forms_answers(answers)
 
 
     def get_metadata(self, form_id=False, user_id=False):
@@ -157,10 +172,64 @@ class Cache(object):
             metadata.pop('form_id')
         return metadata
 
-    def make_infosync_json(self, answer, element):
+
+    def guess(self, value, answer):
+        count = last_find = valuation = 0
+        was_int = False
+        org_value = value
+        if type(answer) == int:
+            was_int = True
+            answer = str(answer)
+        for letter in answer:
+            index = value.find(letter)
+            if index >= 0:
+                count+=1
+                if index == last_find:
+                    count = count * 2
+                    if was_int and index == 0:
+                        count = count + 3
+                value = value[:index] + value[index+1:]
+                last_find = index
+        return (count, org_value)
+
+
+    def make_infosync_select_json(self, answer, element, best_effort=False):
+        element = {'options':[{'points': None, 'selected': False, 'value': '1._portabilidad', 'label': '1. PORTABILIDAD'}, {'points': None, 'selected': False, 'value': '2.-_cambio_dom', 'label': '2.- CAMBIO DOM'}, {'points': None, 'selected': False, 'value': '3._mercado_empresarial', 'label': '3. MERCADO EMPRESARIAL'}, {'points': None, 'selected': False, 'value': '4._pyme', 'label': '4. PyME'}, {'points': None, 'selected': False, 'value': '5._2_play', 'label': '5. 2 PLAY'}, {'points': None, 'selected': False, 'value': '6._one_play', 'label': '6. ONE PLAY'}]}
+        if element.has_key('options') and  element.has_key('options'):
+            options = element['options']
+            default = False
+            best_guess = (0,0)
+            for opt in options:
+                if str(answer) == opt['value']:
+                    return opt['value']
+                if str(answer).lower().replace(' ', '_') == opt['value']:
+                    return opt['value']
+                elif str(answer) == opt['label']:
+                    return opt['value']
+                elif opt.has_key('selected') and opt['selected']:
+                    default = opt['value']
+                elif opt.has_key('default') and opt['default']:
+                    default = opt['value']
+                if best_effort:
+                    best_guess_opt = self.guess(opt['value'], answer)
+                    if best_guess_opt[0] > best_guess[0]:
+                        best_guess = best_guess_opt
+            if best_guess[0] > 0:
+                return best_guess[1]
+            if default:
+                return default
+        return False
+
+
+        raise ValueError('element should have the keys field_type and field_id')
+
+
+    def make_infosync_json(self, answer, element, best_effort=False):
         #answer: The answer or answer of certain field
         #element: should be the field for the answer
         #this should contain ['field_type'] and ['field_id']
+        #If best_effort is selected then it will try the best options
+        # a select field has
         if answer:
             try:
 
@@ -170,10 +239,18 @@ class Cache(object):
                     return {element['field_id']:str(answer)}
                 if element['field_type'] in ('select-one', 'radio', 'select'):
                     print 'answer++++++++++++++++++++++++++++++++++', answer
-                    answer = str(answer).lower().replace(' ', '_')
-                    return {element['field_id']:answer}
+                    #answer = str(answer).lower().replace(' ', '_')
+                    answer = self.make_infosync_select_json(answer, element, best_effort)
+                    if answer:
+                        return {element['field_id']:answer}
                 if element['field_type'] in ('checkbox'):
-                    return {element['field_id']:answer.split(',')}
+                    answer_list = []
+                    for answer in answer.split(','):
+                        answer = self.make_infosync_select_json(answer, element, best_effort)
+                        if answer:
+                            answer_list.append(answer)
+                    if answer_list:
+                        return {element['field_id']:answer_list}
                 if element['field_type'] in ('integer'):
                     return {element['field_id']:int(answer)}
                 if element['field_type'] in ('decimal','float'):
@@ -185,6 +262,7 @@ class Cache(object):
                 #print 'value', answer
                 return {}
         return {}
+
 
 def warning(*objs):
     '''
