@@ -186,6 +186,19 @@ for dbname in databases:
                             connection_bucket_files = [ _file['fileName'] for _file in connection_bucket_files]
                             new_url = upload_file(record['form_id'], _key, file_url, 
                                 connection_properties, connection_bucket_files)
+                    
+                    # Change to absolute path
+                    record['answers'][_key]['file_url'] = media_path + file_url
+                    cur_col.update(
+                        {'_id':ObjectId(record['_id'])},
+                        {
+                            "$set": {
+                                'answers':{
+                                    _key: record['answers'][_key]
+                                }
+                            }
+                        } )
+
                     if not new_url:
                         records_with_errors.setdefault(dbname,[]).append(record['_id'])
                     # if new_url:
@@ -221,6 +234,18 @@ for dbname in databases:
                                 # new_url = upload_file(record['form_id'], _key, file_url, 
                                 #     properties, bucket_files)
                                 
+                                # Change to absolute path
+                                group[group_key]['file_url'] = media_path + file_url
+                                cur_col.update(
+                                    {'_id':ObjectId(record['_id'])},
+                                    {
+                                        "$set": {
+                                            "answers":{
+                                                _key: group
+                                            }
+                                        }
+                                    } )
+
                                 if not new_url:
                                     records_with_errors.setdefault(dbname,[]).append(record['_id'])
                                 # if new_url:
