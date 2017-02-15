@@ -310,11 +310,13 @@ def assigned_record(record, metadata, pos_field_id, pre_os_field_id, folio, is_a
         return result
     if existing_record_preorder and is_assigned.has_key(True):
         # Es una preorden que se acaba de asignar a PCI
-        expediente = is_assigned['True']
+        expediente = is_assigned[True]
         metadata['form_id'] = 11149
-        existing_record_preorder = validate_status(existing_record_preorder)
         if existing_record_preorder:
-            result['update'] = update_preorder_format(existing_record_preorder, record, metadata, pre_os_field_id, folio, is_update=True)
+            existing_record_preorder_dir = existing_record_preorder.next()
+        existing_record_preorder = validate_status(existing_record_preorder_dir)
+        if existing_record_preorder:
+            result['update'] = update_preorder_format(existing_record_preorder_dir, record, metadata, pre_os_field_id, folio, is_update=True)
             #TODO ASGINAR A USARIO
     #revisa ordenes
     if not existing_record and is_assigned.has_key(True):
