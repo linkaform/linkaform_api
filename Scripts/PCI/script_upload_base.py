@@ -31,7 +31,7 @@ lkf_api = utils.Cache()
 config = {
     'USERNAME' : 'jgemayel@pcindustrial.com.mx',
     #'USERNAME' : 'josepato@infosync.mx',
-    'PASS' : '123456',
+    'PASS' : 'j&3m@y3l',
     'COLLECTION' : 'form_answer',
     #'HOST' : 'db3.linkaform.com',
     'MONGODB_URI':MONGODB_URI,
@@ -41,7 +41,7 @@ config = {
     'KEYS_POSITION' : {},
     'IS_USING_APIKEY' : True,
     'AUTHORIZATION_EMAIL_VALUE' : 'jgemayel@pcindustrial.com.mx',
-    'AUTHORIZATION_TOKEN_VALUE' : '829df5615c166a9eb1b7f36f4494b1fe27059644',
+    'AUTHORIZATION_TOKEN_VALUE' : '32e3414e60a19c261f42ab83a68897cbc78728e6',
 }
 
 
@@ -673,4 +673,6 @@ def get_bolsa_update_communication(file_url, create_json):
 
     return file_url
 
-upload_bolsa()
+
+if __name__ == '__main__':
+    sys.exit(upload_bolsa())
