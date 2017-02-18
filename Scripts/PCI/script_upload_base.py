@@ -5,7 +5,7 @@
 #
 #
 #####
-import wget
+import wget,sys
 import pyexcel
 import datetime ,time
 
@@ -310,16 +310,19 @@ def assigned_record(record, metadata, pos_field_id, pre_os_field_id, folio, is_a
         return result
     if existing_record_preorder and is_assigned.has_key(True):
         # Es una preorden que se acaba de asignar a PCI
+        #print stop
         expediente = is_assigned[True]
         metadata['form_id'] = 11149
         if existing_record_preorder:
             existing_record_preorder_dir = existing_record_preorder.next()
+        #Checks the status, if it is all ready assinged it returns False
         existing_record_preorder = validate_status(existing_record_preorder_dir)
         if existing_record_preorder:
             result['update'] = update_preorder_format(existing_record_preorder_dir, record, metadata, pre_os_field_id, folio, is_update=True)
             #TODO ASGINAR A USARIO
+            result['update']['answers']['f1114900a010000000000010'] = 'asignada'
     #revisa ordenes
-    if not existing_record and is_assigned.has_key(True):
+    if not existing_record and is_assigned.has_key(True) and not existing_record_preorder:
         this_record = create_preorder_format(record, metadata, pos_field_id, folio)
         is_valid = assigned_record_validations(this_record)
         if is_valid:
@@ -565,9 +568,12 @@ def create_record(pos_field_id, pre_os_field_id, records, header):
             record_errors.append(record)
 
     if record_errors:
-        print 'errors', len(record_errors)
-        create_json['file_url'] = upload_error_file(header, record_errors)
-    print 'fin ============================='
+        if this_record.has_key('update'):
+            create_json['uploaded']['errores'] = len(record_errors)
+        elif this_record.has_key('create'):
+            create_json['created']['errores'] = len(record_errors)
+        create_json['error_file'] = upload_error_file(header,  record_errors)
+    print 'fin =============================', create_json
     return create_json
 
 
@@ -582,12 +588,12 @@ def upload_error_file(header, record_errors):
             file_url = upload_url['data']['file']
             try:
                 file_url = upload_url['data']['file']
-                record['answers']['f1074100a010000000000003'] ={
-                'file_name':'Errores de Carga %s.xlsx'%file_date,
-                'file_url':file_url}
+                file_date = time.strftime("%Y_%m_%d")
+                error_file = {'f1074100a010000000000003': {'file_name':'Errores de Carga %s.xlsx'%file_date,
+                                                    'file_url':file_url}}
             except KeyError:
                 print 'could not save file Errores'
-            return file_url
+            return error_file
 
 
 def upload_bolsa():
@@ -614,7 +620,6 @@ def upload_bolsa():
                 print '===== starting ======'
                 if file_url['answers']['f1074100a010000000000001'].has_key('file_url'):
                     url = file_url['answers']['f1074100a010000000000001']['file_url']
-                    print 'URL', url
                     if url.find('https') == -1:
                         url = 'https://app.linkaform.com/media/' + url
                     try:
@@ -623,13 +628,13 @@ def upload_bolsa():
                         file_url['answers']['f1074100a010000000000002'] = 'El formato del archvio adjunto esta mal. Favor de revisar que el formato sea xlsx o csv. Recuerda actualizar el estatus a Por Cargar'
                         file_url['answers']['f1074100a010000000000005'] = 'error'
                         network.patch_forms_answers(file_url, file_url['_id'])
-                        print 'error reading'
                         continue
                     #records = get_rr()
                     pos_field_id = get_pos_field_id_dict(header, 10540, cope=cope)
                     pre_os_field_id = get_pos_field_id_dict(header, 11149, cope=cope)
                     create_json = create_record(pos_field_id, pre_os_field_id, records, header)
-                    print 'create_json', create_json
+                    if create_json.has_key('error_file') and create_json['error_file']:
+                        file_url['answers'].update(create_json['error_file'])
                     file_url.update(get_bolsa_update_communication(file_url, create_json))
                 else:
                     file_url['answers']['f1074100a010000000000002'] = 'No se encontro ningun archivo adjunto'
@@ -639,8 +644,7 @@ def upload_bolsa():
 
                 #Actualiza el status del la bolsa
                 if settings.GLOBAL_ERRORS:
-                    print 'todo with errors'
-                    file_url['answers']['f1074100a010000000000004'] = settings.GLOBAL_ERRORS
+                    file_url['answers']['f1074100a010000000000004'] = "%s"%settings.GLOBAL_ERRORS
 
                 network.patch_forms_answers(file_url, file_url['_id'])
             else:
