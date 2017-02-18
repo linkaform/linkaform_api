@@ -573,7 +573,7 @@ def create_record(pos_field_id, pre_os_field_id, records, header):
         elif this_record.has_key('create'):
             create_json['created']['errores'] = len(record_errors)
         create_json['error_file'] = upload_error_file(header,  record_errors)
-    print 'fin =============================', create_json
+    print 'fin ============================='
     return create_json
 
 
@@ -604,7 +604,6 @@ def upload_bolsa():
         for record in files:
             file_list.append(record.copy())
         for ffile in file_list:
-            print 'ffile' ,ffile
             if ffile.has_key('answers'):
                 ### Updates. Actualiza el registro y pone procesando
                 ffile['answers']['f1074100a010000000000005'] = 'procesando'
