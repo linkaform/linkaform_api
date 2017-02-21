@@ -23,12 +23,14 @@ class Cache(object):
             self.items[item_type][item_id] = self.get_item_id(item_type, item_id)
         return self.items[item_type][item_id]
 
+
     def get_data(self, item_type, item_id, refresh=False):
         if not self.items_data.has_key(item_type):
             self.items_data[item_type] = {}
         if not self.items_data[item_type].has_key(item_id):
             self.items_data[item_type][item_id] = self.get_item_answer(item_type, item_id)
         return self.items_data[item_type][item_id]
+
 
     def get_item_fields(self, item_type, item_id, refresh=False):
         if not self.items_fields.has_key(item_type):
@@ -194,7 +196,6 @@ class Cache(object):
 
 
     def make_infosync_select_json(self, answer, element, best_effort=False):
-        element = {'options':[{'points': None, 'selected': False, 'value': '1._portabilidad', 'label': '1. PORTABILIDAD'}, {'points': None, 'selected': False, 'value': '2.-_cambio_dom', 'label': '2.- CAMBIO DOM'}, {'points': None, 'selected': False, 'value': '3._mercado_empresarial', 'label': '3. MERCADO EMPRESARIAL'}, {'points': None, 'selected': False, 'value': '4._pyme', 'label': '4. PyME'}, {'points': None, 'selected': False, 'value': '5._2_play', 'label': '5. 2 PLAY'}, {'points': None, 'selected': False, 'value': '6._one_play', 'label': '6. ONE PLAY'}]}
         if element.has_key('options') and  element.has_key('options'):
             options = element['options']
             default = False
@@ -232,14 +233,11 @@ class Cache(object):
         # a select field has
         if answer:
             try:
-
                 if not element.has_key('field_type') or not element.has_key('field_id'):
                     raise ValueError('element should have the keys field_type and field_id')
-                if element['field_type'] in ('text', 'radio', 'textarea', 'email', 'password'):
+                if element['field_type'] in ('text', 'textarea', 'email', 'password'):
                     return {element['field_id']:str(answer)}
                 if element['field_type'] in ('select-one', 'radio', 'select'):
-                    print 'answer++++++++++++++++++++++++++++++++++', answer
-                    #answer = str(answer).lower().replace(' ', '_')
                     answer = self.make_infosync_select_json(answer, element, best_effort)
                     if answer:
                         return {element['field_id']:answer}
