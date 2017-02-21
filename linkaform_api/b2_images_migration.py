@@ -105,6 +105,7 @@ def upload_file(form_id, field_id ,file_path, properties, bucket_files):
 # app
 media_path = '/srv/backend.linkaform.com/infosync-api/backend/media/'
 file_path = 'uploads/'
+absolute_path = 'https://app.linkaform.com/media/'
 
 THUMB_SIZE_H = (90, 141)
 THUMB_SIZE_V = (141, 90)
@@ -124,7 +125,6 @@ port = 27017
 collection_name = 'form_answer'
 cr = MongoClient(host, port)
 # mongo_dbname = 'infosync_answers_client_%s'%user_id
-# print 'db_name=', mongo_dbname
 databases = cr.database_names()
 
 # POSTGRES
@@ -166,6 +166,7 @@ for dbname in databases:
         properties['bucket_name'], properties['folder_name'])
     bucket_files = [ _file['fileName'] for _file in bucket_files]
     query = {'deleted_at':{'$exists':0}, 'created_at': {"$lte": date}}
+    # query = {'form_id':561,'deleted_at':{'$exists':0}}
     result = mongo_util.get_collection_objects(cur_col, query)
     records = [record for record in result]
     for record in records:
@@ -174,21 +175,21 @@ for dbname in databases:
                 if 'file_url' in record['answers'][_key].keys():
                     new_url = None
                     file_url = record['answers'][_key]['file_url']
-                    if user_email in file_url:
-                        new_url = upload_file(record['form_id'], _key, file_url, 
-                            properties, bucket_files)
-                    elif file_url:
-                        connection_id = file_url.split('/')[1].split('_')[0]
-                        if connection_id:
-                            connection_properties = get_properties(connection_id)
-                            connection_bucket_files = get_bucket_files(connection_properties['bucket_id'], 
-                                connection_properties['bucket_name'], connection_properties['folder_name'])
-                            connection_bucket_files = [ _file['fileName'] for _file in connection_bucket_files]
-                            new_url = upload_file(record['form_id'], _key, file_url, 
-                                connection_properties, connection_bucket_files)
+                    # if user_email in file_url:
+                    #     new_url = upload_file(record['form_id'], _key, file_url, 
+                    #         properties, bucket_files)
+                    # elif file_url:
+                    #     connection_id = file_url.split('/')[1].split('_')[0]
+                    #     if connection_id:
+                    #         connection_properties = get_properties(connection_id)
+                    #         connection_bucket_files = get_bucket_files(connection_properties['bucket_id'], 
+                    #             connection_properties['bucket_name'], connection_properties['folder_name'])
+                    #         connection_bucket_files = [ _file['fileName'] for _file in connection_bucket_files]
+                    #         new_url = upload_file(record['form_id'], _key, file_url, 
+                    #             connection_properties, connection_bucket_files)
                     
                     # Change to absolute path
-                    record['answers'][_key]['file_url'] = media_path + file_url
+                    record['answers'][_key]['file_url'] = absolute_path + file_url
                     cur_col.update(
                         {'_id':ObjectId(record['_id'])},
                         {
@@ -199,8 +200,8 @@ for dbname in databases:
                             }
                         } )
 
-                    if not new_url:
-                        records_with_errors.setdefault(dbname,[]).append(record['_id'])
+                    # if not new_url:
+                    #     records_with_errors.setdefault(dbname,[]).append(record['_id'])
                     # if new_url:
                     #     record['answers'][_key]['file_url'] = new_url
                     #     cur_col.update(
@@ -219,23 +220,23 @@ for dbname in databases:
                             if isinstance(group[group_key], dict) and 'file_url' in group[group_key]:
                                 new_url = None
                                 file_url = group[group_key]['file_url']
-                                if user_email in file_url:
-                                    new_url = upload_file(record['form_id'], _key, file_url, 
-                                        properties, bucket_files)
-                                elif file_url:
-                                    connection_id = file_url.split('/')[1].split('_')[0]
-                                    if connection_id:
-                                        connection_properties = get_properties(connection_id)
-                                        connection_bucket_files = get_bucket_files(connection_properties['bucket_id'], 
-                                            connection_properties['bucket_name'], connection_properties['folder_name'])
-                                        connection_bucket_files = [ _file['fileName'] for _file in connection_bucket_files]
-                                        new_url = upload_file(record['form_id'], _key, file_url, 
-                                            connection_properties, connection_bucket_files)
+                                # if user_email in file_url:
+                                #     new_url = upload_file(record['form_id'], _key, file_url, 
+                                #         properties, bucket_files)
+                                # elif file_url:
+                                #     connection_id = file_url.split('/')[1].split('_')[0]
+                                #     if connection_id:
+                                #         connection_properties = get_properties(connection_id)
+                                #         connection_bucket_files = get_bucket_files(connection_properties['bucket_id'], 
+                                #             connection_properties['bucket_name'], connection_properties['folder_name'])
+                                #         connection_bucket_files = [ _file['fileName'] for _file in connection_bucket_files]
+                                #         new_url = upload_file(record['form_id'], _key, file_url, 
+                                #             connection_properties, connection_bucket_files)
                                 # new_url = upload_file(record['form_id'], _key, file_url, 
                                 #     properties, bucket_files)
                                 
                                 # Change to absolute path
-                                group[group_key]['file_url'] = media_path + file_url
+                                group[group_key]['file_url'] = absolute_path + file_url
                                 cur_col.update(
                                     {'_id':ObjectId(record['_id'])},
                                     {
@@ -246,8 +247,8 @@ for dbname in databases:
                                         }
                                     } )
 
-                                if not new_url:
-                                    records_with_errors.setdefault(dbname,[]).append(record['_id'])
+                                # if not new_url:
+                                #     records_with_errors.setdefault(dbname,[]).append(record['_id'])
                                 # if new_url:
                                 #     group[group_key]['file_url'] = new_url
                                 #     cur_col.update(
