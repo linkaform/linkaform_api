@@ -1,6 +1,7 @@
 # PYTHON
 import json, psycopg2, mongo_util
 from datetime import datetime
+import time
 from PIL import Image
 from os import path, remove
 
@@ -120,12 +121,15 @@ THUMB_SIZE_V = (141, 90)
 # host = '10.1.66.14'
 # port = 27014
 # app
+import  os
 host = 'db3.linkaform.com'
 port = 27017
 collection_name = 'form_answer'
-cr = MongoClient(host, port)
+cr = MongoClient('127.0.0.1', port)
 # mongo_dbname = 'infosync_answers_client_%s'%user_id
+#databases = open('/tmp/dbs.txt','r') 
 databases = cr.database_names()
+#databases = ['infosync_answers_client_209']
 
 # POSTGRES
 # local y bigbird
@@ -139,37 +143,55 @@ databases = cr.database_names()
 postgres_dbname = 'infosync'
 postgres_host = 'db3.linkaform.com'
 postgres_port = '5432'
-conn = psycopg2.connect('dbname=%s host=%s port=%s'%(postgres_dbname, postgres_host, postgres_port))
-cur = conn.cursor()
+#conn = psycopg2.connect('dbname=%s host=%s port=%s'%(postgres_dbname, postgres_host, postgres_port))
+#cur = conn.cursor()
 
 records_with_errors = {}
 databases_with_errors = []
-date = datetime.strptime('2017-02-02 12:00:00', "%Y-%m-%d %H:%M:%S")
+date = datetime.strptime('2017-01-01 00:00:00', "%Y-%m-%d %H:%M:%S")
+dbpath='/backup/infosync/2017/backup/infosync/2017/Mongoinfosync-ALLClientDB-2017-20'
 
 for dbname in databases:
+    #dbname.strip('\n')
     if dbname in ['infosync', 'local']:
         continue
     cur_db = mongo_util.connect_mongodb(dbname, host, port)
+    cur_db_orig = mongo_util.connect_mongodb(dbname, '127.0.0.1', port)
     cur_col = mongo_util.get_mongo_collection(cur_db, collection_name)
-    user_id = dbname.split('_')[-1]
-    if not user_id:
-        print dbname
-        databases_with_errors.append(dbname)
-        continue
-    user_email = get_user_email(user_id)
-    properties = get_properties(user_id)
-    if not properties:
-        print 'user_id=', user_id
-        continue
-    storage = B2Connection()
-    bucket_files = get_bucket_files(properties['bucket_id'], 
-        properties['bucket_name'], properties['folder_name'])
-    bucket_files = [ _file['fileName'] for _file in bucket_files]
-    query = {'deleted_at':{'$exists':0}, 'created_at': {"$lte": date}}
+    cur_col_orig = mongo_util.get_mongo_collection(cur_db_orig, collection_name)
+    #user_id = dbname.split('_')[-1]
+    #if not user_id:
+    #    print dbname
+    #    databases_with_errors.append(dbname)
+    #    continue
+    #user_email = get_user_email(user_id)
+    #properties = get_properties(user_id)
+    #if not properties:
+    #    print 'user_id=', user_id
+    #    continue
+    #storage = B2Connection()
+    #bucket_files = get_bucket_files(properties['bucket_id'], 
+    #    properties['bucket_name'], properties['folder_name'])
+    #bucket_files = [ _file['fileName'] for _file in bucket_files]
+    query = {'deleted_at':{'$exists':0}, 'created_at':{'$gte':date}}
     # query = {'form_id':561,'deleted_at':{'$exists':0}}
-    result = mongo_util.get_collection_objects(cur_col, query)
+    result = mongo_util.get_collection_objects(cur_col_orig, query)
+    print result.count()
     records = [record for record in result]
+    i = 0
+    print 'dbname', dbname
     for record in records:
+        i += 1
+        if not record.get('answers', None):
+            continue
+
+        cur_col.update(
+             {'_id':ObjectId(record['_id'])},
+                {
+                  "$set": {
+                           'answers': record['answers']
+                        }
+                  } )
         for _key in record['answers']:
             if isinstance(record['answers'][_key], dict):
                 if 'file_url' in record['answers'][_key].keys():
@@ -189,16 +211,22 @@ for dbname in databases:
                     #             connection_properties, connection_bucket_files)
                     
                     # Change to absolute path
+                    if absolute_path in file_url:
+                        last = file_url.rfind(absolute_path)
+                        if last == 0:
+                            continue
+                        else:
+                            file_url = file_url.replace(absolute_path, '')
+                    elif 'backblazeb2' in file_url:
+                        continue
+
                     record['answers'][_key]['file_url'] = absolute_path + file_url
                     cur_col.update(
                         {'_id':ObjectId(record['_id'])},
                         {
                             "$set": {
-                                'answers':{
-                                    _key: record['answers'][_key]
-                                }
-                            }
-                        } )
+                                'answers.' + _key: record['answers'][_key]
+                                     } })
 
                     # if not new_url:
                     #     records_with_errors.setdefault(dbname,[]).append(record['_id'])
@@ -214,6 +242,7 @@ for dbname in databases:
                     #             }
                     #         } )
             elif isinstance(record['answers'][_key], list):
+                new_group = []
                 for group in record['answers'][_key]:
                     if isinstance(group, dict):
                         for group_key in group.keys():
@@ -236,17 +265,23 @@ for dbname in databases:
                                 #     properties, bucket_files)
                                 
                                 # Change to absolute path
+                                if absolute_path in file_url:
+                                    last = file_url.rfind(absolute_path)
+                                    if last == 0:
+                                        continue
+                                    else:
+                                        file_url = file_url.replace(absolute_path, '')
+                                elif 'backblazeb2' in file_url:
+                                    continue
                                 group[group_key]['file_url'] = absolute_path + file_url
-                                cur_col.update(
-                                    {'_id':ObjectId(record['_id'])},
-                                    {
-                                        "$set": {
-                                            "answers":{
-                                                _key: group
-                                            }
-                                        }
-                                    } )
-
+                        new_group.append(group)
+                cur_col.update(
+                            {'_id':ObjectId(record['_id'])},
+                            {
+                                "$set": {
+                                    "answers." + _key: new_group
+                                }
+                            } )
                                 # if not new_url:
                                 #     records_with_errors.setdefault(dbname,[]).append(record['_id'])
                                 # if new_url:
@@ -260,5 +295,8 @@ for dbname in databases:
                                 #                 }
                                 #             }
                                 #         } )
+    print 'dopping ', dbname
+    time.sleep(5)
+    cr.drop_database(dbname)
 print 'records_with_errors=', records_with_errors
 print 'dbs_with_errors=', databases_with_errors
