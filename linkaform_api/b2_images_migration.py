@@ -79,7 +79,7 @@ def upload_file(form_id, field_id ,file_path, properties, bucket_files):
     thumb_name = file_name.rsplit('.', 1)[0] + '.thumbnail'
     thumb_path = local_path.rsplit('.', 1)[0] + '.thumbnail'
     try:
-        if path.exists(local_path):   
+        if path.exists(local_path):
             print 'UPLOADING....'
             print 'file_name=', file_name
             up_file = open(local_path)
@@ -128,9 +128,9 @@ collection_name = 'form_answer'
 # cr = MongoClient('127.0.0.1', port)
 cr = MongoClient(host, port)
 # mongo_dbname = 'infosync_answers_client_%s'%user_id
-#databases = open('/tmp/dbs.txt','r') 
-databases = cr.database_names()
-# databases = ['infosync_answers_client_126']
+#databases = open('/tmp/dbs.txt','r')
+#databases = cr.database_names()
+databases = ['infosync_answers_client_126']
 
 # POSTGRES
 # local y bigbird
@@ -156,30 +156,18 @@ dbpath='/backup/infosync/2017/backup/infosync/2017/Mongoinfosync-ALLClientDB-201
 
 for dbname in databases:
     #dbname.strip('\n')
-    if dbname in ['infosync', 'local', 'infosync_answers_client_126']:
+    if dbname in ['infosync', 'local']:
         continue
     cur_db = mongo_util.connect_mongodb(dbname, host, port)
     # cur_db = mongo_util.connect_mongodb(dbname, '127.0.0.1', port)
     cur_col = mongo_util.get_mongo_collection(cur_db, collection_name)
     # cur_col_orig = mongo_util.get_mongo_collection(cur_db_orig, collection_name)
-    #user_id = dbname.split('_')[-1]
-    #if not user_id:
-    #    print dbname
-    #    databases_with_errors.append(dbname)
-    #    continue
-    #user_email = get_user_email(user_id)
-    #properties = get_properties(user_id)
-    #if not properties:
-    #    print 'user_id=', user_id
-    #    continue
-    #storage = B2Connection()
-    #bucket_files = get_bucket_files(properties['bucket_id'], 
-    #    properties['bucket_name'], properties['folder_name'])
-    #bucket_files = [ _file['fileName'] for _file in bucket_files]
-    query = {'deleted_at':{'$exists':0}, 'created_at':{'$lte':date, '$gte':date2}}
+
+    query = {'deleted_at':{'$exists':0}, 'created_at':{'$lte':date2}}
     # query = {'deleted_at':{'$exists':0}, 'created_at':{'$gte':date}}
     # query = {'form_id':561,'deleted_at':{'$exists':0}}
     # result = mongo_util.get_collection_objects(cur_col_orig, query)
+
     result = mongo_util.get_collection_objects(cur_col, query)
     print result.count()
     records = [record for record in result]
@@ -209,7 +197,7 @@ for dbname in databases:
                     if file_url == False:
                         #print 'record_id', record['_id']
                         continue
-                    
+
                     if file_url and 'backblazeb2' in file_url:
                         if absolute_path in file_url:
                             already_in_b2 = True
@@ -235,19 +223,6 @@ for dbname in databases:
                                 'answers.' + _key: record['answers'][_key]
                                      } })
 
-                    # if not new_url:
-                    #     records_with_errors.setdefault(dbname,[]).append(record['_id'])
-                    # if new_url:
-                    #     record['answers'][_key]['file_url'] = new_url
-                    #     cur_col.update(
-                    #         {'_id':ObjectId(record['_id'])},
-                    #         {
-                    #             "$set": {
-                    #                 'answers':{
-                    #                     _key: record['answers'][_key]
-                    #                 }
-                    #             }
-                    #         } )
             elif isinstance(record['answers'][_key], list):
                 new_group = []
                 for group in record['answers'][_key]:
@@ -257,21 +232,6 @@ for dbname in databases:
                                 new_url = None
                                 file_url = group[group_key]['file_url']
                                 # print file_url
-                                # if user_email in file_url:
-                                #     new_url = upload_file(record['form_id'], _key, file_url, 
-                                #         properties, bucket_files)
-                                # elif file_url:
-                                #     connection_id = file_url.split('/')[1].split('_')[0]
-                                #     if connection_id:
-                                #         connection_properties = get_properties(connection_id)
-                                #         connection_bucket_files = get_bucket_files(connection_properties['bucket_id'], 
-                                #             connection_properties['bucket_name'], connection_properties['folder_name'])
-                                #         connection_bucket_files = [ _file['fileName'] for _file in connection_bucket_files]
-                                #         new_url = upload_file(record['form_id'], _key, file_url, 
-                                #             connection_properties, connection_bucket_files)
-                                # new_url = upload_file(record['form_id'], _key, file_url, 
-                                #     properties, bucket_files)
-                                
                                 # Change to absolute path
                                 if file_url and 'backblazeb2' in file_url:
                                     if absolute_path in file_url:
@@ -298,20 +258,6 @@ for dbname in databases:
                                     "answers." + _key: new_group
                                 }
                             } )
-                                # if not new_url:
-                                #     records_with_errors.setdefault(dbname,[]).append(record['_id'])
-                                # if new_url:
-                                #     group[group_key]['file_url'] = new_url
-                                #     cur_col.update(
-                                #         {'_id':ObjectId(record['_id'])},
-                                #         {
-                                #             "$set": {
-                                #                 "answers":{
-                                #                     _key: group
-                                #                 }
-                                #             }
-                                #         } )
-    # print 'dopping ', dbname
     # cr.drop_database(dbname)
 print 'records_with_errors=', records_with_errors
 print 'dbs_with_errors=', databases_with_errors
