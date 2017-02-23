@@ -154,10 +154,11 @@ dbpath='/backup/infosync/2017/backup/infosync/2017/Mongoinfosync-ALLClientDB-201
 
 
 for year in [2016,2015,2014]:
-    for month in range(11):
-        month += +1
-        date_from = datetime.strptime('2015-%s-01 00:00:00'%month, "%Y-%m-%d %H:%M:%S")
-        date_to = datetime.strptime('2015-%s-01 00:00:00'%(month+1), "%Y-%m-%d %H:%M:%S")
+    months = [month + 1 for month in range(11)]
+    months.reverse()
+    for month in months:
+        date_from = datetime.strptime('%s-%02d-01 00:00:00'%(year,month), "%Y-%m-%d %H:%M:%S")
+        date_to = datetime.strptime('%s-%02d-01 00:00:00'%(year, month+1), "%Y-%m-%d %H:%M:%S")
         for dbname in databases:
             #dbname.strip('\n')
             if dbname in ['infosync', 'local']:
