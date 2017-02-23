@@ -131,7 +131,7 @@ cr = MongoClient(host, port)
 #databases = open('/tmp/dbs.txt','r')
 #databases = cr.database_names()
 databases = ['infosync_answers_client_126']
-
+print 'database', databases
 # POSTGRES
 # local y bigbird
 # postgres_dbname = 'infosync_prod'
@@ -149,8 +149,8 @@ postgres_port = '5432'
 
 records_with_errors = {}
 databases_with_errors = []
-date = datetime.strptime('2017-02-20 00:00:00', "%Y-%m-%d %H:%M:%S")
-date2 = datetime.strptime('2017-01-01 00:00:00', "%Y-%m-%d %H:%M:%S")
+date = datetime.strptime('2015-09-13 00:00:00', "%Y-%m-%d %H:%M:%S")
+date2 = datetime.strptime('2015-09-15 00:00:00', "%Y-%m-%d %H:%M:%S")
 
 dbpath='/backup/infosync/2017/backup/infosync/2017/Mongoinfosync-ALLClientDB-2017-20'
 
@@ -163,20 +163,20 @@ for dbname in databases:
     cur_col = mongo_util.get_mongo_collection(cur_db, collection_name)
     # cur_col_orig = mongo_util.get_mongo_collection(cur_db_orig, collection_name)
 
-    query = {'deleted_at':{'$exists':0}, 'created_at':{'$lte':date2}}
+    query = {'deleted_at':{'$exists':0}, 'created_at':{'$gte':date,'$lt':date2}}
     # query = {'deleted_at':{'$exists':0}, 'created_at':{'$gte':date}}
     # query = {'form_id':561,'deleted_at':{'$exists':0}}
     # result = mongo_util.get_collection_objects(cur_col_orig, query)
-
+    print 'query=',query
     result = mongo_util.get_collection_objects(cur_col, query)
     print result.count()
     records = [record for record in result]
     i = 0
     print 'dbname', dbname
     for record in records:
-        #i += 1
-        #if i % 100 == 0:
-        #    print i
+        i += 1
+        if i % 300 == 0:
+            print i
         if not record.get('answers', None):
             continue
         ##### en los registos mas viejos del 2016 no hay porque copiar la info
@@ -193,11 +193,9 @@ for dbname in databases:
                     new_url = None
                     already_in_b2 = False
                     file_url = record['answers'][_key]['file_url']
-                    # print file_url
                     if file_url == False:
                         #print 'record_id', record['_id']
                         continue
-
                     if file_url and 'backblazeb2' in file_url:
                         if absolute_path in file_url:
                             already_in_b2 = True
@@ -215,7 +213,7 @@ for dbname in databases:
                         record['answers'][_key]['file_url'] = absolute_path + file_url
                     else:
                         record['answers'][_key]['file_url'] = file_url
-                    print record['answers'][_key]['file_url']
+                    #print record['answers'][_key]['file_url']
                     cur_col.update(
                         {'_id':ObjectId(record['_id'])},
                         {
