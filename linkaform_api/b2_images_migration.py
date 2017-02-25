@@ -191,12 +191,16 @@ databases_with_errors = []
 
 dbpath='/backup/infosync/2017/backup/infosync/2017/Mongoinfosync-ALLClientDB-2017-20'
 
-
 for dbname in databases:
+    db_ended = False
     for year in [2014]:
+        if db_ended:
+            continue
         months = [month + 1 for month in range(11)]
         months.reverse()
         for month in months:
+            if db_ended:
+                continue
             date_from = datetime.strptime('%s-%02d-01 00:00:00'%(year,month), "%Y-%m-%d %H:%M:%S")
             date_to = datetime.strptime('%s-%02d-01 00:00:00'%(year, month+1), "%Y-%m-%d %H:%M:%S")
             user_id = dbname.split('_')[-1]
@@ -227,6 +231,12 @@ for dbname in databases:
             # query = {'deleted_at':{'$exists':0}, 'created_at':{'$gte':date}}
             # query = {'form_id':561,'deleted_at':{'$exists':0}}
             # result = mongo_util.get_collection_objects(cur_col_orig, query)
+            query_check = {'deleted_at':{'$exists':0}, 'created_at':{'$lt':date_from}}
+            if result_check == 0:
+                databases.remove(dbname)
+                db_ended = True
+                print dbname , 'was removed'
+            result_check = mongo_util.get_collection_objects(cur_col, query_check)
             print 'query=',query
             result = mongo_util.get_collection_objects(cur_col, query)
             print result.count()
