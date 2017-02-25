@@ -1,7 +1,7 @@
 # PYTHON
 import json, psycopg2, mongo_util
 from datetime import datetime
-import time
+import time, urllib2
 from PIL import Image
 from os import path, remove
 
@@ -51,12 +51,12 @@ def create_or_get_thumbnail(image, file_name):
         print "Cannot create thumbnail for '%s'. %s."%(image.name, e)
     return None
 
-def create_thumbnail(file_name, thumbnail):
+def create_thumbnail(thumb_name, thumbnail):
     """
     Creates and save thumbnail from the given image.
     """
-    thumb_name = path.splitext(file_name)[0] + '.thumbnail'
-    thumb_path = create_or_get_thumbnail(thumbnail, file_name)
+    #thumb_name = path.splitext(file_name)[0] + '.thumbnail'
+    thumb_path = create_or_get_thumbnail(thumbnail, thumb_name)
     thumb_up = open(thumb_path, 'r')
     return thumb_up
 
@@ -64,36 +64,72 @@ def get_bucket_files(bucket_id, bucket_name, folder_name):
     return storage.b2_list_file_names(bucket_id=bucket_id, max_file_count=10000, start_file_name=folder_name)
 
 def upload_file(form_id, field_id ,file_path, properties, bucket_files):
+    print '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++'
     bucket_id = properties['bucket_id']
     bucket_name = properties['bucket_name']
     folder_name = properties['folder_name']
     file_url = None
     file_name = '%s/%s/%s/%s'% (folder_name,
         form_id, field_id, file_path.split('/')[-1])
-
     if file_name in bucket_files:
+        if 'https://app.linkaform.com' in file_path:
+            return  'https://f001.backblazeb2.com/file/app-linkaform/' + file_name
         print 'file already en B2'
-        return file_name
+        return None
 
-    local_path = media_path + file_path
+    if not 'https' in file_path:
+        file_path = absolute_path + file_path
     thumb_name = file_name.rsplit('.', 1)[0] + '.thumbnail'
-    thumb_path = local_path.rsplit('.', 1)[0] + '.thumbnail'
+    file_type = file_name.rsplit('.', 1)[1].lower()
+    thumb_path = file_path.rsplit('.', 1)[0] + '.thumbnail'
     try:
-        if path.exists(local_path):
+        local_path = urllib2.urlopen(file_path)
+    except:
+        local_path = False
+    try:
+        thumb_path = urllib2.urlopen(thumb_path)
+    except:
+        thumb_path = None
+    print 'local_path',local_path
+    try:
+        if local_path:
             print 'UPLOADING....'
-            print 'file_name=', file_name
-            up_file = open(local_path)
-            file_url = storage.b2_save(file_name, up_file, bucket_id)
-            if path.exists(thumb_path):
-                thumb_file = open(thumb_path)
-            else:
-                thumb_file = create_thumbnail(local_path, up_file)
-            # remove(local_path)
-            # remove(thumb_path)
-            thumb_url = storage.b2_save(thumb_name, thumb_file, bucket_id)
+            file_url = storage.b2_save(file_name, local_path, bucket_id)
+            if file_type in ('jpg','png','jpeg'):
+                if not thumb_path:
+                    thumb_file = create_thumbnail(thumb_name, thumb_path)
+                else:
+                    thumb_file = thumb_path
+                # remove(local_path)
+                # remove(thumb_path)
+                thumb_url = storage.b2_save(thumb_name, thumb_file, bucket_id)
         return file_url
     except Exception, e:
         print 'Exception=',e
+        return None
+
+def get_new_url(user_email,file_url, record , _key, properties, bucket_files ):
+    new_url = connection_id = False
+    if user_email in file_url:
+        new_url = upload_file(record['form_id'], _key, file_url,
+        properties, bucket_files)
+    elif file_url:
+        url_kind = absolute_path + file_path
+        if not url_kind in file_url:
+            url_kind = host_url + file_path
+        connection_id = file_url.replace(url_kind,'').split('/')[0].split('_')[0]
+
+    if connection_id:
+        connection_properties = get_properties(connection_id)
+        connection_bucket_files = get_bucket_files(connection_properties['bucket_id'],
+        connection_properties['bucket_name'], connection_properties['folder_name'])
+        connection_bucket_files = [ _file['fileName'] for _file in connection_bucket_files]
+        new_url = upload_file(record['form_id'], _key, file_url,
+        connection_properties, connection_bucket_files)
+    print 'new_url', new_url
+    if new_url:
+        return new_url
+    else:
         return None
 
 # user_id = 9
@@ -107,6 +143,8 @@ def upload_file(form_id, field_id ,file_path, properties, bucket_files):
 media_path = '/srv/backend.linkaform.com/infosync-api/backend/media/'
 file_path = 'uploads/'
 absolute_path = 'https://app.linkaform.com/media/'
+host_url = 'https://app.linkaform.com/'
+
 
 THUMB_SIZE_H = (90, 141)
 THUMB_SIZE_V = (141, 90)
@@ -142,10 +180,11 @@ print 'database', databases
 # postgres_port = '5432'
 # app
 postgres_dbname = 'infosync'
-postgres_host = 'db3.linkaform.com'
-postgres_port = '5432'
-#conn = psycopg2.connect('dbname=%s host=%s port=%s'%(postgres_dbname, postgres_host, postgres_port))
-#cur = conn.cursor()
+#postgres_host = 'db3.linkaform.com'
+postgres_host = '127.0.0.1'
+postgres_port = '5435'
+conn = psycopg2.connect('dbname=%s user=infosync password=director host=%s port=%s'%(postgres_dbname, postgres_host, postgres_port))
+cur = conn.cursor()
 
 records_with_errors = {}
 databases_with_errors = []
@@ -153,22 +192,38 @@ databases_with_errors = []
 dbpath='/backup/infosync/2017/backup/infosync/2017/Mongoinfosync-ALLClientDB-2017-20'
 
 
-for year in [2016,2015,2014]:
-    months = [month + 1 for month in range(11)]
-    months.reverse()
-    for month in months:
-        date_from = datetime.strptime('%s-%02d-01 00:00:00'%(year,month), "%Y-%m-%d %H:%M:%S")
-        date_to = datetime.strptime('%s-%02d-01 00:00:00'%(year, month+1), "%Y-%m-%d %H:%M:%S")
-        for dbname in databases:
-            #dbname.strip('\n')
+for dbname in databases:
+    for year in [2014]:
+        months = [month + 1 for month in range(11)]
+        months.reverse()
+        for month in months:
+            date_from = datetime.strptime('%s-%02d-01 00:00:00'%(year,month), "%Y-%m-%d %H:%M:%S")
+            date_to = datetime.strptime('%s-%02d-01 00:00:00'%(year, month+1), "%Y-%m-%d %H:%M:%S")
+            user_id = dbname.split('_')[-1]
+            if not user_id:
+                print dbname
+                if dbname not in databases_with_errors:
+                    databases_with_errors.append(dbname)
+                continue
+
+            user_email = get_user_email(user_id)
+            properties = get_properties(user_id)
+            if not properties:
+                print 'user_id=', user_id
+                if dbname not in databases_with_errors:
+                    databases_with_errors.append(dbname)
+                continue
+            storage = B2Connection()
+            bucket_files = get_bucket_files(properties['bucket_id'],
+            properties['bucket_name'], properties['folder_name'])
+            bucket_files = [ _file['fileName'] for _file in bucket_files]
             if dbname in ['infosync', 'local']:
                 continue
             cur_db = mongo_util.connect_mongodb(dbname, host, port)
-            # cur_db = mongo_util.connect_mongodb(dbname, '127.0.0.1', port)
             cur_col = mongo_util.get_mongo_collection(cur_db, collection_name)
             # cur_col_orig = mongo_util.get_mongo_collection(cur_db_orig, collection_name)
 
-            query = {'deleted_at':{'$exists':0}, 'created_at':{'$gte':date_from,'$lt':date_to}}
+            query = {'deleted_at':{'$exists':0},'folio':'235565-126'}# 'created_at':{'$gte':date_from,'$lt':date_to}}
             # query = {'deleted_at':{'$exists':0}, 'created_at':{'$gte':date}}
             # query = {'form_id':561,'deleted_at':{'$exists':0}}
             # result = mongo_util.get_collection_objects(cur_col_orig, query)
@@ -199,32 +254,20 @@ for year in [2016,2015,2014]:
                             already_in_b2 = False
                             file_url = record['answers'][_key]['file_url']
                             if file_url == False:
-                                #print 'record_id', record['_id']
+                                print 'record_id', record['_id']
                                 continue
                             if file_url and 'backblazeb2' in file_url:
-                                if absolute_path in file_url:
-                                    already_in_b2 = True
-                                    file_url = file_url.replace(absolute_path, '')
-                                else:
-                                    continue
-                            elif file_url and absolute_path in file_url:
-                                last = file_url.rfind(absolute_path)
-                                if last == 0:
-                                    continue
-                                else:
-                                    file_url = file_url.replace(absolute_path, '')
+                                continue
 
-                            if not already_in_b2:
-                                record['answers'][_key]['file_url'] = absolute_path + file_url
-                            else:
-                                record['answers'][_key]['file_url'] = file_url
-                            #print record['answers'][_key]['file_url']
-                            cur_col.update(
-                                {'_id':ObjectId(record['_id'])},
-                                {
-                                    "$set": {
-                                        'answers.' + _key: record['answers'][_key]
-                                             } })
+                            new_url = get_new_url(user_email,file_url, record , _key, properties, bucket_files )
+                            record['answers'][_key]['file_url'] = new_url
+                            if new_url:
+                                cur_col.update(
+                                    {'_id':ObjectId(record['_id'])},
+                                    {
+                                        "$set": {
+                                            'answers.' + _key: record['answers'][_key]
+                                                 } })
 
                     elif isinstance(record['answers'][_key], list):
                         new_group = []
@@ -237,21 +280,12 @@ for year in [2016,2015,2014]:
                                         # print file_url
                                         # Change to absolute path
                                         if file_url and 'backblazeb2' in file_url:
-                                            if absolute_path in file_url:
-                                                already_in_b2 = True
-                                                file_url = file_url.replace(absolute_path, '')
-                                            else:
-                                                continue
-                                        elif file_url and absolute_path in file_url:
-                                            last = file_url.rfind(absolute_path)
-                                            if last == 0:
-                                                continue
-                                            else:
-                                                file_url = file_url.replace(absolute_path, '')
-                                        if not already_in_b2:
-                                            group[group_key]['file_url'] = absolute_path + file_url
-                                        else:
-                                            group[group_key]['file_url'] = file_url
+                                            continue
+
+                                        new_url = get_new_url(user_email,file_url, record , _key, properties, bucket_files )
+                                        if new_url:
+                                            group[group_key]['file_url'] = new_url
+
                                         print group[group_key]['file_url']
                                 new_group.append(group)
                         cur_col.update(
@@ -262,5 +296,6 @@ for year in [2016,2015,2014]:
                                         }
                                     } )
             # cr.drop_database(dbname)
+            cur_db.client.close()
 print 'records_with_errors=', records_with_errors
 print 'dbs_with_errors=', databases_with_errors
