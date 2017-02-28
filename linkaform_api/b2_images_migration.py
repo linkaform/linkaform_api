@@ -209,6 +209,9 @@ cur = conn.cursor()
 
 records_with_errors = {}
 databases_with_errors = []
+date = datetime.strptime('2016-01-01 00:00:00', "%Y-%m-%d %H:%M:%S")
+date2 = datetime.strptime('2017-01-01 00:00:00', "%Y-%m-%d %H:%M:%S")
+
 
 PIC  = open('/var/tmp/remaining_pics.txt','w')
 LOST_PICS = open('/var/tmp/lost_pics.txt','w')
@@ -265,25 +268,34 @@ for dbname in databases:
                     databases_with_errors.append(dbname)
                 continue
 
-            user_email = get_user_email(user_id)
-            properties = get_properties(user_id)
-            if not properties:
-                print 'user_id=', user_id
-                if dbname not in databases_with_errors:
-                    databases_with_errors.append(dbname)
-                continue
-            storage = B2Connection()
-            bucket_files = get_bucket_files(properties['bucket_id'],
-            properties['bucket_name'], properties['folder_name'])
-            bucket_files = [ _file['fileName'] for _file in bucket_files]
+            # user_email = get_user_email(user_id)
+            # properties = get_properties(user_id)
+            # if not properties:
+            #     print 'user_id=', user_id
+            #     if dbname not in databases_with_errors:
+            #         databases_with_errors.append(dbname)
+            #     continue
+            # storage = B2Connection()
+            # bucket_files = get_bucket_files(properties['bucket_id'],
+            # properties['bucket_name'], properties['folder_name'])
+            # bucket_files = [ _file['fileName'] for _file in bucket_files]
+
             if dbname in ['infosync', 'local']:
                 continue
+            # Base de datos en donde se hará el update
             cur_db = mongo_util.connect_mongodb(dbname, host, port)
             cur_col = mongo_util.get_mongo_collection(cur_db, collection_name)
-            # cur_col_orig = mongo_util.get_mongo_collection(cur_db_orig, collection_name)
 
             query = {'deleted_at':{'$exists':0}, 'created_at':{'$gte':date_from,'$lt':date_to}}
+            # Base de datos de donde se va a copiar el registro
+            cur_db_orig = mongo_util.connect_mongodb(dbname, '127.0.0.1', port)
+            cur_col_orig = mongo_util.get_mongo_collection(cur_db_orig, collection_name)
+
+            # query = {'deleted_at':{'$exists':0},'folio':'235565-126'}# 'created_at':{'$gte':date_from,'$lt':date_to}}
+            # query = {'deleted_at':{'$exists':0}, 'created_at':{'$gte':date}}
+            # query = {'form_id':561,'deleted_at':{'$exists':0}}
             # result = mongo_util.get_collection_objects(cur_col_orig, query)
+            query = {'deleted_at':{'$exists':0}, 'created_at':{'$lte':date}}
             query_check = {'deleted_at':{'$exists':0}, 'created_at':{'$lt':date_from}}
             #result_check = mongo_util.get_collection_objects(cur_col, query_check)
             #if result_check == 0:
@@ -353,9 +365,9 @@ for dbname in databases:
                                         if file_url and 'backblazeb2' in file_url:
                                             continue
 
-                                        new_url = get_new_url(user_email,file_url, record , _key, properties, bucket_files )
-                                        if new_url:
-                                            group[group_key]['file_url'] = new_url
+                #                         new_url = get_new_url(user_email,file_url, record , _key, properties, bucket_files )
+                #                         if new_url:
+                #                             group[group_key]['file_url'] = new_url
 
                                 new_group.append(group)
                         cur_col.update(
