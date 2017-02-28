@@ -4,7 +4,7 @@
 #### This is the first draft.....
 
 
-client_id=126
+client_id=900
 server ='db3.linkaform.com'
 host_port='10.1.66.32:27032'
 # client_id =126
@@ -16,7 +16,7 @@ dotar = 'tar -zcvf /var/tmp/mongo_back_client_%s.tar.gz ./mongo_back_client_%s'%
 remove = 'rm -rf /var/tmp/mongo_back_client_%s'%(client_id)
 copy_tar = 'scp %s:/var/tmp/mongo_back_client_%s.tar.gz /var/tmp/'%(server,client_id)
 untar = 'tar -zxvf mongo_back_client_%s.tar.gz'%(client_id)
-restore = 'mongorestore --host %s /var/tmp/mongo_back_client_%s'%(host_port,client_id)
+restore = 'mongorestore /var/tmp/mongo_back_client_%s'%(client_id)
 print '--------- remote host ------------'
 print 'ssh %s'%(server)
 print 'cd /var/tmp/'
