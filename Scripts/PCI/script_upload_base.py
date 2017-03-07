@@ -29,9 +29,9 @@ lkf_api = utils.Cache()
 
 
 config = {
-    'USERNAME' : 'jgemayel@pcindustrial.com.mx',
+    'USERNAME' : 'linkaform@pcindustrial.com.mx',
     #'USERNAME' : 'josepato@infosync.mx',
-    'PASS' : 'j&3m@y3l',
+    'PASS' : '654321',
     'COLLECTION' : 'form_answer',
     #'HOST' : 'db3.linkaform.com',
     'MONGODB_URI':MONGODB_URI,
@@ -40,8 +40,8 @@ config = {
     'USER_ID' : 1259,
     'KEYS_POSITION' : {},
     'IS_USING_APIKEY' : True,
-    'AUTHORIZATION_EMAIL_VALUE' : 'jgemayel@pcindustrial.com.mx',
-    'AUTHORIZATION_TOKEN_VALUE' : '32e3414e60a19c261f42ab83a68897cbc78728e6',
+    'AUTHORIZATION_EMAIL_VALUE' : 'linkaform@pcindustrial.com.mx',
+    'AUTHORIZATION_TOKEN_VALUE' : '32e3414e60a19c261f42ab83a68897cbc78728e6'
 }
 
 
