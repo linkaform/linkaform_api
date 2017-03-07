@@ -144,14 +144,13 @@ def update_voucher(dbname, port, collection_name, form_list, id_voucher):
     query = {'_id': ObjectId(id_voucher)}
     record = mongo_util.get_collection_objects(cur_col, query)
     voucher_copy =  record.next()['voucher']
+    print voucher_copy
     for _id in form_list:
         query = {'form_id': _id, 'voucher.fields': {'$exists':0}, 'deleted_at' : {'$exists':0} }
         records = mongo_util.get_collection_objects(cur_col, query)
-        print records.count()
         if records.count() > 0:
             for res in records:
                 found_it.append(res['_id'])
-                # res['voucher'] = voucher_copy
                 cur_col.update_one(
                     {'_id':ObjectId(res['_id'])},
                     {
@@ -178,7 +177,7 @@ def created_at_wrong_type(dbname, host, port, collection_name):
         return dbname
     return False
 
-host = 'db3.linkaform.com'
+host = 'db4.linkaform.com'
 # host = 'localhost'
 
 port = 27017
@@ -191,47 +190,21 @@ cr = MongoClient(host, port)
 databases = cr.database_names()
 # databases = ['infosync_answers_client_96']#,'infosync_answers_client_9']
 
-
 # folio_list = ['254010-96','239265-96',  '255619-96']
-# folio_list = [ '57111ed923d3fd3044bca122']
-# folio_list = ['53d6e61001a4de609b882a06']
-# folio_list = ['571a9cb823d3fd5bf31860c1', '571a9cd923d3fd5bf31860c4']
+
 # folio_list = [ '255619-96']
 # form_list = [6180, 6143, 6248]
-#form_list = [6143]
 #pdf que no imprime la imagen
 # form_list = ['571e6ea323d3fd2744ee502d', '571ea1cf23d3fd27400fbf0d']
 found_all = 0
 
 # worklfow = ["571f9ce723d3fd2ea8d0bd2b"]
 
-# folio_list = ['57111ed923d3fd3044bca122']
-
-#folio_list = ['573b899923d3fd40a0d9c072']
-#error pdf mayo 20 2016
-#folio_list = ['57311bcc23d3fd0fc31d0a86']
-# folio_list =['574f23b423d3fd18f123da4a', '576dc078b43fdd1ea9b71b72' ]
-#error mayo 20 2016
-#folio_list = ['5749b24823d3fd6c2df1a3b8', '5748cac923d3fd219569826d' ]
-#error octubre 28 2016
-# folio_list = ['57718cc1b43fdd39c63780ec']
-
-
-
-
-# 577c3a7eb43fdd15c725a9d7
-# 577c3a7eb43fdd15c725a9d7
-
 #error junio 1 2016
 # folio_list = ['56fda2d223d3fd0b9f7c9c67', '574f4d5423d3fd18f123da62' ,'56e87ff223d3fd60fa6c4dc9']
-
-# form_list = [6248]
-# error no voucher 11 nov 2016
-# form_list = ['10133']
-# databases = ['infosync_answers_client_558']
-# id_voucher = '5824da6ab43fdd5a2e19da3b'
-# folio_list = ['5829e3e7b43fdd12f4913d26']
-folio_list = ['5825f424b43fdd5a2f6adac7']
+folio_list = [ '58755729b43fdd3813622dd9']
+# id_voucher = '5886982fb43fdd7e53485a7d'
+# form_list = [55477]
 dbs_with_error  = []
 
 
