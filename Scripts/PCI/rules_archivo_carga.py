@@ -12,15 +12,19 @@ def set_construccion(record):
     #Construccion de linea de cliente basica de 2 pares (bajante)
     #Construccion de linea de cliente basica de 1 par blindado (bajante)
     #Construccion de linea de cliente basica con cable autosoportado (bajante)
-    tipo = False
-    if record.has_key('f1054000a010000000000021') and record['f1054000a010000000000021']:
-        tipo = record['f1054000a010000000000021'][2:4]
-
-    #La ordenes tipo TE que son publicas no llevan Construccion
+    tipo = get_tipo(record)
     if 'TE' in tipo.upper():
         return ['','','','']
-
     return [1,'','','']
+
+
+def get_tipo(record):
+    tipo = False
+    if record.has_key('f1054000a0100000000000a4') and record['f1054000a0100000000000a4']:
+        tipo = record['f1054000a0100000000000a4'][2:4]
+    if not tipo and record.has_key('f1054000a0100000000000a1') and record['f1054000a0100000000000a1']:
+        tipo = record['f1054000a0100000000000a1'][2:4]
+    return tipo
 
 
 def set_plusvalia(record):
@@ -99,9 +103,7 @@ def set_prueba_transmicion(record):
 
 
 def set_cableado_interior(record):
-    tipo = False
-    if record.has_key('f1054000a010000000000021') and record['f1054000a010000000000021']:
-        tipo = record['f1054000a010000000000021'][:4]
+    tipo = get_tipo(record)
     if 'A049' == tipo.upper():
         return ['','']
     if 'TE' in tipo.upper():
@@ -131,6 +133,6 @@ def set_libreria(record):
     area = False
     if record.has_key('f1054000a010000000000003') and record['f1054000a010000000000003']:
         area = record['f1054000a010000000000003'][:4]
-    if area.lower() in ['acapulco','chilpancingo','cuernavaca']:
-        return ['CVA']
+    #if area.lower() in ['acapulco','chilpancingo','cuernavaca']:
+    #    return ['CVA']
     return ['MEX']
