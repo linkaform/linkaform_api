@@ -67,22 +67,15 @@ def query_order4paco():
     return query
 
 
-#Ordenes Posteadas
-def query_order_posteadas():
-    query = {'form_id': {'$in': [10798]}, 'deleted_at' : {'$exists':False}, 'answers.f1079800a010000000000005': 'generar_archivo_de_carga_masiva'}
-    return query
-
-
-def get_orders_posteadas():
-    query = query_order_posteadas()
-    select_columns = {'folio':1, 'answers':1, 'form_id':1 }
-    orders_records = cr.find(query, select_columns)
-    return orders_records
-
-
 #Get errors
 def query_orders_with_errors():
-    query = {'form_id': {'$in': [10798]}, 'deleted_at' : {'$exists':False}, 'answers.f1079800a010000000000005': 'subir_resultado_paco'}
+    query = {'form_id': {'$in': [10798]}, 'deleted_at' : {'$exists':False},
+    'answers.f1079800a010000000000005': 'subir_resultado_paco',
+    'answers.f1079800a010000000000002':{'$exists':True}, #Folios Liquidados
+    'answers.f1079800a010000000000003':{'$exists':True}, #Folios Posteados
+    'answers.f1079800a010000000000004':{'$exists':True}, #Archivo de Carga Masiva
+    'answers.f1079800a010000000000012':{'$exists':True}, #Errores PACO
+    }
     return query
 
 
@@ -119,7 +112,7 @@ def get_errores_paco():
             metadata = lkf_api.get_metadata(form_id = 10798, user_id = settings.config['USER_ID'])
             answers = record['answers']
             answers.update({'f1079800a010000000000009':len(error_rows)})
-            #answers.update({'f1079800a010000000000005':'realizado'})
+            answers.update({'f1079800a010000000000005':'realizado'})
             metadata['answers'] = answers
             network.patch_forms_answers(metadata, record['_id'])
             make_paco_record(record, archivo_rows)
@@ -230,7 +223,7 @@ def make_answer(form_id, file_url, date_to, order_count, cope):
         GLOBAL_VARS['folios_liquidados'] = order_count
         file_date = time.strftime("%Y_%m_%d")
 
-        date = lkf_api.make_infosync_json(date_to, {'field_type':'date','field_id':'f1079800a010000000000001'})
+        #date = lkf_api.make_infosync_json(date_to, {'field_type':'date','field_id':'f1079800a010000000000001'})
         file_json = {'f1079800a010000000000002':{'file_name':'Ordenes Liquidadas %s.xlsx'%file_date,
                                     'file_url':file_url}}
         answers.update(file_json)
@@ -247,10 +240,16 @@ def make_answer(form_id, file_url, date_to, order_count, cope):
     metadata['answers'] = answers
     return metadata
 
-
+## Ordenes Liquidadas
 def query_get_files():
     #This should lookup by ID
-    query = {'form_id': {'$in': [10798]}, 'deleted_at' : {'$exists':False}, 'answers.f1079800a010000000000005': 'obtener_folios_liquidados'}
+    query = {'form_id': {'$in': [10798]}, 'deleted_at' : {'$exists':False},
+    'answers.f1079800a010000000000005': 'obtener_folios_liquidados',
+    'answers.f1079800a010000000000002':{'$exists':False}, #Folios Liquidados
+    'answers.f1079800a010000000000003':{'$exists':False}, #Folios Posteados
+    'answers.f1079800a010000000000004':{'$exists':False}, #Archivo de Carga Masiva
+    'answers.f1079800a010000000000012':{'$exists':False}, #Errores PACO
+    }
     #select_columns = {'answers.f1074100a010000000000001':1, 'answers.f1074100a0100000000000c1':1}
     select_columns = {'answers':1 }
     return query, select_columns
@@ -264,10 +263,11 @@ def get_ordenes_liquidadas():
 
 def get_cope_orders():
     order = get_ordenes_liquidadas()
-    date = order['answers']['f1079800a010000000000001']
-    cope = order['answers']['f1074100a0100000000000c1']
-    order_id = order['_id']
-    upload_orders_liquidadas(order_id, cope ,date)
+    if order:
+        date = order['answers']['f1079800a010000000000001']
+        cope = order['answers']['f1074100a0100000000000c1']
+        order_id = order['_id']
+        upload_orders_liquidadas(order_id, cope ,date)
     return True
 
 
@@ -300,6 +300,7 @@ def upload_orders_liquidadas(order_id, cope, date_to=time.strftime("%Y-%m-%d")):
     network.patch_forms_answers(metadata, order_id)
     return True
 
+####
 
 def read_file(file_url):
     if file_url.find('http') == -1:
@@ -435,13 +436,32 @@ def make_archivo_carga(file_rows):
     return file_name
 
 
+#Ordenes Posteadas
+def query_order_posteadas():
+    query = {'form_id': {'$in': [10798]}, 'deleted_at' : {'$exists':False},
+    #'answers.f1079800a010000000000005': 'generar_archivo_de_carga_masiva',
+    'answers.f1079800a010000000000005': 'subir_ordenes_posteadas',
+    'answers.f1079800a010000000000002':{'$exists':True}, #Folios Liquidados
+    'answers.f1079800a010000000000003':{'$exists':True}, #Folios Posteados
+    'answers.f1079800a010000000000004':{'$exists':False}, #Archivo de Carga Masiva
+    'answers.f1079800a010000000000012':{'$exists':False}, #Errores PACO
+    }
+    return query
+
+
+def get_orders_posteadas():
+    query = query_order_posteadas()
+    select_columns = {'folio':1, 'answers':1, 'form_id':1 }
+    orders_records = cr.find(query, select_columns)
+    return orders_records
+
+
 def get_orders_for_paco():
     file_url = False
     orders = get_orders_posteadas()
     order_count = orders.count()
     if order_count > 0:
         for record in orders:
-            print 'record answers',record['answers']
             try:
                 get_file_url = record['answers']['f1079800a010000000000003']['file_url']
             except KeyError:
@@ -461,7 +481,7 @@ def get_orders_for_paco():
             record['answers']['f1079800a010000000000004'] = file_url
             record_id = record.pop('_id')
             record.pop('folio')
-            #record['answers']['f1079800a010000000000005'] = 'subir_resultado_paco'
+            record['answers']['f1079800a010000000000005'] = 'subir_resultado_paco'
             file_date = time.strftime("%Y_%m_%d")
             record['answers']['f1079800a010000000000004'] ={
                     'file_name':'Archivo de Carga Masiva %s.xlsx'%file_date,
