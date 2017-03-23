@@ -1,11 +1,11 @@
 
-from utils import Cache
+#from utils import Cache
 
 class ImportData:
     MONGO = 1
     REST = 2
 
-cache =Cache()
+#cache =Cache()
 
 mongo_hosts = 'db2.linkaform.com:27017,db3.linkaform.com:27017,db4.linkaform.com:27017'
 mongo_replicaSet = 'linkaform_replica'
@@ -22,8 +22,10 @@ config = {
     'PASS' : '',
     'COLLECTION' : 'form_answer',
     'MONGODB_URI':MONGODB_URI,
-    'HOST' : 'localhost',
-    'PORT' : 27019,
+    'MONGODB_PORT':27017,
+    'MONGODB_HOST': 'localhost',
+    'PROTOCOL' : 'https', #http or https
+    'HOST' : 'dev2.linkaform.com',
     'USER_ID' : '414',
     'KEYS_POSITION' : {},
     'FILE_PATH_DIR' : '/tmp/Import/',

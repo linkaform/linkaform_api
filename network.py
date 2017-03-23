@@ -40,8 +40,9 @@ def dispatch(url_method={}, url='', method='', data={}, params={},
     response = False
     if type(data) in (dict,str):
         data = simplejson.dumps(data, encoding)
-        #print 'data=', data
-        #print 'url=', url
+    #print 'data=', data
+    #print 'url=', url
+    #print 'method', method
     if method == 'GET':
         if params:
             response = do_get(url, params=params, use_login=use_login, use_api_key=use_api_key)
@@ -73,7 +74,7 @@ def do_get(url, params= {}, use_login=False, use_api_key=False):
     #if r.status_code == 401:
         session = requests.Session()
         if login(session, settings.config['USERNAME'], settings.config['PASS']):
-            #url ='https://app.linkaform.com/api/infosync/get_form/?form_id=10378'
+            #url =dset_url + ' '/api/infosync/get_form/?form_id=10378'
             print 'login -------------------------------------'
             if params:
                 r = session.get(url, params=params, headers={'Content-type': 'application/json'}, verify=True)
@@ -81,7 +82,11 @@ def do_get(url, params= {}, use_login=False, use_api_key=False):
                 r = session.get(url, headers={'Content-type': 'application/json'}, verify=True)
         else:
             raise('Cannot login, please check user and password, or network connection!!!')
+
     response['status_code'] = r.status_code
+    response['content'] = simplejson.loads(r.content)
+    response['json'] = r.json()
+
     if r.status_code == 200:
         r_data = simplejson.loads(r.content)
         response['data'] = r_data['objects']
@@ -123,6 +128,9 @@ def do_post(url, data, use_login=False, use_api_key=False, encoding='utf-8' ,up_
                 r = requests.post(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
 
     response['status_code'] = r.status_code
+    response['content'] = simplejson.loads(r.content)
+    response['json'] = r.json()
+
     if r.status_code == 200:
         r_data = simplejson.loads(r.content)
         if up_file:
@@ -171,9 +179,12 @@ def do_patch(url, data, use_login=False, use_api_key=False, encoding='utf-8' ,up
             if up_file:
                 print 'haria el patch por session que daba el 500'
                 #r = requests.patch(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
-
     response['status_code'] = r.status_code
+    response['json'] = r.json()
+    response['content'] = simplejson.loads(r.content)
     if r.status_code == 200:
+        response['status_code'] = r.status_code
+        response['json'] = r.json()
         response['data'] = simplejson.loads(r.content)
     return response
 
@@ -280,9 +291,9 @@ def get_user_connection():
         print 'url=', settings.config['MONGODB_URI']
         connection['client'] = MongoClient(settings.config['MONGODB_URI'])
     elif settings.config.has_key('PORT'):
-        connection['client'] = MongoClient(settings.config['HOST'],settings.config['PORT'], replicaset=settings.config['REPLICASET'])
+        connection['client'] = MongoClient(settings.config['MONGODB_HOST'],settings.config['MONGODB_PORT'], replicaset=settings.config['REPLICASET'])
     else:
-        connection['client'] = MongoClient(settings.config['HOST'], replicaset=settings.config['REPLICASET'] )
+        connection['client'] = MongoClient(settings.config['MONGODB_HOST'], replicaset=settings.config['REPLICASET'] )
     user_db_name = "infosync_answers_client_{0}".format(user_id)
     if not user_db_name:
         return None
@@ -298,9 +309,9 @@ def get_infosync_connection():
     if settings.config.has_key('MONGODB_URI'):
         connection['client'] = MongoClient(settings.config['MONGODB_URI'])
     elif settings.config.has_key('PORT'):
-        connection['client'] = MongoClient(settings.config['HOST'],settings.config['PORT'], replicaset=settings.config['REPLICASET'])
+        connection['client'] = MongoClient(settings.config['MONGODB_HOST'],settings.config['MONGODB_PORT'], replicaset=settings.config['REPLICASET'])
     else:
-        connection['client'] = MongoClient(settings.config['HOST'], replicaset=settings.config['REPLICASET'] )
+        connection['client'] = MongoClient(settings.config['MONGODB_HOST'], replicaset=settings.config['REPLICASET'] )
     db_name = "infosync"
     if not db_name:
         return None
