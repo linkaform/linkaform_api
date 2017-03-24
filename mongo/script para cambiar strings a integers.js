@@ -241,3 +241,41 @@ db.form_answer.find({deleted_at:{$exists:0}, form_id:6016, folio:'298541-126'}, 
     }
     data.answers['553904c201a4de236a68ac97'] = group
     db.form_answer.update({_id:data._id},{$set:{'answers.553904c201a4de236a68ac97':group}});
+
+
+
+db = db.getSiblingDB("admin");
+dbs = db.runCommand( { listDatabases: 1 } ).databases;
+dbs.forEach(function (database) {
+    print ("db=" + database.name);
+    db = db.getSiblingDB(database.name)
+    db.form_answer.aggregate([
+      {$match:{deleted_at:{$exists:0}, folio:{$exists:1}, form_id:{$exists:1}}},
+      {$group: {
+        _id:{
+          folio:'$folio',
+          form_id:'$form_id'
+      },
+        cant :{$sum:1}},
+      },
+      {$match:{'cant':{$gte:2}}}
+      ]).forEach(function(data) {
+        print(JSON.stringify(data))
+    })
+})
+
+
+db = db.getSiblingDB("admin");
+dbs = db.runCommand( { listDatabases: 1 } ).databases;
+dbs.forEach(function (database) {
+    print ("db=" + database.name);
+    db = db.getSiblingDB(database.name)
+    db.form_answer.find({'properties.followers':{$exists:0},deleted_at:{$exists:0}}).forEach(function(data) {
+      followers = []
+      if ( data.user_id !== undefined ) followers.push(data.user_id)
+      if ( data.connection_id !== undefined ) followers.push(data.connection_id)
+      var properties2 = {'followers':followers}
+      print(JSON.stringify(properties2))
+      db.form_answer.update({_id:data._id},{$set:{properties:properties2}})
+   })
+  })
