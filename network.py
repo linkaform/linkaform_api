@@ -60,7 +60,7 @@ class Network:
         if method == 'PATCH':
             if data == '{}' or not data:
                 raise ValueError('No data to post, check you post method')
-            response = do_patch(url, data, use_login, use_api_key, up_file=up_file)
+            response = self.do_patch(url, data, use_login, use_api_key, up_file=up_file)
         return response
 
 
@@ -137,8 +137,12 @@ class Network:
                     r = requests.post(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
 
         response['status_code'] = r.status_code
-        response['content'] = simplejson.loads(r.content)
-        response['json'] = r.json()
+        if r.content:
+        	response['content'] = simplejson.loads(r.content)
+        try:
+        	response['json'] = r.json()
+        except simplejson.scanner.JSONDecodeError:
+            pass
 
         if r.status_code == 200:
             r_data = simplejson.loads(r.content)
@@ -188,9 +192,16 @@ class Network:
                 if up_file:
                     print 'haria el patch por session que daba el 500'
                     #r = requests.patch(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
+
+
         response['status_code'] = r.status_code
-        response['json'] = r.json()
-        response['content'] = simplejson.loads(r.content)
+        if r.content:
+        	response['content'] = simplejson.loads(r.content)
+        try:
+        	response['json'] = r.json()
+        except simplejson.scanner.JSONDecodeError:
+            pass
+
         if r.status_code == 200:
             response['status_code'] = r.status_code
             response['json'] = r.json()

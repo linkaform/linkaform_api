@@ -9,7 +9,7 @@ class Api_url:
         self.dest_url = settings.config['PROTOCOL'] + '://' + settings.config['HOST']
         self.globals = self.get_global_url()
         self.form = self.get_forms_url()
-        self.records = self.get_records_url()
+        self.record = self.get_records_url()
         self.catalog = self.get_catalog_url()
         self.users = self.get_users_url()
         self.connecions = self.get_connections_url()
