@@ -5,15 +5,17 @@ import time
 
 #from forms import Form
 import network
-from urls import api_url
 
 class Cache(object):
 
-    def __init__(self):
+    def __init__(self, settings={}):
         self.items = {}
         self.items_data = {}
         self.items_fields = {}
-
+        self.settings = settings
+        from urls import Api_url
+        self.api_url = Api_url(settings)
+        self.network = network.Network(self.settings)
 
     def get(self, item_type, item_id):
         if not self.items.has_key(item_type):
@@ -42,12 +44,12 @@ class Cache(object):
 
     def get_item_answer(self, item_type, item_id):
         if item_type =='form':
-            url = api_url['form']['form_answer']['url'] + str(item_id)
-            method = api_url['form']['form_answer']['method']
+            url = self.api_url.form['form_answer']['url'] + str(item_id)
+            method = self.api_url.form['form_answer']['method']
         if item_type =='catalog':
-            url = api_url['catalog']['catalog_answer']['url'] + str(item_id)
-            method = api_url['catalog']['catalog_answer']['method']
-        response = network.dispatch(url=url, method=method)
+            url = self.api_url['catalog']['catalog_answer']['url'] + str(item_id)
+            method = self.api_url['catalog']['catalog_answer']['method']
+        response = self.network.dispatch(url=url, method=method)
         if response['status_code'] == 200:
             return response['data']
         return False
@@ -55,21 +57,21 @@ class Cache(object):
 
     def get_item_fields(self, item_type, item_id):
         if item_type =='form':
-            url = api_url['form']['get_form_id_fields']['url'] + str(item_id)
-            method = api_url['form']['get_form_id_fields']['method']
+            url = self.api_url.form['get_form_id_fields']['url'] + str(item_id)
+            method = self.api_url.form['get_form_id_fields']['method']
         if item_type =='catalog':
-            url = api_url['catalog']['catalog_id_fields']['url'] + str(item_id)
-            method = api_url['catalog']['catalog_id_fields']['method']
-        response = network.dispatch(url=url, method=method)
+            url = self.api_url['catalog']['catalog_id_fields']['url'] + str(item_id)
+            method = self.api_url['catalog']['catalog_id_fields']['method']
+        response = self.network.dispatch(url=url, method=method)
         if response['status_code'] == 200:
             return response['data']
         return False
 
 
     def get_form_id_fields(self, form_id):
-        url = api_url['form']['get_form_id_fields']['url']+str(form_id)
-        method = api_url['form']['get_form_id_fields']['method']
-        response = network.dispatch(url=url, method=method, use_api_key=False)
+        url = self.api_url.form['get_form_id_fields']['url']+str(form_id)
+        method = self.api_url.form['get_form_id_fields']['method']
+        response = self.network.dispatch(url=url, method=method, use_api_key=False)
         if response['status_code'] == 200:
             return response['data']
         return False
@@ -84,12 +86,12 @@ class Cache(object):
 
     def get_item_id(self, item_type, item_id):
         if item_type =='form':
-            url = api_url['form']['get_form_id']['url'] + str(item_id)
-            method = api_url['form']['get_form_id']['method']
+            url = self.api_url.form['get_form_id']['url'] + str(item_id)
+            method = self.api_url.form['get_form_id']['method']
         if item_type =='catalog':
-            url = api_url['catalog']['get_catalog_id']['url'] + str(item_id)
-            method = api_url['catalog']['get_catalog_id']['method']
-        response = network.dispatch(url=url, method=method)
+            url = self.api_url['catalog']['get_catalog_id']['url'] + str(item_id)
+            method = self.api_url['catalog']['get_catalog_id']['method']
+        response = self.network.dispatch(url=url, method=method)
         return response
 
 
@@ -97,7 +99,7 @@ class Cache(object):
         #TODO UPDATE SELF.ITESM
         #recives the url name on the config file,GET_FORMS or GET_CATALOGS
         items = []
-        all_items = network.dispatch(api_url['form']['all_forms'])
+        all_items = self.network.dispatch(self.api_url.form['all_forms'])
         objects = all_items['data']
         for obj in objects:
             if obj['itype'] == 'form':# or obj['itype'] == 'catalog':
@@ -109,7 +111,7 @@ class Cache(object):
         #TODO UPDATE SELF.ITESM
         #recives the url name on the config file,GET_FORMS or GET_CATALOGS
         items = []
-        all_items = network.dispatch(api_url['catalog']['all_catalogs'])
+        all_items = self.network.dispatch(self.api_url['catalog']['all_catalogs'])
         objects = all_items['data']
         for obj in objects:
             if obj['itype'] == 'catalog':# or obj['itype'] == 'catalog':
@@ -121,7 +123,7 @@ class Cache(object):
         #TODO UPDATE SELF.ITESM
         #Returns all the connections
         connections = []
-        all_connections = network.dispatch(api_url['connecions']['all_connections'])
+        all_connections = self.network.dispatch(self.api_url['connecions']['all_connections'])
         objects = all_connections['data']
         return objects
 
@@ -130,7 +132,7 @@ class Cache(object):
         #TODO UPDATE SELF.ITESM
         #Returns all the connections
         connections = []
-        all_users = network.dispatch(api_url['users']['all_users'])
+        all_users = self.network.dispatch(self.api_url['users']['all_users'])
         objects = all_users['data']
         return objects
 
@@ -138,7 +140,7 @@ class Cache(object):
     def get_record_answer(self, params = {}):
         if not params:
             params = {'limit':20,'offset':0}
-        response = network.dispatch(api_url['record']['form_answer'], params=params)
+        response = self.network.dispatch(self.api_url['record']['form_answer'], params=params)
         if response['status_code'] == 200:
             return response['data']
         return False
@@ -147,16 +149,16 @@ class Cache(object):
     def post_upload_file(self, data, up_file):
         #data:
         #up_file:
-        upload_url = network.dispatch(api_url['form']['upload_file'], data=data, up_file=up_file)
+        upload_url = self.network.dispatch(self.api_url.form['upload_file'], data=data, up_file=up_file)
         return upload_url
 
 
     def patch_record(self, data, record_id):
-        return network.patch_forms_answers(data, record_id)
+        return self.network.patch_forms_answers(data, record_id)
 
 
     def post_forms_answers(answers, test=False):
-        return network.post_forms_answers(answers)
+        return self.network.post_forms_answers(answers)
 
 
     def get_metadata(self, form_id=False, user_id=False):

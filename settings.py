@@ -23,10 +23,10 @@ config = {
     'COLLECTION' : 'form_answer',
     'MONGODB_URI':MONGODB_URI,
     'MONGODB_PORT':27017,
-    'MONGODB_HOST': 'localhost',
-    'PROTOCOL' : 'https', #http or https
-    'HOST' : 'dev2.linkaform.com',
-    'USER_ID' : '414',
+    'MONGODB_HOST': '',
+    'PROTOCOL' : '', #http or https
+    'HOST' : '',
+    'USER_ID' : '',
     'KEYS_POSITION' : {},
     'FILE_PATH_DIR' : '/tmp/Import/',
     'IS_USING_APIKEY' : True,
