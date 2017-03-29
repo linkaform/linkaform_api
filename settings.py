@@ -24,8 +24,8 @@ config = {
     'MONGODB_URI':MONGODB_URI,
     'MONGODB_PORT':27017,
     'MONGODB_HOST': '',
-    'PROTOCOL' : '', #http or https
-    'HOST' : '',
+    'PROTOCOL' : 'https', #http or https
+    'HOST' : 'app.linkaform.com',
     'USER_ID' : '',
     'KEYS_POSITION' : {},
     'FILE_PATH_DIR' : '/tmp/Import/',

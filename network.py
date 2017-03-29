@@ -25,11 +25,11 @@ class Network:
         if not url and url_method.has_key('url'):
             url = url_method['url']
         elif not url:
-            raise ("No URL found")
+            raise Exception ("No URL found")
         if not method and url_method.has_key('method'):
             method = url_method['method']
         elif not method:
-            raise ("No Method found")
+            raise Exception ("No Method found")
         return url, method.upper()
 
 
@@ -55,11 +55,11 @@ class Network:
                 response = self.do_get(url, use_login=use_login, use_api_key=use_api_key)
         if method == 'POST':
             if data == '{}' or not data:
-                raise ValueError('No data to post, check you post method')
+                raise  ValueError('No data to post, check you post method')
             response = self.do_post(url, data, use_login, use_api_key, up_file=up_file)
         if method == 'PATCH':
             if data == '{}' or not data:
-                raise ValueError('No data to post, check you post method')
+                raise  ValueError('No data to post, check you post method')
             response = self.do_patch(url, data, use_login, use_api_key, up_file=up_file)
         return response
 
@@ -80,13 +80,13 @@ class Network:
             session = requests.Session()
             if self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']):
                 #url =dset_url + ' '/api/infosync/get_form/?form_id=10378'
-                print 'login -------------------------------------'
+                #print 'login -------------------------------------'
                 if params:
                     r = session.get(url, params=params, headers={'Content-type': 'application/json'}, verify=True)
                 else:
                     r = session.get(url, headers={'Content-type': 'application/json'}, verify=True)
             else:
-                raise('Cannot login, please check user and password, or network connection!!!')
+                raise Exception('Cannot login, please check user and password, or network connection!!!')
 
         response['status_code'] = r.status_code
         if r.content:

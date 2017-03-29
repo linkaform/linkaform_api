@@ -1,7 +1,7 @@
 # coding: utf-8
 #!/usr/bin/python
 
-import time
+import time, datetime
 
 #from forms import Form
 import network
@@ -255,13 +255,32 @@ class Cache(object):
                     return {element['field_id']:int(answer)}
                 if element['field_type'] in ('decimal','float'):
                     return {element['field_id']:float(answer)}
-                if element['field_type'] in ('date'):
-                    return {element['field_id']:str(answer)[:10]}
+                if element['field_type'] in ('date', 'time', 'datetime'):
+                    date_str = self.validate(str(answer), check=element['field_type'])
+                    return {element['field_id']:date_str}
             except ValueError, e:
                 #print 'error', e
                 #print 'value', answer
                 return {}
         return {}
+
+
+    def validate(self, date_str, check='date'):
+        #check args date, time or datetime
+        if check == 'datetime':
+            check_str = '%Y-%m-%d %H:%M:%S'
+            date_str = date_str=str(date_str)[:19]
+        elif check == 'time':
+            check_str = '%H:%M:%S'
+            date_str = str(date_str)[:8]
+        else:
+            check_str = '%Y-%m-%d'
+            date_str = str(date_str)[:10]
+        try:
+            datetime.datetime.strptime(date_str, check_str)
+            return date_str
+        except ValueError:
+            raise ValueError("Incorrect data format, should be YYYY-MM-DD")
 
 
 def warning(*objs):
