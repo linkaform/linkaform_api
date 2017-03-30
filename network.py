@@ -237,7 +237,7 @@ class Network:
                 #print stop_post_forms
                 errors_json.append(r)
             res.append((index, r))
-        print 'Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, index+1)
+            print 'Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, index+1)
         if errors_json:
             #print 'errors_json=', errors_json
             if test:
