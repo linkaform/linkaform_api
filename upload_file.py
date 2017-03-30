@@ -1,3 +1,6 @@
+# coding: utf-8
+#!/usr/bin/python
+
 #####
 # Made by Jose Patricio VM
 #####
@@ -157,7 +160,7 @@ class LoadFile:
         return True
 
 
-    def create_record(self, pos_field_id, form_id, records, header):
+    def prepare_record_list(self, pos_field_id, form_id, records, header):
         records_to_upload = []
         metadata = self.lkf_api.get_metadata(form_id=form_id, user_id=self.settings.config['USER_ID'] )
         header_dict = self.make_header_dict(header)
@@ -200,11 +203,12 @@ class LoadFile:
                     answer[group_id].append(group_iteration[group_id])
                 this_record["answers"] = answer
                 records_to_upload.append(this_record)
-        #for rec in  records_to_upload:
-        print 'len records_to_upload', len(records_to_upload)
-        self.net.post_forms_answers_list(records_to_upload)
-        #    network.post_forms_answers(rec)
-        return True
+        return records_to_upload
+
+
+    def create_record(self, records_to_create):
+        error_list = self.net.post_forms_answers_list(records_to_create)
+        return error_list
 
 
     def remove_splecial_characters(self, text, replace_with='', remove_spaces=False):
@@ -228,7 +232,7 @@ class LoadFile:
         return res
 
 
-    def upload_file(self, file_url='', file_name='', form_id=None, equivalcens_map={}):
+    def get_file_to_upload(self, file_url='', file_name='', form_id=None, equivalcens_map={}):
         if not form_id:
             raise ValueError('Must specify form id')
         if not file_url and not file_name:
@@ -238,9 +242,15 @@ class LoadFile:
         elif file_name:
             header, records = self.read_file(file_name=file_name)
         header = self.remove_splecial_characters_list(header)
-        pos_field_id = self.get_pos_field_id_dict(header, form_id, equivalcens_map)
-        self.create_record(pos_field_id, form_id, records, header)
+        return header, records
 
+
+    def upload_file(self, file_url='', file_name='', form_id=None, equivalcens_map={}):
+        header, records = self.get_file_to_upload(file_url=file_url, file_name=file_name, form_id=form_id, equivalcens_map=equivalcens_map)
+        pos_field_id = self.get_pos_field_id_dict(header, form_id, equivalcens_map)
+        records_to_upload = self.prepare_record_list(pos_field_id, form_id, records, header)
+        error_list = self.create_record(records_to_upload)
+        return error_list
 
     def print_help(self):
         print '---------------- HELP --------------------------'
