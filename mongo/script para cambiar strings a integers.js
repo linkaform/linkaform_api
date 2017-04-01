@@ -273,7 +273,7 @@ dbs.forEach(function (database) {
     db.form_answer.find({'properties.followers':{$exists:0},deleted_at:{$exists:0}}).forEach(function(data) {
       followers = []
       if ( data.user_id !== undefined ) followers.push(data.user_id)
-      if ( data.connection_id !== undefined ) followers.push(data.connection_id)
+      if ( data.connection_id !== undefined && data.connection_id != data.user_id) followers.push(data.connection_id)
       var properties2 = {'followers':followers}
       print(JSON.stringify(properties2))
       db.form_answer.update({_id:data._id},{$set:{properties:properties2}})
