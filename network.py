@@ -279,7 +279,7 @@ class Network:
                 r['id'] = str(record_id)
                 errors_json.append(r)
             res.append((index, r))
-        print 'Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, index+1)
+        print 'Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, len(answers))
         if errors_json:
             print 'errors_json=', errors_json
             self.settings.GLOBAL_ERRORS.append(errors_json)
