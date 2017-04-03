@@ -245,13 +245,13 @@ class Network:
         return res
 
 
-    def patch_forms_answers(self, answers, record_id):
+    def patch_forms_answers(self, answers):
         if type(answers) == dict:
             answers = [answers,]
-        return self.patch_forms_answers_list(answers, record_id)[0][1]
+        return self.patch_forms_answers_list(answers)[0][1]
 
 
-    def patch_forms_answers_list(self, answers, record_id):
+    def patch_forms_answers_list(self, answers):
         if type(answers) == dict:
             answers = [answers,]
         POST_CORRECTLY=0
