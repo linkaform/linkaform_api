@@ -261,6 +261,8 @@ class Network:
             #print 'answers', answer
             if answer.has_key('_id') and answer['_id']:
                 record_id = answer.pop('_id')
+            else:
+                raise ValueError('The answer must have a record_id')
             url = self.api_url.record['form_answer_patch']['url'] +  str(record_id) + '/'
             method = self.api_url.record['form_answer_patch']['method']
             r = self.dispatch(url=url, method=method, data=answer)
