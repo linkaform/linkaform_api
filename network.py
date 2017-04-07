@@ -261,7 +261,7 @@ class Network:
         errors_json = []
         res = []
         for index, answer in enumerate(answers):
-            #print 'answers', answer
+            print 'answers', answer
             if answer.has_key('_id') and answer['_id']:
                 record_id = answer.pop('_id')
             else:
@@ -308,7 +308,10 @@ class Network:
 
     def get_user_connection(self):
         connection = {}
-        user_id = self.settings.config['USER_ID']
+        if self.settings.config.has_key('ACCOUNT_ID'):
+            user_id = self.settings.config['ACCOUNT_ID']
+        else:
+            user_id = self.settings.config['USER_ID']
         if not self.settings.config.has_key('REPLICASET'):
             self.settings.config['REPLICASET'] = ''
         if self.settings.config.has_key('MONGODB_URI'):
@@ -327,7 +330,10 @@ class Network:
 
     def get_infosync_connection(self):
         connection = {}
-        user_id = self.settings.config['USER_ID']
+        if self.settings.config.has_key('ACCOUNT_ID'):
+            user_id = self.settings.config['ACCOUNT_ID']
+        else:
+            user_id = self.settings.config['USER_ID']
         if not self.settings.config.has_key('REPLICASET'):
             self.settings.config['REPLICASET'] = ''
         if self.settings.config.has_key('MONGODB_URI'):

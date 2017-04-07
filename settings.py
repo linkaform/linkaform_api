@@ -27,6 +27,7 @@ config = {
     'PROTOCOL' : 'https', #http or https
     'HOST' : 'app.linkaform.com',
     'USER_ID' : '',
+    'ACCOUNT_ID': '',
     'KEYS_POSITION' : {},
     'FILE_PATH_DIR' : '/tmp/Import/',
     'IS_USING_APIKEY' : True,
