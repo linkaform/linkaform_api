@@ -195,6 +195,7 @@ class Network:
 
 
         response['status_code'] = r.status_code
+        print 'text', r.text
         if r.content:
         	response['content'] = simplejson.loads(r.content)
         try:
@@ -303,7 +304,7 @@ class Network:
 
     def get_user_connection(self):
         connection = {}
-        user_id = self.settings.config['USER_ID']
+        user_id = self.settings.config['ACCOUNT_ID']
         if not self.settings.config.has_key('REPLICASET'):
             self.settings.config['REPLICASET'] = ''
         if self.settings.config.has_key('MONGODB_URI'):
