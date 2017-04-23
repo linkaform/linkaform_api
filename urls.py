@@ -1,6 +1,7 @@
 # coding: utf-8
 #!/usr/bin/python
 
+
 class Api_url:
 
     def __init__(self, settings):
