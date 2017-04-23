@@ -146,6 +146,17 @@ class Cache(object):
         return False
 
 
+    def assigne_user_records(self, user_id, record_id_list, send_email=False, send_push_notification=False):
+        url_method = self.api_url.record['record']['assigne_user']
+        params = {'user_id' = user_id, 'records' = record_id_list,
+                  'send_push_notification'=send_push_notification,
+                  'send_mail'=send_mail}
+        response = self.network.dispatch(url_method, params)
+        if response['status_code'] == 200:
+            return response['data']
+        return response
+
+
     def post_upload_file(self, data, up_file):
         #data:
         #up_file:
@@ -157,7 +168,7 @@ class Cache(object):
         return self.network.patch_forms_answers(data, record_id)
 
 
-    def post_forms_answers(answers, test=False):
+    def post_forms_answers(self, answers, test=False):
         return self.network.post_forms_answers(answers)
 
 

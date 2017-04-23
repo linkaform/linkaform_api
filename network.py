@@ -45,7 +45,7 @@ class Network:
         response = False
         if type(data) in (dict,str):
             data = simplejson.dumps(data, encoding)
-        #print 'data=', data
+        print 'data=', data
         #print 'url=', url
         #print 'method', method
         if method == 'GET':
@@ -195,6 +195,7 @@ class Network:
 
 
         response['status_code'] = r.status_code
+        print 'text', r.text
         if r.content:
             try:
                response['content'] = simplejson.loads(r.content)

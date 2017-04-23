@@ -211,11 +211,6 @@ class LoadFile:
         return error_list
 
 
-    def patch_records(self, records_to_patch):
-        error_list = self.net.patch_forms_answers_list(records_to_patch)
-        return error_list
-
-
     def remove_splecial_characters(self, text, replace_with='', remove_spaces=False):
         if type(text) == str:
             text = text.replace('\xa0', replace_with)
