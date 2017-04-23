@@ -1,0 +1,26 @@
+
+/**
+ * Called before drawing region.
+ * 
+ * @param region
+ *            Region
+ * @param fgsc
+ *            FlashGadgetScriptContext
+**/
+
+importPackage(Packages.java.lang);
+function log(msg){
+    System.out.println(msg);
+}
+
+var x_1 = 0;
+
+function beforeDrawRegion( region, fgsc ) 
+{
+	rp = fgsc.getExternalContext().getScriptable();
+	var total = rp.getPersistentGlobalVariable("Total_Dictamen_Totales");
+	
+	log(value);
+}.
+
+reportContext.setPersistentGlobalVariable("Total_Dictamen_Totales",row["Total"].toString());

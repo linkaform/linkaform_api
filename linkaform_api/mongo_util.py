@@ -1,0 +1,31 @@
+import time
+from pymongo import MongoClient
+import datetime
+
+
+#variables
+dbname = 'infosync'
+collection_name = 'form_data'
+
+
+def connect_mongodb(dbname, host='localhost', port=27017):
+	client = MongoClient(host, port)
+	cur_db = client[dbname]
+	return cur_db
+
+def get_mongo_collection(cur_db, collection_name ):
+	#collection_name = 'form_answer'
+	collection = cur_db[collection_name]
+	return collection
+
+def get_collection_objects(cur_col, query = None):
+	if query:
+		objects = cur_col.find(query)
+	else:
+		objects = cur_col.find()
+	try:
+		if objects.count() == 0:
+			print 'NO RECORDS FOUND'
+	except TypeError:
+		print 'NO RECORDS FOUND'
+	return objects

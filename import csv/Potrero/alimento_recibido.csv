@@ -1,0 +1,153 @@
+fecha, granja, tipo_alimento, origen_alimento, cantidad
+,,,,
+2015-05-14,Potrero,Nupig Uno, Planta de Alimentos Sanfandila,3000
+2015-05-14,Potrero,Nupig Sew, Planta de Alimentos Sanfandila,200
+2015-05-20,Potrero,Nupig Sew, Planta de Alimentos Sanfandila,200
+2015-05-20,Potrero,Nupig Uno, Planta de Alimentos Sanfandila,2000
+2015-05-26,Potrero,Nupig Sew, Planta de Alimentos Sanfandila,300
+2015-05-26,Potrero,Nupig Uno, Planta de Alimentos Sanfandila,2000
+2015-05-27,Potrero,Nupig Uno, Planta de Alimentos Sanfandila,2000
+2015-06-01,Potrero,Nupig Uno, Planta de Alimentos Sanfandila,1050
+2015-06-01,Potrero,Nupig Uno, Planta de Alimentos Sanfandila,1000
+2015-06-01,Potrero,Nupig Sew, Planta de Alimentos Sanfandila,300
+2015-06-05,Potrero,Nupig Uno, Planta de Alimentos Sanfandila,3000
+2015-06-06,Potrero,Preiniciador 2, Planta de Alimentos Sanfandila,3175
+2015-06-12,Potrero,Nupig Sew, Planta de Alimentos Sanfandila,300
+2015-06-12,Potrero,Nupig Uno, Planta de Alimentos Sanfandila,4000
+2015-06-13,Potrero,Preiniciador 2, Planta de Alimentos Sanfandila,6135
+2015-06-13,Potrero,Preiniciador 3, Planta de Alimentos Sanfandila,6540
+2015-06-20,Potrero,Nupig Sew, Planta de Alimentos Sanfandila,300
+2015-06-20,Potrero,Nupig Uno, Planta de Alimentos Sanfandila,1000
+2015-06-20,Potrero,Preiniciador 2, Planta de Alimentos Sanfandila,6565
+2015-06-20,Potrero,Preiniciador 3, Planta de Alimentos Sanfandila,10050
+2015-06-23,Potrero,Iniciador F2, Planta de Alimentos Sanfandila,6085
+2015-06-26,Potrero,Nupig Sew, Planta de Alimentos Sanfandila,300
+2015-06-26,Potrero,Nupig Uno, Planta de Alimentos Sanfandila,2000
+2015-06-28,Potrero,Preiniciador 2, Planta de Alimentos Sanfandila,6720
+2015-06-28,Potrero,Preiniciador 3, Planta de Alimentos Sanfandila,9510
+2015-06-30,Potrero,Nupig Sew, Planta de Alimentos Sanfandila,300
+2015-06-30,Potrero,Nupig Uno, Planta de Alimentos Sanfandila,3000
+2015-07-02,Potrero,Nupig Uno, Planta de Alimentos Sanfandila,2000
+2015-07-02,Potrero,Iniciador F2, Planta de Alimentos Sanfandila,13875
+2015-07-04,Potrero,Preiniciador 2, Planta de Alimentos Sanfandila,5895
+2015-07-04,Potrero,Preiniciador 3, Planta de Alimentos Sanfandila,8540
+2015-07-09,Potrero,Iniciador F2, Planta de Alimentos Sanfandila,11775
+2015-07-10,Potrero,Iniciador F2, Planta de Alimentos Sanfandila,11930
+2015-07-15,Potrero,Iniciador F2, Planta de Alimentos Sanfandila,6430
+2015-07-16,Potrero,Iniciador F2, Planta de Alimentos Sanfandila,6510
+2015-07-17,Potrero,Preiniciador 2, Planta de Alimentos Sanfandila,5795
+2015-07-18,Potrero,Preiniciador 3, Planta de Alimentos Sanfandila,5790
+2015-07-18,Potrero,Iniciador F2, Planta de Alimentos Sanfandila,11475
+2015-07-18,Potrero,Crecimiento , Planta de Alimentos Sanfandila,6105
+2015-07-21,Potrero,Iniciador F2, Planta de Alimentos Sanfandila,12560
+2015-07-21,Potrero,Crecimiento , Planta de Alimentos Sanfandila,12500
+2015-07-22,Potrero,Iniciador F2, Planta de Alimentos Sanfandila,6950
+2015-07-22,Potrero,Crecimiento , Planta de Alimentos Sanfandila,6290
+2015-07-24,Potrero,Iniciador F2, Planta de Alimentos Sanfandila,6450
+2015-07-27,Potrero,Crecimiento , Planta de Alimentos Sanfandila,5770
+2015-07-25,Potrero,Preiniciador 2, Planta de Alimentos Sanfandila,6015
+2015-07-25,Potrero,Preiniciador 3, Planta de Alimentos Sanfandila,6275
+2015-07-27,Potrero,Iniciador F2, Planta de Alimentos Sanfandila,11110
+2015-07-28,Potrero,Iniciador F2, Planta de Alimentos Sanfandila,6420
+2015-07-28,Potrero,Crecimiento , Planta de Alimentos Sanfandila,6005
+2015-07-29,Potrero,Iniciador F2, Planta de Alimentos Sanfandila,6310
+2015-07-29,Potrero,Crecimiento , Planta de Alimentos Sanfandila,12425
+2015-07-31,Potrero,Iniciador F2, Planta de Alimentos Sanfandila,11725
+2015-07-31,Potrero,Crecimiento , Planta de Alimentos Sanfandila,6390
+2015-08-01,Potrero,Crecimiento 2, Planta de Alimentos Sanfandila,6390
+2015-08-01,Potrero,Iniciador F2,Maguey,-2142
+2015-08-03,Potrero,Crecimiento , Planta de Alimentos Sanfandila,12580
+2015-08-04,Potrero,Iniciador F2, Planta de Alimentos Sanfandila,11790
+2015-08-05,Potrero,Crecimiento , Planta de Alimentos Sanfandila,11610
+2015-08-06,Potrero,Iniciador F2, Planta de Alimentos Sanfandila,8895
+2015-08-06,Potrero,Crecimiento , Planta de Alimentos Sanfandila,8935
+2015-08-07,Potrero,Crecimiento , Planta de Alimentos Sanfandila,11705
+2015-08-08,Potrero,Crecimiento , Planta de Alimentos Sanfandila,14575
+2015-08-10,Potrero,Crecimiento , Planta de Alimentos Sanfandila,11935
+2015-08-10,Potrero,Desarrollo, Planta de Alimentos Sanfandila,3130
+2015-08-11,Potrero,Iniciador F2, Planta de Alimentos Sanfandila,8010
+2015-08-11,Potrero,Desarrollo, Planta de Alimentos Sanfandila,6095
+2015-08-12,Potrero,Crecimiento , Planta de Alimentos Sanfandila,11890
+2015-08-12,Potrero,Desarrollo, Planta de Alimentos Sanfandila,6075
+2015-08-13,Potrero,Iniciador F2, Planta de Alimentos Sanfandila,6035
+2015-08-13,Potrero,Crecimiento 2, Planta de Alimentos Sanfandila,8725
+2015-08-14,Potrero,Crecimiento 2, Planta de Alimentos Sanfandila,8935
+2015-08-14,Potrero,Desarrollo, Planta de Alimentos Sanfandila,6300
+2015-08-15,Potrero,Crecimiento , Planta de Alimentos Sanfandila,14870
+2015-08-17,Potrero,Crecimiento , Planta de Alimentos Sanfandila,13055
+2015-08-18,Potrero,Crecimiento 2, Planta de Alimentos Sanfandila,8845
+2015-08-18,Potrero,Desarrollo, Planta de Alimentos Sanfandila,12120
+2015-08-19,Potrero,Crecimiento , Planta de Alimentos Sanfandila,15795
+2015-08-19,Potrero,Desarrollo, Planta de Alimentos Sanfandila,15295
+2015-08-20,Potrero,Iniciador F2, Planta de Alimentos Sanfandila,8870
+2015-08-21,Potrero,Crecimiento 2, Planta de Alimentos Sanfandila,5960
+2015-08-22,Potrero,Desarrollo, Planta de Alimentos Sanfandila,15125
+2015-08-24,Potrero,Engorda, Planta de Alimentos Sanfandila,6630
+2015-08-24,Potrero,Crecimiento , Planta de Alimentos Sanfandila,11350
+2015-08-25,Potrero,Engorda, Planta de Alimentos Sanfandila,8905
+2015-08-25,Potrero,Crecimiento 2, Planta de Alimentos Sanfandila,9075
+2015-08-26,Potrero,Engorda, Planta de Alimentos Sanfandila,11760
+2015-08-26,Potrero,Crecimiento 2, Planta de Alimentos Sanfandila,17990
+2015-08-27,Potrero,Engorda, Planta de Alimentos Sanfandila,14925
+2015-08-27,Potrero,Crecimiento , Planta de Alimentos Sanfandila,13780
+2015-08-29,Potrero,Desarrollo, Planta de Alimentos Sanfandila,14845
+2015-08-31,Potrero,Engorda, Planta de Alimentos Sanfandila,12145
+2015-08-31,Potrero,Crecimiento , Planta de Alimentos Sanfandila,4850
+2015-09-01,Potrero,Crecimiento , Planta de Alimentos Sanfandila,5905
+2015-09-01,Potrero,Crecimiento 2, Planta de Alimentos Sanfandila,12070
+2015-09-01,Potrero,Desarrollo, Planta de Alimentos Sanfandila,11785
+2015-09-02,Potrero,Engorda, Planta de Alimentos Sanfandila,11770
+2015-09-03,Potrero,Crecimiento 2, Planta de Alimentos Sanfandila,6000
+2015-09-03,Potrero,Desarrollo, Planta de Alimentos Sanfandila,11430
+2015-09-05,Potrero,Engorda, Planta de Alimentos Sanfandila,11740
+2015-09-05,Potrero,Desarrollo, Planta de Alimentos Sanfandila,11870
+2015-09-05,Potrero,Engorda, Planta de Alimentos Sanfandila,12075
+2015-09-07,Potrero,Crecimiento , Planta de Alimentos Sanfandila,11455
+2015-09-07,Potrero,Engorda 5, Planta de Alimentos Sanfandila,5780
+2015-09-08,Potrero,Crecimiento , Planta de Alimentos Sanfandila,12965
+2015-09-08,Potrero,Desarrollo, Planta de Alimentos Sanfandila,9200
+2015-09-08,Potrero,Engorda 5, Planta de Alimentos Sanfandila,8995
+2015-09-09,Potrero,Desarrollo, Planta de Alimentos Sanfandila,6140
+2015-09-09,Potrero,Engorda 5, Planta de Alimentos Sanfandila,11710
+2015-09-10,Potrero,Desarrollo, Planta de Alimentos Sanfandila,14880
+2015-09-11,Potrero,Crecimiento , Planta de Alimentos Sanfandila,9205
+2015-09-11,Potrero,Desarrollo, Planta de Alimentos Sanfandila,7900
+2015-09-11,Potrero,Engorda 5, Planta de Alimentos Sanfandila,11955
+2015-09-12,Potrero,Engorda 5, Planta de Alimentos Sanfandila,12110
+2015-09-14,Potrero,Crecimiento 2, Planta de Alimentos Sanfandila,9020
+2015-09-14,Potrero,Desarrollo, Planta de Alimentos Sanfandila,12190
+2015-09-14,Potrero,Engorda 5, Planta de Alimentos Sanfandila,12145
+2015-09-15,Potrero,Desarrollo, Planta de Alimentos Sanfandila,12245
+2015-09-15,Potrero,Engorda 5, Planta de Alimentos Sanfandila,5930
+2015-09-16,Potrero,Desarrollo, Planta de Alimentos Sanfandila,17715
+2015-09-16,Potrero,Engorda 5, Planta de Alimentos Sanfandila,12090
+2015-09-18,Potrero,Desarrollo, Planta de Alimentos Sanfandila,16590
+2015-09-18,Potrero,Engorda 5, Planta de Alimentos Sanfandila,9505
+2015-09-21,Potrero,Desarrollo, Planta de Alimentos Sanfandila,15940
+2015-09-21,Potrero,Engorda 5, Planta de Alimentos Sanfandila,8845
+2015-09-21,Potrero,Engorda 10, Planta de Alimentos Sanfandila,8965
+2015-09-22,Potrero,Desarrollo, Planta de Alimentos Sanfandila,15130
+2015-09-22,Potrero,Engorda 10, Planta de Alimentos Sanfandila,15250
+2015-09-23,Potrero,Desarrollo, Planta de Alimentos Sanfandila,15110
+2015-09-23,Potrero,Engorda 5, Planta de Alimentos Sanfandila,12095
+2015-09-24,Potrero,Desarrollo, Planta de Alimentos Sanfandila,12230
+2015-09-24,Potrero,Engorda 10, Planta de Alimentos Sanfandila,15120
+2015-09-28,Potrero,Desarrollo, Planta de Alimentos Sanfandila,12235
+2015-09-28,Potrero,Engorda 5, Planta de Alimentos Sanfandila,9275
+2015-09-28,Potrero,Engorda 10, Planta de Alimentos Sanfandila,9145
+2015-09-29,Potrero,Engorda 5, Planta de Alimentos Sanfandila,6190
+2015-09-29,Potrero,Engorda 10, Planta de Alimentos Sanfandila,6160
+2015-09-30,Potrero,Engorda 5, Planta de Alimentos Sanfandila,15465
+2015-09-30,Potrero,Desarrollo, Planta de Alimentos Sanfandila,15020
+2015-09-30,Potrero,Engorda 10, Planta de Alimentos Sanfandila,12360
+2015-10-02,Potrero,Desarrollo, Planta de Alimentos Sanfandila,12080
+2015-10-03,Potrero,Engorda 5, Planta de Alimentos Sanfandila,15275
+2015-10-03,Potrero,Engorda 10, Planta de Alimentos Sanfandila,15145
+2015-10-05,Potrero,Desarrollo, Planta de Alimentos Sanfandila,12390
+2015-10-05,Potrero,Engorda 5, Planta de Alimentos Sanfandila,15015
+2015-10-07,Potrero,Engorda 10, Planta de Alimentos Sanfandila,14905
+2015-10-08,Potrero,Engorda 5, Planta de Alimentos Sanfandila,8270
+2015-10-08,Potrero,Engorda 10, Planta de Alimentos Sanfandila,15125
+2015-10-09,Potrero,Desarrollo, Planta de Alimentos Sanfandila,12210
+2015-10-09,Potrero,Engorda 5, Planta de Alimentos Sanfandila,15020
+2015-10-10,Potrero,Engorda 10, Planta de Alimentos Sanfandila,8815

@@ -1,0 +1,472 @@
+fecha,granja,total_muertos,causa_muerte,muerto_por_esta_causa,lote,flujo
+2015-05-30,Potrero,1,No Determinado,1,15180101,Tejas
+2015-06-01,Potrero,1,Poliserositis,1,15180101,Tejas
+2015-06-02,Potrero,1,No Determinado,1,15180101,Tejas
+2015-06-03,Potrero,1,Poliserositis,1,15180101,Tejas
+2015-06-05,Potrero,2,Edema,2,15180101,Tejas
+2015-06-09,Potrero,1,No Determinado,1,15180101,Tejas
+2015-06-10,Potrero,2,No Determinado,2,15180101,Tejas
+2015-06-11,Potrero,1,No Determinado,1,15180101,Tejas
+2015-06-12,Potrero,2,Descriado,2,15180101,Tejas
+2015-06-13,Potrero,2,Descriado,2,15180101,Tejas
+2015-06-16,Potrero,2,Descriado,2,15180101,Tejas
+2015-06-19,Potrero,1,Poliserositis,1,15180101,Tejas
+2015-06-20,Potrero,2,Poliserositis,2,15180101,Tejas
+2015-06-24,Potrero,1,Neumonia,1,15180101,Tejas
+2015-06-27,Potrero,2,Poliserositis,2,15180101,Tejas
+2015-06-28,Potrero,1,Ulcera Gástrica,1,15180101,Tejas
+2015-06-30,Potrero,2,Poliserositis,2,15180101,Tejas
+2015-07-01,Potrero,2,Descriado,2,15180101,Tejas
+2015-07-08,Potrero,1,No Determinado,1,15180101,Tejas
+2015-07-10,Potrero,1,Poliserositis,1,15180101,Tejas
+2015-07-30,Potrero,1,Neumonia,1,15180101,Tejas
+2015-08-09,Potrero,1,No Determinado,1,15180101,Tejas
+2015-08-10,Potrero,1,No Determinado,1,15180101,Tejas
+2015-08-16,Potrero,1,No Determinado,1,15180101,Tejas
+2015-08-21,Potrero,1,Neumonia,1,15180101,Tejas
+2015-08-26,Potrero,1,No Determinado,1,15180101,Tejas
+2015-08-30,Potrero,1,No Determinado,1,15180101,Tejas
+2015-09-02,Potrero,1,Neumonia,1,15180101,Tejas
+2015-09-04,Potrero,1,Neumonia,1,15180101,Tejas
+2015-09-08,Potrero,1,Sindrome Hemorrágico,1,15180101,Tejas
+2015-09-11,Potrero,1,Sindrome Hemorrágico,1,15180101,Tejas
+2015-09-15,Potrero,2,Neumonia,2,15180101,Tejas
+2015-09-17,Potrero,1,Neumonia,1,15180101,Tejas
+2015-09-23,Potrero,1,Sindrome Hemorrágico,1,15180101,Tejas
+2015-09-24,Potrero,3,Neumonia,3,15180101,Tejas
+2015-09-25,Potrero,4,Neumonia,4,15180101,Tejas
+2015-09-26,Potrero,1,Neumonia,1,15180101,Tejas
+2015-09-27,Potrero,2,No Determinado,2,15180101,Tejas
+2015-06-01,Potrero,1,Edema,1,15190101,Tejas
+2015-06-02,Potrero,1,No Determinado,1,15190101,Tejas
+2015-06-04,Potrero,1,No Determinado,1,15190101,Tejas
+2015-06-05,Potrero,1,No Determinado,1,15190101,Tejas
+2015-06-08,Potrero,1,No Determinado,1,15190101,Tejas
+2015-06-09,Potrero,1,No Determinado,1,15190101,Tejas
+2015-06-11,Potrero,1,No Determinado,1,15190101,Tejas
+2015-06-13,Potrero,3,Sacrificado,3,15190101,Tejas
+2015-06-15,Potrero,2,Descriado,2,15190101,Tejas
+2015-06-16,Potrero,1,Descriado,1,15190101,Tejas
+2015-06-17,Potrero,1,Descriado,1,15190101,Tejas
+2015-06-18,Potrero,1,Descriado,1,15190101,Tejas
+2015-06-19,Potrero,1,Poliserositis,1,15190101,Tejas
+2015-06-27,Potrero,1,Descriado,1,15190101,Tejas
+2015-06-29,Potrero,1,Poliserositis,1,15190101,Tejas
+2015-06-30,Potrero,1,Neumonia,1,15190101,Tejas
+2015-07-01,Potrero,1,Descriado,1,15190101,Tejas
+2015-07-02,Potrero,1,Poliserositis,1,15190101,Tejas
+2015-07-04,Potrero,3,Sacrificado,3,15190101,Tejas
+2015-07-05,Potrero,1,No Determinado,1,15190101,Tejas
+2015-07-06,Potrero,1,No Determinado,1,15190101,Tejas
+2015-07-07,Potrero,1,No Determinado,1,15190101,Tejas
+2015-07-09,Potrero,1,Poliserositis,1,15190101,Tejas
+2015-07-11,Potrero,1,Poliserositis,1,15190101,Tejas
+2015-07-19,Potrero,2,Neumonia,2,15190101,Tejas
+2015-07-24,Potrero,2,Poliserositis,2,15190101,Tejas
+2015-07-25,Potrero,1,No Determinado,1,15190101,Tejas
+2015-07-27,Potrero,1,No Determinado,1,15190101,Tejas
+2015-08-01,Potrero,1,No Determinado,1,15190101,Tejas
+2015-08-05,Potrero,1,Neumonia,1,15190101,Tejas
+2015-08-11,Potrero,2,No Determinado,2,15190101,Tejas
+2015-08-15,Potrero,1,Sacrificado,1,15190101,Tejas
+2015-08-18,Potrero,1,No Determinado,1,15190101,Tejas
+2015-08-20,Potrero,1,No Determinado,1,15190101,Tejas
+2015-08-25,Potrero,2,Neumonia,2,15190101,Tejas
+2015-08-29,Potrero,1,Neumonia,1,15190101,Tejas
+2015-08-30,Potrero,1,Neumonia,1,15190101,Tejas
+2015-09-01,Potrero,2,No Determinado,2,15190101,Tejas
+2015-09-02,Potrero,1,No Determinado,1,15190101,Tejas
+2015-09-03,Potrero,1,No Determinado,1,15190101,Tejas
+2015-09-06,Potrero,1,No Determinado,1,15190101,Tejas
+2015-09-10,Potrero,1,Neumonia,1,15190101,Tejas
+2015-09-12,Potrero,1,Neumonia,1,15190101,Tejas
+2015-09-15,Potrero,2,Ulcera Gástrica,2,15190101,Tejas
+2015-09-20,Potrero,1,No Determinado,1,15190101,Tejas
+2015-09-22,Potrero,1,Sindrome Hemorrágico,1,15190101,Tejas
+2015-09-23,Potrero,1,No Determinado,1,15190101,Tejas
+2015-09-24,Potrero,3,Neumonia,3,15190101,Tejas
+2015-09-25,Potrero,3,Neumonia,3,15190101,Tejas
+2015-10-01,Potrero,1,No Determinado,1,15190101,Tejas
+2015-10-03,Potrero,1,Neumonia,1,15190101,Tejas
+2015-10-06,Potrero,2,NeumoniaNo Determinado,2,15190101,Tejas
+2015-10-07,Potrero,1,Neumonia,1,15190101,Tejas
+2015-10-09,Potrero,1,Neumonia,1,15190101,Tejas
+2015-10-11,Potrero,1,Sindrome Hemorrágico,1,15190101,Tejas
+2015-06-12,Potrero,1,Descriado,1,15200101,Tejas
+2015-06-13,Potrero,2,Sacrificado,2,15200101,Tejas
+2015-06-15,Potrero,1,Descriado,1,15200101,Tejas
+2015-06-18,Potrero,2,NeumoniaDescriado,2,15200101,Tejas
+2015-06-20,Potrero,2,Neumonia,2,15200101,Tejas
+2015-06-23,Potrero,1,Descriado,1,15200101,Tejas
+2015-07-11,Potrero,1,Descriado,1,15200101,Tejas
+2015-07-12,Potrero,1,No Determinado,1,15200101,Tejas
+2015-07-14,Potrero,1,Neumonia,1,15200101,Tejas
+2015-07-15,Potrero,3,Sacrificado,3,15200101,Tejas
+2015-07-23,Potrero,1,Neumonia,1,15200101,Tejas
+2015-07-28,Potrero,2,No Determinado,2,15200101,Tejas
+2015-07-30,Potrero,1,Poliserositis,1,15200101,Tejas
+2015-08-01,Potrero,1,No Determinado,1,15200101,Tejas
+2015-08-03,Potrero,1,No Determinado,1,15200101,Tejas
+2015-08-04,Potrero,1,No Determinado,1,15200101,Tejas
+2015-08-06,Potrero,1,No Determinado,1,15200101,Tejas
+2015-08-09,Potrero,1,Poliserositis,1,15200101,Tejas
+2015-08-12,Potrero,1,No Determinado,1,15200101,Tejas
+2015-08-14,Potrero,1,No Determinado,1,15200101,Tejas
+2015-08-15,Potrero,1,Ulcera Gástrica,1,15200101,Tejas
+2015-08-17,Potrero,1,Poliserositis,1,15200101,Tejas
+2015-08-18,Potrero,1,Sindrome Hemorrágico,1,15200101,Tejas
+2015-08-21,Potrero,1,Ulcera Gástrica,1,15200101,Tejas
+2015-08-23,Potrero,1,No Determinado,1,15200101,Tejas
+2015-09-03,Potrero,1,Neumonia,1,15200101,Tejas
+2015-09-04,Potrero,1,No Determinado,1,15200101,Tejas
+2015-09-06,Potrero,1,Poliserositis,1,15200101,Tejas
+2015-09-09,Potrero,1,Sindrome Hemorrágico,1,15200101,Tejas
+2015-09-10,Potrero,1,Poliserositis,1,15200101,Tejas
+2015-09-11,Potrero,1,Neumonia,1,15200101,Tejas
+2015-09-12,Potrero,1,Poliserositis,1,15200101,Tejas
+2015-09-15,Potrero,1,Neumonia,1,15200101,Tejas
+2015-09-17,Potrero,1,Ulcera Gástrica,1,15200101,Tejas
+2015-09-19,Potrero,1,No Determinado,1,15200101,Tejas
+2015-09-20,Potrero,1,No Determinado,1,15200101,Tejas
+2015-09-23,Potrero,2,Neumonia,2,15200101,Tejas
+2015-09-25,Potrero,2,Neumonia,2,15200101,Tejas
+2015-09-28,Potrero,2,NeumoniaSacrificado,2,15200101,Tejas
+2015-10-07,Potrero,1,Sindrome Hemorrágico,1,15200101,Tejas
+2015-10-11,Potrero,1,Poliserositis,1,15200101,Tejas
+2015-06-11,Potrero,1,Edema,1,15210101,Tejas
+2015-06-15,Potrero,1,Descriado,1,15210101,Tejas
+2015-06-16,Potrero,1,Edema,1,15210101,Tejas
+2015-06-17,Potrero,2,Descriado,2,15210101,Tejas
+2015-06-18,Potrero,1,Descriado,1,15210101,Tejas
+2015-06-19,Potrero,1,Descriado,1,15210101,Tejas
+2015-06-20,Potrero,1,Descriado,1,15210101,Tejas
+2015-06-21,Potrero,2,Descriado,2,15210101,Tejas
+2015-06-22,Potrero,4,Descriado,4,15210101,Tejas
+2015-06-23,Potrero,2,Descriado,2,15210101,Tejas
+2015-06-24,Potrero,1,Descriado,1,15210101,Tejas
+2015-06-25,Potrero,2,Descriado,2,15210101,Tejas
+2015-06-26,Potrero,2,Poliserositis,2,15210101,Tejas
+2015-06-27,Potrero,1,Descriado,1,15210101,Tejas
+2015-06-28,Potrero,2,Descriado,2,15210101,Tejas
+2015-06-29,Potrero,4,Descriado,4,15210101,Tejas
+2015-07-01,Potrero,1,Descriado,1,15210101,Tejas
+2015-07-02,Potrero,1,Descriado,1,15210101,Tejas
+2015-07-03,Potrero,1,Neumonia,1,15210101,Tejas
+2015-07-04,Potrero,3,Sacrificado,3,15210101,Tejas
+2015-07-05,Potrero,2,No Determinado,2,15210101,Tejas
+2015-07-07,Potrero,2,Descriado,2,15210101,Tejas
+2015-07-08,Potrero,2,No Determinado,2,15210101,Tejas
+2015-07-11,Potrero,3,Sacrificado,3,15210101,Tejas
+2015-07-12,Potrero,1,No Determinado,1,15210101,Tejas
+2015-07-13,Potrero,1,Neumonia,1,15210101,Tejas
+2015-07-14,Potrero,2,Poliserositis,2,15210101,Tejas
+2015-07-15,Potrero,5,Sacrificado,5,15210101,Tejas
+2015-07-17,Potrero,1,Neumonia,1,15210101,Tejas
+2015-07-18,Potrero,2,No Determinado,2,15210101,Tejas
+2015-07-19,Potrero,1,Poliserositis,1,15210101,Tejas
+2015-07-20,Potrero,2,No Determinado,2,15210101,Tejas
+2015-07-21,Potrero,2,No Determinado,2,15210101,Tejas
+2015-07-22,Potrero,1,No Determinado,1,15210101,Tejas
+2015-07-23,Potrero,2,No Determinado,2,15210101,Tejas
+2015-07-25,Potrero,1,No Determinado,1,15210101,Tejas
+2015-07-26,Potrero,1,No Determinado,1,15210101,Tejas
+2015-07-29,Potrero,1,Poliserositis,1,15210101,Tejas
+2015-07-30,Potrero,1,Ulcera Gástrica,1,15210101,Tejas
+2015-08-01,Potrero,1,No Determinado,1,15210101,Tejas
+2015-08-03,Potrero,1,No Determinado,1,15210101,Tejas
+2015-08-04,Potrero,1,No Determinado,1,15210101,Tejas
+2015-08-07,Potrero,1,No Determinado,1,15210101,Tejas
+2015-08-12,Potrero,4,Poliserositis,4,15210101,Tejas
+2015-08-13,Potrero,1,Poliserositis,1,15210101,Tejas
+2015-08-15,Potrero,1,Ulcera Gástrica,1,15210101,Tejas
+2015-08-18,Potrero,1,No Determinado,1,15210101,Tejas
+2015-08-20,Potrero,3,Sacrificado,3,15210101,Tejas
+2015-08-22,Potrero,1,Neumonia,1,15210101,Tejas
+2015-08-27,Potrero,1,No Determinado,1,15210101,Tejas
+2015-09-03,Potrero,2,No Determinado,2,15210101,Tejas
+2015-09-04,Potrero,1,Neumonia,1,15210101,Tejas
+2015-09-12,Potrero,1,Ulcera Gástrica,1,15210101,Tejas
+2015-09-18,Potrero,1,Neumonia,1,15210101,Tejas
+2015-09-21,Potrero,1,Ulcera Gástrica,1,15210101,Tejas
+2015-09-23,Potrero,1,Ulcera Gástrica,1,15210101,Tejas
+2015-09-24,Potrero,2,Neumonia,2,15210101,Tejas
+2015-09-27,Potrero,1,Neumonia,1,15210101,Tejas
+2015-10-03,Potrero,1,Neumonia,1,15210101,Tejas
+2015-10-07,Potrero,1,No Determinado,1,15210101,Tejas
+2015-10-09,Potrero,1,Ulcera Gástrica,1,15210101,Tejas
+2015-06-22,Potrero,2,Descriado,2,15220101,Tejas
+2015-06-25,Potrero,1,Descriado,1,15220101,Tejas
+2015-06-26,Potrero,1,Descriado,1,15220101,Tejas
+2015-06-28,Potrero,1,No Determinado,1,15220101,Tejas
+2015-07-01,Potrero,3,Descriado,3,15220101,Tejas
+2015-07-05,Potrero,1,No Determinado,1,15220101,Tejas
+2015-07-07,Potrero,2,Descriado,2,15220101,Tejas
+2015-07-08,Potrero,2,Descriado,2,15220101,Tejas
+2015-07-09,Potrero,3,Descriado,3,15220101,Tejas
+2015-07-11,Potrero,6,Descriado,6,15220101,Tejas
+2015-07-13,Potrero,3,Descriado,3,15220101,Tejas
+2015-07-15,Potrero,1,Sacrificado,1,15220101,Tejas
+2015-07-16,Potrero,3,Sacrificado,3,15220101,Tejas
+2015-07-17,Potrero,3,Sacrificado,3,15220101,Tejas
+2015-07-23,Potrero,1,Poliserositis,1,15220101,Tejas
+2015-08-03,Potrero,1,Poliserositis,1,15220101,Tejas
+2015-08-04,Potrero,1,Poliserositis,1,15220101,Tejas
+2015-08-05,Potrero,1,Poliserositis,1,15220101,Tejas
+2015-08-08,Potrero,2,Neumonia,2,15220101,Tejas
+2015-08-12,Potrero,2,Sacrificado,2,15220101,Tejas
+2015-08-16,Potrero,1,No Determinado,1,15220101,Tejas
+2015-08-20,Potrero,2,Poliserositis,2,15220101,Tejas
+2015-08-22,Potrero,1,Neumonia,1,15220101,Tejas
+2015-09-01,Potrero,1,Poliserositis,1,15220101,Tejas
+2015-09-02,Potrero,2,No Determinado,2,15220101,Tejas
+2015-09-05,Potrero,1,Poliserositis,1,15220101,Tejas
+2015-09-22,Potrero,1,Ulcera Gástrica,1,15220101,Tejas
+2015-09-23,Potrero,2,Neumonia,2,15220101,Tejas
+2015-09-24,Potrero,3,Neumonia,3,15220101,Tejas
+2015-09-26,Potrero,1,No Determinado,1,15220101,Tejas
+2015-10-03,Potrero,1,Sacrificado,1,15220101,Tejas
+2015-10-05,Potrero,2,No Determinado,2,15220101,Tejas
+2015-10-11,Potrero,1,Neumonia,1,15220101,Tejas
+2015-06-25,Potrero,1,Descriado,1,15230101,Tejas
+2015-06-27,Potrero,1,Descriado,1,15230101,Tejas
+2015-06-29,Potrero,4,Descriado,4,15230101,Tejas
+2015-07-02,Potrero,2,Descriado,2,15230101,Tejas
+2015-07-03,Potrero,3,Descriado,3,15230101,Tejas
+2015-07-04,Potrero,2,Descriado,2,15230101,Tejas
+2015-07-06,Potrero,1,Descriado,1,15230101,Tejas
+2015-07-07,Potrero,1,Descriado,1,15230101,Tejas
+2015-07-08,Potrero,2,Descriado,2,15230101,Tejas
+2015-07-09,Potrero,3,Descriado,3,15230101,Tejas
+2015-07-10,Potrero,1,Descriado,1,15230101,Tejas
+2015-07-11,Potrero,2,Sacrificado,2,15230101,Tejas
+2015-07-12,Potrero,3,Descriado,3,15230101,Tejas
+2015-07-13,Potrero,4,Descriado,4,15230101,Tejas
+2015-07-14,Potrero,1,Descriado,1,15230101,Tejas
+2015-07-15,Potrero,3,Descriado,3,15230101,Tejas
+2015-07-16,Potrero,2,Sacrificado,2,15230101,Tejas
+2015-07-17,Potrero,4,Sacrificado,4,15230101,Tejas
+2015-07-18,Potrero,1,Descriado,1,15230101,Tejas
+2015-07-19,Potrero,2,Descriado,2,15230101,Tejas
+2015-07-20,Potrero,1,Descriado,1,15230101,Tejas
+2015-07-21,Potrero,1,Descriado,1,15230101,Tejas
+2015-07-22,Potrero,1,Descriado,1,15230101,Tejas
+2015-07-23,Potrero,4,No Determinado,4,15230101,Tejas
+2015-07-24,Potrero,4,Descriado,4,15230101,Tejas
+2015-07-25,Potrero,4,Descriado,4,15230101,Tejas
+2015-07-26,Potrero,3,Descriado,3,15230101,Tejas
+2015-07-28,Potrero,8,Sacrificado,8,15230101,Tejas
+2015-08-01,Potrero,2,Descriado,2,15230101,Tejas
+2015-08-02,Potrero,2,No Determinado,2,15230101,Tejas
+2015-08-04,Potrero,2,Poliserositis,2,15230101,Tejas
+2015-08-05,Potrero,2,No Determinado,2,15230101,Tejas
+2015-08-06,Potrero,2,Sacrificado,2,15230101,Tejas
+2015-08-09,Potrero,1,No Determinado,1,15230101,Tejas
+2015-08-10,Potrero,1,Poliserositis,1,15230101,Tejas
+2015-08-12,Potrero,2,Sacrificado,2,15230101,Tejas
+2015-08-13,Potrero,1,No Determinado,1,15230101,Tejas
+2015-08-14,Potrero,1,Poliserositis,1,15230101,Tejas
+2015-08-15,Potrero,1,No Determinado,1,15230101,Tejas
+2015-08-16,Potrero,1,No Determinado,1,15230101,Tejas
+2015-08-17,Potrero,2,No Determinado,2,15230101,Tejas
+2015-08-18,Potrero,2,Neumonia,2,15230101,Tejas
+2015-08-19,Potrero,1,No Determinado,1,15230101,Tejas
+2015-08-20,Potrero,5,Sacrificado,5,15230101,Tejas
+2015-08-24,Potrero,1,Neumonia,1,15230101,Tejas
+2015-08-26,Potrero,1,No Determinado,1,15230101,Tejas
+2015-08-27,Potrero,1,Neumonia,1,15230101,Tejas
+2015-08-28,Potrero,1,No Determinado,1,15230101,Tejas
+2015-08-29,Potrero,3,No Determinado,3,15230101,Tejas
+2015-08-30,Potrero,3,No Determinado,3,15230101,Tejas
+2015-09-01,Potrero,5,Poliserositis,5,15230101,Tejas
+2015-09-02,Potrero,1,Neumonia,1,15230101,Tejas
+2015-09-04,Potrero,1,No Determinado,1,15230101,Tejas
+2015-09-05,Potrero,1,Neumonia,1,15230101,Tejas
+2015-09-07,Potrero,1,Poliserositis,1,15230101,Tejas
+2015-09-08,Potrero,1,Neumonia,1,15230101,Tejas
+2015-09-09,Potrero,1,Ulcera Gástrica,1,15230101,Tejas
+2015-09-11,Potrero,2,Neumonia,2,15230101,Tejas
+2015-09-13,Potrero,1,Neumonia,1,15230101,Tejas
+2015-09-14,Potrero,1,No Determinado,1,15230101,Tejas
+2015-09-15,Potrero,1,Poliserositis,1,15230101,Tejas
+2015-09-16,Potrero,1,Poliserositis,1,15230101,Tejas
+2015-09-22,Potrero,1,Neumonia,1,15230101,Tejas
+2015-09-23,Potrero,4,Neumonia,4,15230101,Tejas
+2015-09-24,Potrero,5,Neumonia,5,15230101,Tejas
+2015-09-25,Potrero,4,Neumonia,4,15230101,Tejas
+2015-09-26,Potrero,2,Neumonia,2,15230101,Tejas
+2015-09-28,Potrero,1,Neumonia,1,15230101,Tejas
+2015-09-29,Potrero,2,Sacrificado,2,15230101,Tejas
+2015-09-30,Potrero,2,Neumonia,2,15230101,Tejas
+2015-10-01,Potrero,1,Neumonia,1,15230101,Tejas
+2015-10-02,Potrero,1,Neumonia,1,15230101,Tejas
+2015-10-04,Potrero,2,No Determinado,2,15230101,Tejas
+2015-10-05,Potrero,1,Neumonia,1,15230101,Tejas
+2015-10-06,Potrero,2,Neumonia,2,15230101,Tejas
+2015-10-07,Potrero,3,No Determinado,3,15230101,Tejas
+2015-10-09,Potrero,2,No Determinado,2,15230101,Tejas
+2015-10-11,Potrero,3,Neumonia,3,15230101,Tejas
+2015-07-06,Potrero,2,Descriado,2,15240101,Tejas
+2015-07-07,Potrero,2,Descriado,2,15240101,Tejas
+2015-07-08,Potrero,3,Descriado,3,15240101,Tejas
+2015-07-09,Potrero,1,Descriado,1,15240101,Tejas
+2015-07-10,Potrero,3,Poliserositis,3,15240101,Tejas
+2015-07-11,Potrero,2,Descriado,2,15240101,Tejas
+2015-07-12,Potrero,1,Descriado,1,15240101,Tejas
+2015-07-13,Potrero,2,Descriado,2,15240101,Tejas
+2015-07-14,Potrero,5,Descriado,5,15240101,Tejas
+2015-07-15,Potrero,1,Descriado,1,15240101,Tejas
+2015-07-16,Potrero,3,No Determinado,3,15240101,Tejas
+2015-07-17,Potrero,1,Descriado,1,15240101,Tejas
+2015-07-18,Potrero,1,Descriado,1,15240101,Tejas
+2015-07-19,Potrero,1,Descriado,1,15240101,Tejas
+2015-07-21,Potrero,3,Descriado,3,15240101,Tejas
+2015-07-22,Potrero,4,Descriado,4,15240101,Tejas
+2015-07-23,Potrero,5,Descriado,5,15240101,Tejas
+2015-07-24,Potrero,2,Descriado,2,15240101,Tejas
+2015-07-25,Potrero,3,Descriado,3,15240101,Tejas
+2015-07-26,Potrero,5,Descriado,5,15240101,Tejas
+2015-07-27,Potrero,6,Descriado,6,15240101,Tejas
+2015-07-28,Potrero,10,Sacrificado,10,15240101,Tejas
+2015-07-30,Potrero,1,Descriado,1,15240101,Tejas
+2015-08-01,Potrero,2,Descriado,2,15240101,Tejas
+2015-08-03,Potrero,1,Poliserositis,1,15240101,Tejas
+2015-08-05,Potrero,8,Sacrificado,8,15240101,Tejas
+2015-08-06,Potrero,6,Neumonia,6,15240101,Tejas
+2015-08-07,Potrero,2,Neumonia,2,15240101,Tejas
+2015-08-10,Potrero,5,Neumonia,5,15240101,Tejas
+2015-08-11,Potrero,1,No Determinado,1,15240101,Tejas
+2015-08-13,Potrero,4,No Determinado,4,15240101,Tejas
+2015-08-16,Potrero,1,No Determinado,1,15240101,Tejas
+2015-08-17,Potrero,2,No Determinado,2,15240101,Tejas
+2015-08-18,Potrero,2,No Determinado,2,15240101,Tejas
+2015-08-20,Potrero,3,Sacrificado,3,15240101,Tejas
+2015-08-23,Potrero,1,No Determinado,1,15240101,Tejas
+2015-08-24,Potrero,2,Neumonia,2,15240101,Tejas
+2015-08-25,Potrero,1,Neumonia,1,15240101,Tejas
+2015-08-26,Potrero,1,No Determinado,1,15240101,Tejas
+2015-08-27,Potrero,4,No Determinado,4,15240101,Tejas
+2015-08-28,Potrero,1,Poliserositis,1,15240101,Tejas
+2015-08-29,Potrero,2,No Determinado,2,15240101,Tejas
+2015-08-30,Potrero,2,Neumonia,2,15240101,Tejas
+2015-09-01,Potrero,2,No Determinado,2,15240101,Tejas
+2015-09-02,Potrero,1,Poliserositis,1,15240101,Tejas
+2015-09-03,Potrero,3,Neumonia,3,15240101,Tejas
+2015-09-04,Potrero,1,No Determinado,1,15240101,Tejas
+2015-09-08,Potrero,1,Poliserositis,1,15240101,Tejas
+2015-09-09,Potrero,1,Poliserositis,1,15240101,Tejas
+2015-09-13,Potrero,1,No Determinado,1,15240101,Tejas
+2015-09-14,Potrero,1,Neumonia,1,15240101,Tejas
+2015-09-22,Potrero,1,No Determinado,1,15240101,Tejas
+2015-09-24,Potrero,2,Neumonia,2,15240101,Tejas
+2015-09-27,Potrero,1,No Determinado,1,15240101,Tejas
+2015-09-28,Potrero,1,Sacrificado,1,15240101,Tejas
+2015-09-29,Potrero,1,Sacrificado,1,15240101,Tejas
+2015-10-01,Potrero,1,No Determinado,1,15240101,Tejas
+2015-10-02,Potrero,1,No Determinado,1,15240101,Tejas
+2015-10-07,Potrero,1,No Determinado,1,15240101,Tejas
+2015-10-11,Potrero,1,Neumonia,1,15240101,Tejas
+2015-05-24,Potrero,1,No Determinado,1,15180701,Zacatecas
+2015-05-26,Potrero,1,No Determinado,1,15180701,Zacatecas
+2015-06-01,Potrero,2,No Determinado,2,15180701,Zacatecas
+2015-06-02,Potrero,1,No Determinado,1,15180701,Zacatecas
+2015-06-03,Potrero,1,No Determinado,1,15180701,Zacatecas
+2015-06-21,Potrero,1,Poliserositis,1,15180701,Zacatecas
+2015-06-22,Potrero,1,Descriado,1,15180701,Zacatecas
+2015-06-24,Potrero,1,Descriado,1,15180701,Zacatecas
+2015-07-09,Potrero,1,Neumonia,1,15180701,Zacatecas
+2015-07-14,Potrero,1,No Determinado,1,15180701,Zacatecas
+2015-07-16,Potrero,1,No Determinado,1,15180701,Zacatecas
+2015-08-01,Potrero,1,No Determinado,1,15180701,Zacatecas
+2015-08-11,Potrero,1,No Determinado,1,15180701,Zacatecas
+2015-09-04,Potrero,1,No Determinado,1,15180701,Zacatecas
+2015-09-13,Potrero,1,Poliserositis,1,15180701,Zacatecas
+2015-09-16,Potrero,1,Sindrome Hemorrágico,1,15180701,Zacatecas
+2015-09-19,Potrero,1,Sindrome Hemorrágico,1,15180701,Zacatecas
+2015-06-23,Potrero,1,Poliserositis,1,15190701,Zacatecas
+2015-06-24,Potrero,3,Descriado,3,15190701,Zacatecas
+2015-06-26,Potrero,1,Descriado,1,15190701,Zacatecas
+2015-06-27,Potrero,1,Poliserositis,1,15190701,Zacatecas
+2015-06-29,Potrero,2,Descriado,2,15190701,Zacatecas
+2015-06-30,Potrero,1,Neumonia,1,15190701,Zacatecas
+2015-07-03,Potrero,1,Poliserositis,1,15190701,Zacatecas
+2015-07-05,Potrero,1,No Determinado,1,15190701,Zacatecas
+2015-07-11,Potrero,1,Neumonia,1,15190701,Zacatecas
+2015-07-15,Potrero,1,Sacrificado,1,15190701,Zacatecas
+2015-07-21,Potrero,1,Sindrome Hemorrágico,1,15190701,Zacatecas
+2015-07-24,Potrero,1,No Determinado,1,15190701,Zacatecas
+2015-08-08,Potrero,1,No Determinado,1,15190701,Zacatecas
+2015-08-10,Potrero,1,No Determinado,1,15190701,Zacatecas
+2015-08-15,Potrero,2,Sacrificado,2,15190701,Zacatecas
+2015-08-19,Potrero,1,No Determinado,1,15190701,Zacatecas
+2015-08-23,Potrero,1,Neumonia,1,15190701,Zacatecas
+2015-08-26,Potrero,1,Sindrome Hemorrágico,1,15190701,Zacatecas
+2015-08-27,Potrero,1,Ulcera Gástrica,1,15190701,Zacatecas
+2015-08-29,Potrero,1,Sindrome Hemorrágico,1,15190701,Zacatecas
+2015-08-30,Potrero,1,Poliserositis,1,15190701,Zacatecas
+2015-09-03,Potrero,2,Sindrome Hemorrágico,2,15190701,Zacatecas
+2015-09-08,Potrero,1,Sindrome Hemorrágico,1,15190701,Zacatecas
+2015-09-15,Potrero,1,No Determinado,1,15190701,Zacatecas
+2015-09-21,Potrero,1,No Determinado,1,15190701,Zacatecas
+2015-09-25,Potrero,1,Sindrome Hemorrágico,1,15190701,Zacatecas
+2015-10-07,Potrero,1,No Determinado,1,15190701,Zacatecas
+2015-06-15,Potrero,2,Descriado,2,15200701,Zacatecas
+2015-06-23,Potrero,1,Descriado,1,15200701,Zacatecas
+2015-06-24,Potrero,2,Neumonia,2,15200701,Zacatecas
+2015-07-03,Potrero,1,Descriado,1,15200701,Zacatecas
+2015-07-07,Potrero,1,Descriado,1,15200701,Zacatecas
+2015-07-09,Potrero,1,Descriado,1,15200701,Zacatecas
+2015-07-11,Potrero,2,Sacrificado,2,15200701,Zacatecas
+2015-07-12,Potrero,1,Descriado,1,15200701,Zacatecas
+2015-07-13,Potrero,1,No Determinado,1,15200701,Zacatecas
+2015-07-15,Potrero,3,Sacrificado,3,15200701,Zacatecas
+2015-07-17,Potrero,1,Poliserositis,1,15200701,Zacatecas
+2015-07-20,Potrero,1,Poliserositis,1,15200701,Zacatecas
+2015-07-30,Potrero,1,No Determinado,1,15200701,Zacatecas
+2015-08-05,Potrero,2,Sacrificado,2,15200701,Zacatecas
+2015-08-09,Potrero,1,Poliserositis,1,15200701,Zacatecas
+2015-08-10,Potrero,1,Sindrome Hemorrágico,1,15200701,Zacatecas
+2015-08-20,Potrero,2,Sacrificado,2,15200701,Zacatecas
+2015-09-02,Potrero,1,Sindrome Hemorrágico,1,15200701,Zacatecas
+2015-09-18,Potrero,1,Sindrome Hemorrágico,1,15200701,Zacatecas
+2015-09-24,Potrero,2,Ulcera Gástrica,2,15200701,Zacatecas
+2015-10-06,Potrero,1,Ulcera Gástrica,1,15200701,Zacatecas
+2015-10-11,Potrero,1,Sindrome Hemorrágico,1,15200701,Zacatecas
+2015-07-09,Potrero,2,Descriado,2,15210701,Zacatecas
+2015-07-17,Potrero,1,No Determinado,1,15210701,Zacatecas
+2015-07-21,Potrero,1,Descriado,1,15210701,Zacatecas
+2015-07-22,Potrero,1,No Determinado,1,15210701,Zacatecas
+2015-07-24,Potrero,1,No Determinado,1,15210701,Zacatecas
+2015-07-29,Potrero,1,No Determinado,1,15210701,Zacatecas
+2015-08-02,Potrero,1,Poliserositis,1,15210701,Zacatecas
+2015-08-03,Potrero,1,No Determinado,1,15210701,Zacatecas
+2015-08-05,Potrero,3,Sacrificado,3,15210701,Zacatecas
+2015-08-14,Potrero,2,No Determinado,2,15210701,Zacatecas
+2015-08-20,Potrero,2,Sacrificado,2,15210701,Zacatecas
+2015-08-30,Potrero,1,No Determinado,1,15210701,Zacatecas
+2015-09-15,Potrero,1,Ulcera Gástrica,1,15210701,Zacatecas
+2015-09-21,Potrero,1,Sindrome Hemorrágico,1,15210701,Zacatecas
+2015-09-27,Potrero,1,No Determinado,1,15210701,Zacatecas
+2015-09-29,Potrero,1,Sacrificado,1,15210701,Zacatecas
+2015-07-02,Potrero,1,Descriado,1,15220701,Zacatecas
+2015-07-04,Potrero,3,Descriado,3,15220701,Zacatecas
+2015-07-11,Potrero,2,Sacrificado,2,15220701,Zacatecas
+2015-07-14,Potrero,2,Descriado,2,15220701,Zacatecas
+2015-07-15,Potrero,2,Sacrificado,2,15220701,Zacatecas
+2015-07-19,Potrero,2,Descriado,2,15220701,Zacatecas
+2015-07-20,Potrero,1,No Determinado,1,15220701,Zacatecas
+2015-07-21,Potrero,1,Descriado,1,15220701,Zacatecas
+2015-07-22,Potrero,1,No Determinado,1,15220701,Zacatecas
+2015-07-23,Potrero,1,No Determinado,1,15220701,Zacatecas
+2015-07-24,Potrero,2,No Determinado,2,15220701,Zacatecas
+2015-07-29,Potrero,1,No Determinado,1,15220701,Zacatecas
+2015-07-30,Potrero,1,No Determinado,1,15220701,Zacatecas
+2015-08-01,Potrero,1,No Determinado,1,15220701,Zacatecas
+2015-08-04,Potrero,1,No Determinado,1,15220701,Zacatecas
+2015-08-05,Potrero,4,Sacrificado,4,15220701,Zacatecas
+2015-08-06,Potrero,4,Sacrificado,4,15220701,Zacatecas
+2015-08-17,Potrero,1,No Determinado,1,15220701,Zacatecas
+2015-08-29,Potrero,1,No Determinado,1,15220701,Zacatecas
+2015-09-20,Potrero,1,Sindrome Hemorrágico,1,15220701,Zacatecas
+2015-09-22,Potrero,2,Ulcera Gástrica,2,15220701,Zacatecas
+2015-10-04,Potrero,1,No Determinado,1,15220701,Zacatecas
+2015-10-11,Potrero,1,No Determinado,1,15220701,Zacatecas

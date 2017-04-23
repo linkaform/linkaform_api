@@ -1,0 +1,30 @@
+#! /bin/sh
+set -e
+umask 7
+
+REMOTEHOST="elmo.info-sync.com"
+REMOTEUSER="infosync"
+DATABASES="infosync_local infosync_saldos infosync_test"
+FILESTOREDIR=""
+CLIENT="infosync"
+HOMEDIR="/backup"
+DBUSER="josepato"
+
+#INCLUIMOS PASSWORD DE POSTGRES PARA AUTENTICARNOS
+#export PGPASSWORD="director"
+
+for db in $DATABASES; do
+  FNAME_MONTH=${db}-DB-$(date +%Y-%m)
+  MONTH=$(date +%Y-%m)
+  FNAME=${db}-DB-$(date +%Y-%m-%d)
+  DATETODAY=$(date +%Y-%m-%d)
+
+#CREATE PRESENT DAY FOLDER INTO HOMEDIR
+  mkdir -p $HOMEDIR/${db}/${DATETODAY}
+  pg_dump -Z9 -Fc -U ${DBUSER} ${db} > $HOMEDIR/${db}/${MONTH}/${FNAME_MONTH}.tar.gz
+  echo /usr/bin/scp ${HOMEDIR}/${MONTH}/${FNAME_MONTH}.tar.gz ${REMOTEUSER}@${REMOTEHOST}:/backup/${FNAME}.tar.gz
+done
+
+echo /usr/bin/scp ${HOME}/${db}/${FNAME}.dump ${REMOTEUSER}@${REMOTEHOST}:Minerales.dump
+#/usr/bin/scp ${HOME}/${FNAME}.dump postgres@salieri.mty.itesm.mx:${db}/${FNAME}
+
