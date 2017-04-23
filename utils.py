@@ -157,7 +157,7 @@ class Cache(object):
         return self.network.patch_forms_answers(data, record_id)
 
 
-    def post_forms_answers(answers, test=False):
+    def post_forms_answers(self, answers, test=False):
         return self.network.post_forms_answers(answers)
 
 
