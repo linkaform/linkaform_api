@@ -140,22 +140,36 @@ class Cache(object):
     def get_record_answer(self, params = {}):
         if not params:
             params = {'limit':20,'offset':0}
-        response = self.network.dispatch(self.api_url['record']['form_answer'], params=params)
+        response = self.network.dispatch(self.api_url.record['form_answer'], params=params)
         if response['status_code'] == 200:
             return response['data']
         return False
 
 
     def assigne_user_records(self, user_id, record_id_list, send_email=False, send_push_notification=False):
-        url_method = self.api_url.record['record']['assigne_user']
-        params = {'user_id' = user_id, 'records' = record_id_list,
-                  'send_push_notification'=send_push_notification,
-                  'send_mail'=send_mail}
-        response = self.network.dispatch(url_method, params)
+        url_method = self.api_url.record['assigne_user']
+        data = {'user_id': user_id, 'records': record_id_list,
+                  'send_push_notification': send_push_notification,
+                  'send_mail': send_mail}
+        response = self.network.dispatch(url_method=url_method, data=data)
         if response['status_code'] == 200:
             return response['data']
         return response
 
+
+    def assigne_connection_records(self, connection_id, record_id_list, user_of_connection=False, send_email=False, send_push_notification=False):
+        #user_of_connection: {username:"username", first_name: "Joe Doe", id:user_id, email: "joedoe@email.com"}
+        url_method = self.api_url.record['assigne_connection']
+        data = {'connection_id': connection_id, 'records': record_id_list,
+                  'send_push_notification': send_push_notification,
+                  'send_mail': send_mail}
+        if user_of_connection:
+            data['userOfConnection'] = user_of_connection
+          user_id = connection_id
+        response = self.network.dispatch(url_method=url_method, data=data)
+        if response['status_code'] == 200:
+            return response['data']
+        return response
 
     def post_upload_file(self, data, up_file):
         #data:
@@ -165,7 +179,8 @@ class Cache(object):
 
 
     def patch_record(self, data, record_id):
-        return self.network.patch_forms_answers(data, record_id)
+        data['_id'] = record_id
+        return self.network.patch_forms_answers(data)
 
 
     def post_forms_answers(self, answers, test=False):
