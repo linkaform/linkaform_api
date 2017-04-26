@@ -36,7 +36,7 @@ class Api_url:
         return  {
                 'form_answer': {'url': self.dest_url + '/api/infosync/form_answer/', 'method':'GET'},
                 'form_answer_patch': {'url': self.dest_url + '/api/infosync/form_answer/', 'method':'PATCH'},
-                'assigne_user':{'url': self.dest_url + '/api/infosync/form_answer/assign_lead/', 'method':'POST'}
+                'assigne_user':{'url': self.dest_url + '/api/infosync/form_answer/assign_lead/', 'method':'POST'},
                 'assigne_connection': {'url': self.dest_url + '/api/infosync/form_answer/assign_lead_connection/', 'method':'POST'}
                 }
 
