@@ -74,7 +74,7 @@ class Cache(object):
         response = self.network.dispatch(url=url, method=method, use_api_key=False)
         if response['status_code'] == 200:
             return response['data']
-        return False
+        return []
 
 
     def get_all_items(self, item_type):
@@ -146,7 +146,7 @@ class Cache(object):
         return False
 
 
-    def assigne_user_records(self, user_id, record_id_list, send_email=False, send_push_notification=False):
+    def assigne_user_records(self, user_id, record_id_list, send_mail=False, send_push_notification=False):
         url_method = self.api_url.record['assigne_user']
         data = {'user_id': user_id, 'records': record_id_list,
                   'send_push_notification': send_push_notification,
@@ -157,7 +157,7 @@ class Cache(object):
         return response
 
 
-    def assigne_connection_records(self, connection_id, record_id_list, user_of_connection=False, send_email=False, send_push_notification=False):
+    def assigne_connection_records(self, connection_id, record_id_list, user_of_connection=False, send_mail=False, send_push_notification=False):
         #user_of_connection: {username:"username", first_name: "Joe Doe", id:user_id, email: "joedoe@email.com"}
         url_method = self.api_url.record['assigne_connection']
         data = {'connection_id': connection_id, 'records': record_id_list,
@@ -165,7 +165,6 @@ class Cache(object):
                   'send_mail': send_mail}
         if user_of_connection:
             data['userOfConnection'] = user_of_connection
-          user_id = connection_id
         response = self.network.dispatch(url_method=url_method, data=data)
         if response['status_code'] == 200:
             return response['data']
