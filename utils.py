@@ -170,6 +170,7 @@ class Cache(object):
             return response['data']
         return response
 
+
     def post_upload_file(self, data, up_file):
         #data:
         #up_file:
@@ -185,8 +186,18 @@ class Cache(object):
         return self.network.patch_forms_answers(data)
 
 
+    def patch_record_list(self, data):
+        #If no record_id is send, it is asuemed that the record_id
+        #all ready comes inside the data dictionary
+        return self.network.patch_forms_answers_list(data)
+
+
     def post_forms_answers(self, answers, test=False):
         return self.network.post_forms_answers(answers)
+
+
+    def post_forms_answers_list(self, answers, test=False):
+        return self.network.post_forms_answers_list(answers)
 
 
     def get_metadata(self, form_id=False, user_id=False):
