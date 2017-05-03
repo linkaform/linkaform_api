@@ -195,7 +195,6 @@ class Network:
 
 
         response['status_code'] = r.status_code
-        print 'text', r.text
         if r.content:
             try:
                response['content'] = simplejson.loads(r.content)
