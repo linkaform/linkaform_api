@@ -34,6 +34,7 @@ class LoadFile:
         if file_url:
             sheet = pyexcel.get_sheet(url = file_url)
         records = sheet.array
+        header = records.pop(0)
         header = [col.lower().replace(u'\xa0',u' ').strip().replace(' ', '_') for col in header]
         return header, records
 
