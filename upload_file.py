@@ -1,4 +1,4 @@
-# coding: utf-8
+# -*- coding: utf-8 -*-
 #!/usr/bin/python
 
 #####
@@ -34,7 +34,7 @@ class LoadFile:
         if file_url:
             sheet = pyexcel.get_sheet(url = file_url)
         records = sheet.array
-        header = records.pop(0)
+        header = [col.lower().replace(u'\xa0',u' ').strip().replace(' ', '_') for col in header]
         return header, records
 
 
@@ -251,6 +251,7 @@ class LoadFile:
         records_to_upload = self.prepare_record_list(pos_field_id, form_id, records, header)
         error_list = self.create_record(records_to_upload)
         return error_list
+
 
     def print_help(self):
         print '---------------- HELP --------------------------'
