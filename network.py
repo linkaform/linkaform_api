@@ -195,7 +195,6 @@ class Network:
 
 
         response['status_code'] = r.status_code
-        print 'text', r.text
         if r.content:
             try:
                response['content'] = simplejson.loads(r.content)
@@ -262,7 +261,7 @@ class Network:
         errors_json = []
         res = []
         for index, answer in enumerate(answers):
-            print 'answers', answer
+            #print 'answers', answer
             if answer.has_key('_id') and answer['_id']:
                 record_id = answer.pop('_id')
             else:
