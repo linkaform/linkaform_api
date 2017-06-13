@@ -170,8 +170,7 @@ class Cache(object):
         return response
 
 
-    def assigne_connection_records(self, connection_id, record_id_list, user_of_connection=False, send_email=False, send_push_notification=False):
-        #user_of_connection: {username:"username", first_name: "Joe Doe", id:user_id, email: "joedoe@email.com"}
+    def assigne_connection_records(self, connection_id, record_id_list, user_of_connection=False, send_email=False, send_push_notification=False, user_of_connection={}):
         url_method = self.api_url.record['assigne_connection']
         data = {'connection_id': connection_id, 'records': record_id_list,
                   'send_push_notification': send_push_notification,
