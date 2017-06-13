@@ -6,7 +6,6 @@ class Api_url:
 
     def __init__(self, settings):
         self.urls = {}
-        self.name = "Puca"
         self.dest_url = settings.config['PROTOCOL'] + '://' + settings.config['HOST']
         self.globals = self.get_global_url()
         self.form = self.get_forms_url()
@@ -59,4 +58,5 @@ class Api_url:
     def get_connections_url(self):
         return  {
                 'all_connections': {'url': self.dest_url + '/api/infosync/connection/', 'method':'GET'},
+                'form_connections': {'url': self.dest_url + '/api/infosync/connection_record_filter/?form_id=', 'method':'GET'},
                 }

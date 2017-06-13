@@ -74,7 +74,7 @@ class Cache(object):
         response = self.network.dispatch(url=url, method=method, use_api_key=False)
         if response['status_code'] == 200:
             return response['data']
-        return []
+        return False
 
 
     def get_all_items(self, item_type):
@@ -128,6 +128,19 @@ class Cache(object):
         return objects
 
 
+    def get_form_connections(self, form_id):
+        #TODO UPDATE SELF.ITESM
+        #Returns all the connections
+        connections = []
+        post_json = self.api_url.get_connections_url()['form_connections']
+        print 'post_json', post_json
+        post_json['url'] = post_json['url'] + str(form_id)
+        form_connections = self.network.dispatch(post_json)
+        objects = form_connections['data']
+        print 'form_connections' ,form_connections
+        return objects
+
+
     def get_all_users(self):
         #TODO UPDATE SELF.ITESM
         #Returns all the connections
@@ -146,7 +159,7 @@ class Cache(object):
         return False
 
 
-    def assigne_user_records(self, user_id, record_id_list, send_mail=False, send_push_notification=False):
+    def assigne_user_records(self, user_id, record_id_list, send_email=False, send_push_notification=False):
         url_method = self.api_url.record['assigne_user']
         data = {'user_id': user_id, 'records': record_id_list,
                   'send_push_notification': send_push_notification,
@@ -157,7 +170,7 @@ class Cache(object):
         return response
 
 
-    def assigne_connection_records(self, connection_id, record_id_list, user_of_connection=False, send_mail=False, send_push_notification=False):
+    def assigne_connection_records(self, connection_id, record_id_list, user_of_connection=False, send_email=False, send_push_notification=False):
         #user_of_connection: {username:"username", first_name: "Joe Doe", id:user_id, email: "joedoe@email.com"}
         url_method = self.api_url.record['assigne_connection']
         data = {'connection_id': connection_id, 'records': record_id_list,
