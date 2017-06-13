@@ -175,7 +175,7 @@ class Cache(object):
         url_method = self.api_url.record['assigne_connection']
         data = {'connection_id': connection_id, 'records': record_id_list,
                   'send_push_notification': send_push_notification,
-                  'send_mail': send_mail}
+                  'send_mail': send_email}
         if user_of_connection:
             data['userOfConnection'] = user_of_connection
         response = self.network.dispatch(url_method=url_method, data=data)
