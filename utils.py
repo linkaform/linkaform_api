@@ -185,10 +185,7 @@ class Cache(object):
 
     def patch_multi_record(self, answers, folios=[], record_id=[]):
         if not answers or not (folios or record_id):
-            print 'answers', answers
-            print 'folios', folios
-            print 'record_id', record_id
-            return False
+            return {}
         data = {}
         data['answers'] = answers
         if folios and not record_id:
@@ -198,10 +195,7 @@ class Cache(object):
         else:
             data['records'] = record_id
         response = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data)
-        print 'response',response
-        if response['status_code'] == 200:
-            return response['data']
-        return False
+        return response
 
     def post_upload_file(self, data, up_file):
         #data:
