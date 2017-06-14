@@ -170,18 +170,38 @@ class Cache(object):
         return response
 
 
-    def assigne_connection_records(self, connection_id, record_id_list, user_of_connection=False, send_email=False, send_push_notification=False, user_of_connection={}):
+    def assigne_connection_records(self, connection_id, record_id_list, user_of_connection=False, send_email=False, send_push_notification=False):
         url_method = self.api_url.record['assigne_connection']
         data = {'connection_id': connection_id, 'records': record_id_list,
                   'send_push_notification': send_push_notification,
                   'send_mail': send_email}
         if user_of_connection:
             data['userOfConnection'] = user_of_connection
+        print 'data=', data
         response = self.network.dispatch(url_method=url_method, data=data)
         if response['status_code'] == 200:
             return response['data']
         return response
 
+    def patch_multi_record(self, answers, folios=[], record_id=[]):
+        if not answers or not (folios or record_id):
+            print 'answers', answers
+            print 'folios', folios
+            print 'record_id', record_id
+            return False
+        data = {}
+        data['answers'] = answers
+        if folios and not record_id:
+            data['folios'] = folios
+        elif not folios and record_id:
+            data['records'] = record_id
+        else:
+            data['records'] = record_id
+        response = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data)
+        print 'response',response
+        if response['status_code'] == 200:
+            return response['data']
+        return False
 
     def post_upload_file(self, data, up_file):
         #data:

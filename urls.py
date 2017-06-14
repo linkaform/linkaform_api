@@ -25,7 +25,7 @@ class Api_url:
         return {
             'form_answer': {'url': self.dest_url + '/api/infosync/form_answer/', 'method':'GET'},
             'all_forms':  {'url': self.dest_url + '/api/infosync/item/', 'method':'GET'},
-            'get_form_id_fields':  {'url': self.dest_url + '/api/infosync/get_form/?form_id=', 'method':'GET'},
+            'get_form_id_fields':  {'url': self.dest_url + '/api/infApi_urlosync/get_form/?form_id=', 'method':'GET'},
             'set_form_answer': {'url': self.dest_url + '/api/infosync/form_answer/', 'method':'POST'},
             'upload_file': {'url': self.dest_url + '/api/infosync/upload/', 'method':'POST'},
             }
@@ -35,6 +35,7 @@ class Api_url:
         return  {
                 'form_answer': {'url': self.dest_url + '/api/infosync/form_answer/', 'method':'GET'},
                 'form_answer_patch': {'url': self.dest_url + '/api/infosync/form_answer/', 'method':'PATCH'},
+                'form_answer_patch_multi': {'url': self.dest_url + '/api/infosync/form_answer/update_records/', 'method':'PATCH'},
                 'assigne_user':{'url': self.dest_url + '/api/infosync/form_answer/assign_lead/', 'method':'POST'},
                 'assigne_connection': {'url': self.dest_url + '/api/infosync/form_answer/assign_lead_connection/', 'method':'POST'}
                 }
