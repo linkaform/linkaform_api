@@ -194,8 +194,7 @@ class Cache(object):
             data['records'] = record_id
         else:
             data['records'] = record_id
-        response = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data)
-        return response
+        return = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data)
 
     def post_upload_file(self, data, up_file):
         #data:
