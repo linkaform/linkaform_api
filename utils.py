@@ -163,7 +163,7 @@ class Cache(object):
         url_method = self.api_url.record['assigne_user']
         data = {'user_id': user_id, 'records': record_id_list,
                   'send_push_notification': send_push_notification,
-                  'send_mail': send_mail}
+                  'send_mail': send_email}
         response = self.network.dispatch(url_method=url_method, data=data)
         if response['status_code'] == 200:
             return response['data']
@@ -194,7 +194,7 @@ class Cache(object):
             data['records'] = record_id
         else:
             data['records'] = record_id
-        return = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data)
+        return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data)
 
     def post_upload_file(self, data, up_file):
         #data:
