@@ -133,7 +133,6 @@ class Cache(object):
         #Returns all the connections
         connections = []
         post_json = self.api_url.get_connections_url()['form_connections']
-        print 'post_json', post_json
         post_json['url'] = post_json['url'] + str(form_id)
         form_connections = self.network.dispatch(post_json)
         objects = form_connections['data']
@@ -262,16 +261,25 @@ class Cache(object):
 
 
     def make_infosync_select_json(self, answer, element, best_effort=False):
+        if type(answer) != str:
+                answer = str(answer)
+        try:
+            answer = answer.decode('utf-8')
+        except Exception as e:
+            print 'error decoding', e
         if element.has_key('options') and  element.has_key('options'):
             options = element['options']
             default = False
             best_guess = (0,0)
+            #print 'options', options
             for opt in options:
-                if str(answer) == opt['value']:
+                #print 'opt', opt['value']
+                #print 'opt type', type(opt['value'])
+                if answer == opt['value']:
                     return opt['value']
-                if str(answer).lower().replace(' ', '_') == opt['value']:
+                if answer.lower().replace(' ', '_') == opt['value']:
                     return opt['value']
-                elif str(answer) == opt['label']:
+                elif answer == opt['label']:
                     return opt['value']
                 elif opt.has_key('selected') and opt['selected']:
                     default = opt['value']
