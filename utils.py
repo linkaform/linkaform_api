@@ -176,17 +176,17 @@ class Cache(object):
                   'send_mail': send_email}
         if user_of_connection:
             data['userOfConnection'] = user_of_connection
-        print 'data=', data
         response = self.network.dispatch(url_method=url_method, data=data)
         if response['status_code'] == 200:
             return response['data']
         return response
 
-    def patch_multi_record(self, answers, folios=[], record_id=[]):
+    def patch_multi_record(self, answers, form_id, folios=[], record_id=[]):
         if not answers or not (folios or record_id):
             return {}
         data = {}
         data['answers'] = answers
+        data['form_id'] = form_id
         if folios and not record_id:
             data['folios'] = folios
         elif not folios and record_id:
