@@ -1,3 +1,4 @@
+e
 # -*- coding: utf-8 -*-
 #!/usr/bin/python
 
@@ -35,7 +36,7 @@ class LoadFile:
             sheet = pyexcel.get_sheet(url = file_url)
         records = sheet.array
         header = records.pop(0)
-        header = [col.lower().replace(u'\xa0',u' ').strip().replace(' ', '_') for col in header]
+        header = [str(col).lower().replace(u'\xa0',u' ').strip().replace(' ', '_') for col in header]
         return header, records
 
 
@@ -99,6 +100,10 @@ class LoadFile:
             fields_json = {}
             if 'folio' in header_dict.keys():
                 pos_field_id[header_dict['folio']] = {'field_type':'folio'}
+            elif equivalcens_map.has_key('folio'):
+                for eq_opt in  equivalcens_map['folio']:
+                    if eq_opt in header_dict.keys():
+                        pos_field_id[header_dict[eq_opt]] = {'field_type':'folio'}
             for field in fields:
                 label = field['label'].lower().replace(' ' ,'')
                 label_underscore = field['label'].lower().replace(' ' ,'_')
