@@ -35,7 +35,10 @@ class LoadFile:
             sheet = pyexcel.get_sheet(url = file_url)
         records = sheet.array
         header = records.pop(0)
-        header = [str(col).lower().replace(u'\xa0',u' ').strip().replace(' ', '_') for col in header]
+        try:
+            header = [str(col).lower().replace(u'\xa0',u' ').strip().replace(' ', '_') for col in header]
+        except UnicodeEncodeError:
+            header = [col.lower().replace(u'\xa0',u' ').strip().replace(' ', '_') for col in header]
         return header, records
 
 
