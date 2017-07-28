@@ -99,6 +99,10 @@ class LoadFile:
             fields_json = {}
             if 'folio' in header_dict.keys():
                 pos_field_id[header_dict['folio']] = {'field_type':'folio'}
+            elif equivalcens_map.has_key('folio'):
+                for eq_opt in  equivalcens_map['folio']:
+                    if eq_opt in header_dict.keys():
+                        pos_field_id[header_dict[eq_opt]] = {'field_type':'folio'}
             for field in fields:
                 label = field['label'].lower().replace(' ' ,'')
                 label_underscore = field['label'].lower().replace(' ' ,'_')

@@ -133,11 +133,9 @@ class Cache(object):
         #Returns all the connections
         connections = []
         post_json = self.api_url.get_connections_url()['form_connections']
-        print 'post_json', post_json
         post_json['url'] = post_json['url'] + str(form_id)
         form_connections = self.network.dispatch(post_json)
         objects = form_connections['data']
-        print 'form_connections' ,form_connections
         return objects
 
 
@@ -183,7 +181,7 @@ class Cache(object):
             return response['data']
         return response
 
-    def patch_multi_record(self, answers, folios=[], record_id=[]):
+    def patch_multi_record(self, answers, form_id, folios=[], record_id=[]):
         if not answers or not (folios or record_id):
             return {}
         data = {}
@@ -194,6 +192,8 @@ class Cache(object):
             data['records'] = record_id
         else:
             data['records'] = record_id
+        data['form_id'] = form_id
+        print 'data', data['form_id']
         return  self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data)
 
     def post_upload_file(self, data, up_file):
