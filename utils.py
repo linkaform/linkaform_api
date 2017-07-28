@@ -175,7 +175,6 @@ class Cache(object):
                   'send_mail': send_email}
         if user_of_connection:
             data['userOfConnection'] = user_of_connection
-        print 'data=', data
         response = self.network.dispatch(url_method=url_method, data=data)
         if response['status_code'] == 200:
             return response['data']
@@ -186,6 +185,7 @@ class Cache(object):
             return {}
         data = {}
         data['answers'] = answers
+        data['form_id'] = form_id
         if folios and not record_id:
             data['folios'] = folios
         elif not folios and record_id:
@@ -193,7 +193,6 @@ class Cache(object):
         else:
             data['records'] = record_id
         data['form_id'] = form_id
-        print 'data', data['form_id']
         return  self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data)
 
     def post_upload_file(self, data, up_file):
@@ -262,16 +261,25 @@ class Cache(object):
 
 
     def make_infosync_select_json(self, answer, element, best_effort=False):
+        if type(answer) != str:
+                answer = str(answer)
+        try:
+            answer = answer.decode('utf-8')
+        except Exception as e:
+            print 'error decoding', e
         if element.has_key('options') and  element.has_key('options'):
             options = element['options']
             default = False
             best_guess = (0,0)
+            #print 'options', options
             for opt in options:
-                if str(answer) == opt['value']:
+                #print 'opt', opt['value']
+                #print 'opt type', type(opt['value'])
+                if answer == opt['value']:
                     return opt['value']
-                if str(answer).lower().replace(' ', '_') == opt['value']:
+                if answer.lower().replace(' ', '_') == opt['value']:
                     return opt['value']
-                elif str(answer) == opt['label']:
+                elif answer == opt['label']:
                     return opt['value']
                 elif opt.has_key('selected') and opt['selected']:
                     default = opt['value']
