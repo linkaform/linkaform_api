@@ -148,6 +148,14 @@ class Cache(object):
         objects = all_users['data']
         return objects
 
+    def user_by_id(self, user_id):
+        #TODO UPDATE SELF.ITESM
+        #Returns all the connections
+        connections = []
+        url  self.api_url['users']['user_by_id'] + user_id + '/'
+        user = self.network.dispatch(url)
+        objects = user['data']
+        return objects
 
     def get_record_answer(self, params = {}):
         if not params:
@@ -181,6 +189,7 @@ class Cache(object):
             return response['data']
         return response
 
+
     def patch_multi_record(self, answers, form_id, folios=[], record_id=[]):
         if not answers or not (folios or record_id):
             return {}
@@ -194,6 +203,7 @@ class Cache(object):
         else:
             data['records'] = record_id
         return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data)
+
 
     def post_upload_file(self, data, up_file):
         #data:

@@ -94,6 +94,8 @@ class LoadFile:
         form_fields = self.lkf_api.get_form_id_fields(form_id)
         if not form_fields:
             raise ValueError('No data form FORM')
+        if not header:
+            raise ValueError('No data on HEADER')
         header_dict = self.make_header_dict(header)
         aa = False
         assigne_headers = []

@@ -53,6 +53,7 @@ class Api_url:
     def get_users_url(self):
         return  {
                 'all_users': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'GET'},
+                'user_by_id': {'url': self.dest_url + 'api/infosync/user_admin/', 'method':'GET'},
                 }
 
 
