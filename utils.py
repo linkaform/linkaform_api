@@ -136,7 +136,6 @@ class Cache(object):
         post_json['url'] = post_json['url'] + str(form_id)
         form_connections = self.network.dispatch(post_json)
         objects = form_connections['data']
-        print 'form_connections' ,form_connections
         return objects
 
 
@@ -202,7 +201,8 @@ class Cache(object):
             data['records'] = record_id
         else:
             data['records'] = record_id
-        return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data)
+        data['form_id'] = form_id
+        return  self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data)
 
 
     def post_upload_file(self, data, up_file):
