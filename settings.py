@@ -7,8 +7,8 @@ class ImportData:
 
 #cache =Cache()
 
-mongo_hosts = 'db2.linkaform.com:27017,db3.linkaform.com:27017,db4.linkaform.com:27017'
-mongo_replicaSet = 'linkaform_replica'
+mongo_hosts = 'dev1.linkaform.com:27017,dev2.linkaform.com:27027,dev3.linkaform.com:27037'
+mongo_replicaSet = 'info_repl'
 MONGO_READPREFERENCE='primary'
 #MONGO_READPREFERENCE='secondaryPreferred'
 
@@ -25,7 +25,7 @@ config = {
     'MONGODB_PORT':27017,
     'MONGODB_HOST': '',
     'PROTOCOL' : 'https', #http or https
-    'HOST' : 'app.linkaform.com',
+    'HOST' : 'dev2.linkaform.com',
     'USER_ID' : '',
     'ACCOUNT_ID': '',
     'KEYS_POSITION' : {},
