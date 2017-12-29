@@ -17,6 +17,7 @@ class Cache(object):
         self.api_url = Api_url(settings)
         self.network = network.Network(self.settings)
 
+
     def get(self, item_type, item_id):
         if not self.items.has_key(item_type):
             #self.items[item_type] = self.get_all_items(item_type)
@@ -147,14 +148,28 @@ class Cache(object):
         objects = all_users['data']
         return objects
 
-    def user_by_id(self, user_id):
+
+    def get_user_by_id(self, user_id):
         #TODO UPDATE SELF.ITESM
         #Returns all the connections
         connections = []
-        url  self.api_url['users']['user_by_id'] + user_id + '/'
-        user = self.network.dispatch(url)
+        print 'api_url', self.api_url['users']
+        print 'usersssss', self.api_url.users
+        url = self.api_url['users']['user_by_id'] + str(user_id) + '/'
+        method = self.api_url.users['user_by_id']['method']
+        user = self.network.dispatch(url=url, method=method)
         objects = user['data']
         return objects
+
+
+    def get_user_fileshare(self, form_id, user_id):
+        url_list = self.api_url.connecions['user_fileshare']['url'].split('&')
+        url = url_list[0] + str(form_id)
+        url += '&' + url_list[1] + str(user_id)
+        method = self.api_url.form['user_fileshare']['method']
+        response = self.network.dispatch(url=url, method=method)
+        return response
+
 
     def get_record_answer(self, params = {}):
         if not params:
