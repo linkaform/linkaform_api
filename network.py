@@ -98,7 +98,10 @@ class Network:
 
         if r.status_code == 200:
             r_data = simplejson.loads(r.content)
-            response['data'] = r_data['objects']
+            if r_data.has_key('objects'):
+            	response['data'] = r_data['objects']
+            else:
+                response['data'] = r_data
         return response
 
 

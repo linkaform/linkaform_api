@@ -60,6 +60,7 @@ class Api_url:
     def get_connections_url(self):
         return  {
                 'all_connections': {'url': self.dest_url + '/api/infosync/connection/', 'method':'GET'},
+                'connection_by_id': {'url': self.dest_url + '/api/infosync/connection/', 'method':'GET'},
                 'form_connections': {'url': self.dest_url + '/api/infosync/connection_record_filter/?form_id=', 'method':'GET'},
                 'user_by_form' : {'url': self.dest_url + '/api/infosync/file_shared/?form_id=&user_id=', 'method':'GET'},
                 }

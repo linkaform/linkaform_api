@@ -140,11 +140,19 @@ class Cache(object):
         return objects
 
 
-    def get_all_users(self):
+    def get_connection_by_id(self, connection_id):
         #TODO UPDATE SELF.ITESM
-        #Returns all the connections
-        connections = []
-        all_users = self.network.dispatch(self.api_url['users']['all_users'])
+        #Returns the connections info
+        url = self.api_url.connecions['connection_by_id']['url'] + str(connection_id) + '/'
+        method = self.api_url.connecions['connection_by_id']['method']
+        connection = self.network.dispatch(url=url, method=method)
+        objects = connection['data']
+        return objects
+
+
+
+    def get_all_users(self):
+        all_users = self.network.dispatch(self.api_url.users['all_users'])
         objects = all_users['data']
         return objects
 
@@ -153,9 +161,7 @@ class Cache(object):
         #TODO UPDATE SELF.ITESM
         #Returns all the connections
         connections = []
-        print 'api_url', self.api_url['users']
-        print 'usersssss', self.api_url.users
-        url = self.api_url['users']['user_by_id'] + str(user_id) + '/'
+        url = self.api_url.users['user_by_id']['url'] + str(user_id) + '/'
         method = self.api_url.users['user_by_id']['method']
         user = self.network.dispatch(url=url, method=method)
         objects = user['data']
