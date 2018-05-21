@@ -1,7 +1,7 @@
 # coding: utf-8
 #!/usr/bin/python
 
-import requests, simplejson
+import requests, simplejson, json
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
@@ -14,10 +14,14 @@ class Network:
         self.settings = settings
         self.api_url = Api_url(settings)
 
-    def login(self, session, username, password):
+    def login(self, session, username, password, get_jwt=False):
         #data = simplejson.dumps({"password": self.settings.config['PASS'], "username": self.settings.config['USERNAME']})
         data = {"password": self.settings.config['PASS'], "username": self.settings.config['USERNAME']}
         response = self.dispatch(self.api_url.globals['login'], data=data, use_login=True)
+        if get_jwt:
+            print 'response',response['content']['jwt']
+
+            return response['content']['jwt']
         return response['status_code'] == 200
 
 
@@ -34,7 +38,7 @@ class Network:
 
 
     def dispatch(self, url_method={}, url='', method='', data={}, params={},
-                use_login=False, use_api_key=False, encoding='utf-8', up_file=False):
+                use_login=False, use_api_key=False, use_jwt=False,  encoding='utf-8', up_file=False):
         #must use the url_method or a url and method directly
         #url_method is a {} with a key url and method just like expres on urls
         #url defines the url to make the call
@@ -43,10 +47,11 @@ class Network:
         #use_api_key -Optinal- forces the dispatch to be made by api_key method, if not will use  the config method
         url, method = self.get_url_method(url_method, url=url, method=method)
         response = False
+        print 'data=', data
+        print 'encoding', encoding
         if type(data) in (dict,str):
-            data = simplejson.dumps(data, encoding)
-        #print 'data=', data
-        #print 'url=', url
+            data = json.dumps(data, encoding)
+        print 'url=', url
         #print 'method', method
         if method == 'GET':
             if params:
@@ -64,8 +69,16 @@ class Network:
         return response
 
 
-    def do_get(self, url, params= {}, use_login=False, use_api_key=False):
+    def do_get(self, url, params= {}, use_login=False, use_api_key=False, use_jwt=False):
         response = {'data':{}, 'status_code':''}
+        if use_jwt or (self.settings.config['JWT_KEY'] and not use_login):
+            headers={'Content-type': 'application/json','JWT':self.settings.config['JWT_KEY']}
+            print 'headers', headers
+            if params:
+                r = requests.get(url, params=params, headers=headers,verify=False)
+            else:
+                r = requests.get(url, headers=headers,verify=False)
+
         if use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
             headers={'Content-type': 'application/json','Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
             self.settings.config['AUTHORIZATION_TOKEN_VALUE'])}

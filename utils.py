@@ -96,10 +96,14 @@ class Cache(object):
         return response
 
 
-    def get_all_forms(self):
+
+
+    def get_all_forms(self, use_jwt=False):
         #TODO UPDATE SELF.ITESM
         #recives the url name on the config file,GET_FORMS or GET_CATALOGS
         items = []
+        if use_jwt:
+            all_items = self.network.dispatch(self.api_url.form['all_forms'], use_jwt)
         all_items = self.network.dispatch(self.api_url.form['all_forms'])
         objects = all_items['data']
         for obj in objects:
@@ -107,17 +111,6 @@ class Cache(object):
                     items.append(obj)
         return items
 
-
-    def get_all_catalogs(self):
-        #TODO UPDATE SELF.ITESM
-        #recives the url name on the config file,GET_FORMS or GET_CATALOGS
-        items = []
-        all_items = self.network.dispatch(self.api_url['catalog']['all_catalogs'])
-        objects = all_items['data']
-        for obj in objects:
-            if obj['itype'] == 'catalog':# or obj['itype'] == 'catalog':
-                    items.append(obj)
-        return items
 
 
     def get_all_connections(self):
@@ -167,6 +160,16 @@ class Cache(object):
         objects = user['data']
         return objects
 
+
+    def get_from_fields(self, form_id):
+        field = []
+        url = self.api_url.form['get_form_fields']['url'] + str(form_id) + '/'
+        method = self.api_url.form['get_form_fields']['method']
+        print 'url', url
+        print 'method', method
+        fields =  self.network.dispatch(url=url, method=method)
+        objects = fields['data']
+        return objects
 
     def get_user_fileshare(self, form_id, user_id):
         url_list = self.api_url.connecions['user_fileshare']['url'].split('&')

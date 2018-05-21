@@ -18,8 +18,8 @@ MONGODB_URI = 'mongodb://%s/?replicaSet=%s&readPreference=%s'%(mongo_hosts, mong
 
 
 config = {
-    'USERNAME' : '',
-    'PASS' : '',
+    'USERNAME' : 'josepato@linkaform.com',
+    'PASS' : '654321',
     'COLLECTION' : 'form_answer',
     'MONGODB_URI':MONGODB_URI,
     'MONGODB_PORT':27017,
@@ -35,7 +35,8 @@ config = {
     'AUTHORIZATION_TOKEN_VALUE' : '',
     #'LOAD_DATA_USING' : ImportData.MONGO,
     'LOAD_DATA_USING' : ImportData.REST,
-    'CREATE' : False
+    'CREATE' : False, 
+    'JWT_KEY': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Impvc2VwYXRvQGxpbmthZm9ybS5jb20iLCJ1c2VyX2lkIjoxMjYsImVtYWlsIjoiam9zZXBhdG9AbGlua2Fmb3JtLmNvbSIsImV4cCI6MTUyNzExMzI4OH0.JAfa7We1bDA7V8fITxXX21egVPie4ZhT8wF3niS3ftI'
 }
 
 GLOBAL_ERRORS = []
