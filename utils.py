@@ -103,7 +103,7 @@ class Cache(object):
         #recives the url name on the config file,GET_FORMS or GET_CATALOGS
         items = []
         if use_jwt:
-            all_items = self.network.dispatch(self.api_url.form['all_forms'], use_jwt)
+            all_items = self.network.dispatch(self.api_url.form['all_forms'], use_jwt=use_jwt)
         all_items = self.network.dispatch(self.api_url.form['all_forms'])
         objects = all_items['data']
         for obj in objects:

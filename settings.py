@@ -36,7 +36,7 @@ config = {
     #'LOAD_DATA_USING' : ImportData.MONGO,
     'LOAD_DATA_USING' : ImportData.REST,
     'CREATE' : False, 
-    'JWT_KEY': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Impvc2VwYXRvQGxpbmthZm9ybS5jb20iLCJ1c2VyX2lkIjoxMjYsImVtYWlsIjoiam9zZXBhdG9AbGlua2Fmb3JtLmNvbSIsImV4cCI6MTUyNzExMzI4OH0.JAfa7We1bDA7V8fITxXX21egVPie4ZhT8wF3niS3ftI'
+    'JWT_KEY': False,
 }
 
 GLOBAL_ERRORS = []
