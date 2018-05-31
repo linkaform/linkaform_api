@@ -118,7 +118,7 @@ class Network:
         return response
 
 
-    def do_post(self, url, data, use_login=False, use_api_key=False, encoding='utf-8' ,up_file=False):
+    def do_post(self, url, data, use_login=False, use_api_key=False, encoding='utf-8' ,up_file=False, use_jwt=False, params=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
         if use_jwt or (self.settings.config['JWT_KEY'] and not use_login):
@@ -179,7 +179,7 @@ class Network:
         return response
 
 
-    def do_patch(self, url, data, use_login=False, use_api_key=False, encoding='utf-8' ,up_file=False):
+    def do_patch(self, url, data, use_login=False, use_api_key=False, encoding='utf-8' ,up_file=False, use_jwt=False, params=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
         if use_jwt or (self.settings.config['JWT_KEY'] and not use_login):
