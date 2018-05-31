@@ -89,10 +89,12 @@ class Network:
                 raise Exception('Cannot login, please check user and password, or network connection!!!')
 
         response['status_code'] = r.status_code
-        if r.content:
-        	response['content'] = simplejson.loads(r.content)
+        if r.content and type(r.content) is dict:
+            #print 'IMPRIMIENDO CONTENT: ', r.content
+            response['content'] = simplejson.loads(r.content)
+	
         try:
-        	response['json'] = r.json()
+            response['json'] = r.json()
         except simplejson.scanner.JSONDecodeError:
             pass
 
@@ -102,6 +104,7 @@ class Network:
             	response['data'] = r_data['objects']
             else:
                 response['data'] = r_data
+	#print 'RESPONSE=', response
         return response
 
 
