@@ -45,12 +45,12 @@ class Network:
         #use_api_key -Optinal- forces the dispatch to be made by api_key method, if not will use  the config method
         url, method = self.get_url_method(url_method, url=url, method=method)
         response = False
-        print 'data=', data
-        print 'encoding', encoding
+        print 'DISPATCH'
+        #print 'data=', data
         if type(data) in (dict,str):
             data = json.dumps(data, encoding)
         print 'url=', url
-        #print 'method', method
+        print 'method', method
         if method == 'GET':
             if params:
                 response = self.do_get(url, params=params, use_login=use_login, use_api_key=use_api_key)
@@ -69,8 +69,14 @@ class Network:
 
     def do_get(self, url, params= {}, use_login=False, use_api_key=False, use_jwt=False):
         response = {'data':{}, 'status_code':''}
+#        print 'GET-------------------------LINKAFROM_API'
+#        print 'use_jwt',use_jwt
+#        print 'JWTKEY', self.settings.config['JWT_KEY']
+#        print 'apikey', self.settings.config['IS_USING_APIKEY']
+#        print 'use_login',use_login
         if use_jwt or (self.settings.config['JWT_KEY'] and not use_login):
             headers={'Content-type': 'application/json','Authorization': 'JWT %s'%self.settings.config['JWT_KEY']}
+ #           print 'JWT HEADERS=',headers
             if params:
                 r = requests.get(url, params=params, headers=headers,verify=False)
             else:
@@ -79,6 +85,8 @@ class Network:
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
             headers={'Content-type': 'application/json','Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
             self.settings.config['AUTHORIZATION_TOKEN_VALUE'])}
+#            print 'APIKey HEADERS=',headers
+
             if params:
                 r = requests.get(url, params=params, headers={'Content-type': 'application/json','Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
                 self.settings.config['AUTHORIZATION_TOKEN_VALUE'])},verify=False)
@@ -123,11 +131,26 @@ class Network:
         send_data = {}
         if use_jwt or (self.settings.config['JWT_KEY'] and not use_login):
             headers={'Content-type': 'application/json','Authorization': 'JWT %s'%self.settings.config['JWT_KEY']}
-            if params:
-                r = requests.get(url, params=params, headers=headers,verify=False)
-            else:
-                r = requests.get(url, headers=headers,verify=False)
+            if not up_file:
+                #print 'url', url
+                #print 'data', data
+                r = requests.post(
+                    url,
+                    data,
+                    headers=headers,
+                    verify=False )
+            if up_file:
+                r = requests.post(
+                    url,
+                    headers=headers,
+                    verify=False,
+                    files=up_file,
+                    data=simplejson.loads(data))
 
+#            if params:
+#                r = requests.get(url, params=params, headers=headers,verify=False)
+#            else:
+#                r = requests.get(url, headers=headers,verify=False)
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
             if not up_file:
                 #print 'url', url
@@ -160,7 +183,7 @@ class Network:
                     r = requests.post(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
 
         response['status_code'] = r.status_code
-        if r.content:
+        if r.content and type(r.content) is dict:
         	response['content'] = simplejson.loads(r.content)
         try:
         	response['json'] = r.json()
@@ -182,7 +205,11 @@ class Network:
     def do_patch(self, url, data, use_login=False, use_api_key=False, encoding='utf-8' ,up_file=False, use_jwt=False, params=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
+#	print 'API_KEY=', self.settings.config['IS_USING_APIKEY']
+#	print 'USE_API_KEY=', use_api_key
+#	print 'USE_LOGIN=', use_login
         if use_jwt or (self.settings.config['JWT_KEY'] and not use_login):
+#	    print '#### ENTRO 1 ###'
             headers={'Content-type': 'application/json','Authorization': 'JWT %s'%self.settings.config['JWT_KEY']}
             if params:
                 r = requests.get(url, params=params, headers=headers,verify=False)
@@ -190,18 +217,20 @@ class Network:
                 r = requests.get(url, headers=headers,verify=False)
 
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
+#	    print '#### ENTRO 2 ###'
+#            print 'headers=', {'Content-type': 'application/json',
+#                         'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
+#                         self.settings.config['AUTHORIZATION_TOKEN_VALUE'])}
+
+
             if not up_file:
-                # print 'headers=', {'Content-type': 'application/json',
-                #             'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
-                #             self.settings.config['AUTHORIZATION_TOKEN_VALUE'])}
-                #
                 r = requests.request("patch",
                     url,
                     data=data,
                     headers={'Content-type': 'application/json',
-                            'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
+                            'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'], 
                             self.settings.config['AUTHORIZATION_TOKEN_VALUE'])},
-                    verify=True )
+                            verify=True )
             if up_file:
                 r = requests.patch(
                     url,
@@ -214,6 +243,8 @@ class Network:
                     files=up_file,
                     data=simplejson.loads(data))
         else:
+	    # Drepicated Method
+#	    print '#### ENTRO 3 ###'
             session = requests.Session()
             if use_login or (self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']) and not use_api_key):
                 if not up_file:
@@ -223,9 +254,8 @@ class Network:
                     print 'haria el patch por session que daba el 500'
                     #r = requests.patch(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
 
-
         response['status_code'] = r.status_code
-        if r.content:
+        if r.content and type(r.content) is dict:
             try:
                response['content'] = simplejson.loads(r.content)
             except simplejson.scanner.JSONDecodeError:

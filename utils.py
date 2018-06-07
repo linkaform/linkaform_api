@@ -127,9 +127,11 @@ class Cache(object):
         #Returns all the connections
         connections = []
         post_json = self.api_url.get_connections_url()['form_connections']
+	print '####### POST-JSON ####### : ', post_json
         post_json['url'] = post_json['url'] + str(form_id)
         form_connections = self.network.dispatch(post_json)
         objects = form_connections['data']
+	print 'CONNECTIONS: ', objects
         return objects
 
 
@@ -387,6 +389,12 @@ class Cache(object):
             return date_str
         except ValueError:
             raise ValueError("Incorrect data format, should be YYYY-MM-DD")
+
+    def get_jwt(self, user, password, get_jwt=True):
+        session = False
+        jwt = self.network.login(session, user, password, get_jwt=True)
+        print 'jwt', jwt
+        return jwt
 
 
 def warning(*objs):
