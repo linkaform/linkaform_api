@@ -47,7 +47,7 @@ class Network:
         response = False
         print 'DISPATCH'
         #print 'data=', data
-        if type(data) in (dict,str):
+        if type(data) in (dict,str) and not up_file:
             data = json.dumps(data, encoding)
         print 'url=', url
         print 'method', method
@@ -138,15 +138,22 @@ class Network:
                     url,
                     data,
                     headers=headers,
-                    verify=False )
+                    verify=True )
             if up_file:
-                r = requests.post(
-                    url,
-                    headers=headers,
-                    verify=False,
-                    files=up_file,
-                    data=simplejson.loads(data))
-
+                headers={'Authorization': 'JWT %s'%self.settings.config['JWT_KEY']}
+                print "*********POST UP FILE***********"
+                print "data", data, type(data)
+                # print "simplejson.loads(data))", simplejson.loads(data)
+                print "up_file", up_file, type(up_file)
+                try:
+                    r = requests.post(url, files=up_file, data=data,headers=headers)
+                except Exception as e:
+                    print e
+                print "response", r 
+                print "status:", r.content
+                print "content", r.content
+                print "text", r.text
+                print "json;", r.json()
 #            if params:
 #                r = requests.get(url, params=params, headers=headers,verify=False)
 #            else:
@@ -211,10 +218,28 @@ class Network:
         if use_jwt or (self.settings.config['JWT_KEY'] and not use_login):
 #	    print '#### ENTRO 1 ###'
             headers={'Content-type': 'application/json','Authorization': 'JWT %s'%self.settings.config['JWT_KEY']}
-            if params:
-                r = requests.get(url, params=params, headers=headers,verify=False)
-            else:
-                r = requests.get(url, headers=headers,verify=False)
+            if not up_file:
+                #print 'url', url
+                #print 'data', data
+                r = requests.patch(
+                    url,
+                    data,
+                    headers=headers,
+                    verify=False )
+            if up_file:
+                r = requests.patch(
+                    url,
+                    headers=headers,
+                    verify=False,
+                    files=up_file,
+                    data=simplejson.loads(data))
+
+
+            # headers={'Content-type': 'application/json','Authorization': 'JWT %s'%self.settings.config['JWT_KEY']}
+            # if params:
+            #    r = requests.get(url, params=params, headers=headers,verify=False)
+            # else:
+            #    r = requests.get(url, headers=headers,verify=False)
 
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
 #	    print '#### ENTRO 2 ###'

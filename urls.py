@@ -27,7 +27,7 @@ class Api_url:
             'all_forms':  {'url': self.dest_url + '/api/infosync/item/', 'method':'GET'},
             'get_form_id_fields':  {'url': self.dest_url + '/api/infosync/get_form/?form_id=', 'method':'GET'},
             'set_form_answer': {'url': self.dest_url + '/api/infosync/form_answer/', 'method':'POST'},
-            'upload_file': {'url': self.dest_url + '/api/infosync/upload/', 'method':'POST'},
+            'upload_file': {'url': self.dest_url + '/api/infosync/cloud_upload/', 'method':'POST'},
             'get_form_fields':  {'url': self.dest_url + '/api/infosync/get_form_fields/', 'method':'GET'},
             }
 
