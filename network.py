@@ -45,12 +45,12 @@ class Network:
         #use_api_key -Optinal- forces the dispatch to be made by api_key method, if not will use  the config method
         url, method = self.get_url_method(url_method, url=url, method=method)
         response = False
-        print 'DISPATCH'
+        #print 'DISPATCH'
         #print 'data=', data
         if type(data) in (dict,str) and not up_file:
             data = json.dumps(data, encoding)
-        print 'url=', url
-        print 'method', method
+        #print 'url=', url
+        #print 'method', method
         if method == 'GET':
             if params:
                 response = self.do_get(url, params=params, use_login=use_login, use_api_key=use_api_key)
@@ -141,27 +141,9 @@ class Network:
                     verify=True )
             if up_file:
                 headers={'Authorization': 'JWT %s'%self.settings.config['JWT_KEY']}
-                print "*********POST UP FILE***********"
-                print "data", data, type(data)
-                # print "simplejson.loads(data))", simplejson.loads(data)
-                print "up_file", up_file, type(up_file)
-                try:
-                    r = requests.post(url, files=up_file, data=data,headers=headers)
-                except Exception as e:
-                    print e
-                print "response", r 
-                print "status:", r.content
-                print "content", r.content
-                print "text", r.text
-                print "json;", r.json()
-#            if params:
-#                r = requests.get(url, params=params, headers=headers,verify=False)
-#            else:
-#                r = requests.get(url, headers=headers,verify=False)
+                r = requests.post(url, files=up_file, data=data, headers=headers)
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
             if not up_file:
-                #print 'url', url
-                #print 'data', data
                 r = requests.post(
                     url,
                     data,
@@ -220,7 +202,7 @@ class Network:
             headers={'Content-type': 'application/json','Authorization': 'JWT %s'%self.settings.config['JWT_KEY']}
             if not up_file:
                 #print 'url', url
-                #print 'data', data
+                #print 'data=', data
                 r = requests.patch(
                     url,
                     data,
@@ -359,7 +341,6 @@ class Network:
                 print "Answer %s saved."%(index + 1)
                 POST_CORRECTLY += 1
             else:
-                print 'url', url
                 print "Answer %s was rejected."%(index + 1)
                 r['id'] = str(record_id)
                 errors_json.append(r)
