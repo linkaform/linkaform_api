@@ -67,38 +67,21 @@ class Network:
         return response
 
 
-    def do_get(self, url, params= {}, use_login=False, use_api_key=False, use_jwt=False):
+    def do_get(self, url, params= {}, use_login=False, use_api_key=False, use_jwt=True):
         response = {'data':{}, 'status_code':''}
-#        print 'GET-------------------------LINKAFROM_API'
-#        print 'use_jwt',use_jwt
-#        print 'JWTKEY', self.settings.config['JWT_KEY']
-#        print 'apikey', self.settings.config['IS_USING_APIKEY']
-#        print 'use_login',use_login
-        if use_jwt or (self.settings.config['JWT_KEY'] and not use_login):
-            headers={'Content-type': 'application/json','Authorization': 'JWT %s'%self.settings.config['JWT_KEY']}
- #           print 'JWT HEADERS=',headers
-            if params:
-                r = requests.get(url, params=params, headers=headers,verify=False)
-            else:
-                r = requests.get(url, headers=headers,verify=False)
+        if use_jwt:
+            headers = {'Content-type': 'application/json',
+                       'Authorization':'jwt {0}'.format(self.settings.config['JWT_KEY'])}
 
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
-            headers={'Content-type': 'application/json','Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
-            self.settings.config['AUTHORIZATION_TOKEN_VALUE'])}
-#            print 'APIKey HEADERS=',headers
+            headers = {'Content-type': 'application/json',
+                       'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
+                          self.settings.config['AUTHORIZATION_TOKEN_VALUE'])}
+        else:
 
-            if params:
-                r = requests.get(url, params=params, headers={'Content-type': 'application/json','Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
-                self.settings.config['AUTHORIZATION_TOKEN_VALUE'])},verify=False)
-            else:
-                r = requests.get(url, headers={'Content-type': 'application/json','Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
-                self.settings.config['AUTHORIZATION_TOKEN_VALUE'])},verify=False)
-        elif use_login or not self.settings.config['IS_USING_APIKEY'] or r.status_code == 401:
-        #if r.status_code == 401:
+            use_login = True
             session = requests.Session()
             if self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']):
-                #url =dset_url + ' '/api/infosync/get_form/?form_id=10378'
-                #print 'login -------------------------------------'
                 if params:
                     r = session.get(url, params=params, headers={'Content-type': 'application/json'}, verify=True)
                 else:
@@ -106,7 +89,14 @@ class Network:
             else:
                 raise Exception('Cannot login, please check user and password, or network connection!!!')
 
+        if not use_login:
+            if params:
+                    r = requests.get(url, params=params, headers=headers, verify=False)
+                else:
+                    r = requests.get(url, headers=headers,verify=False)
+
         response['status_code'] = r.status_code
+
         if r.content and type(r.content) is dict:
             #print 'IMPRIMIENDO CONTENT: ', r.content
             response['content'] = simplejson.loads(r.content)
@@ -126,52 +116,44 @@ class Network:
         return response
 
 
-    def do_post(self, url, data, use_login=False, use_api_key=False, encoding='utf-8' ,up_file=False, use_jwt=False, params=False):
+    def do_post(self, url, data, use_login=False, use_api_key=False, use_jwt=True, encoding='utf-8', up_file=False, params=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
-        if use_jwt or (self.settings.config['JWT_KEY'] and not use_login):
-            headers={'Content-type': 'application/json','Authorization': 'JWT %s'%self.settings.config['JWT_KEY']}
+        if use_jwt:
+            headers = {'Content-type': 'application/json',
+                       'Authorization':'jwt {0}'.format(self.settings.config['JWT_KEY'])}
+
+        elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
+            headers = {'Content-type': 'application/json',
+                       'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
+                          self.settings.config['AUTHORIZATION_TOKEN_VALUE'])}
+
+        else:
+            use_login = True
+            session = requests.Session()
+            if use_login or (self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']) and not use_api_key):
+                if not up_file:
+                    r = session.post(url, data, headers={'Content-type': 'application/json'}, verify=False)#, files=file)
+                if up_file:
+                    r = session.post(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
+
+        if not use_login:
             if not up_file:
-                #print 'url', url
-                #print 'data', data
                 r = requests.post(
                     url,
                     data,
                     headers=headers,
                     verify=True )
             if up_file:
-                headers={'Authorization': 'JWT %s'%self.settings.config['JWT_KEY']}
-                r = requests.post(url, files=up_file, data=data, headers=headers)
-        elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
-            if not up_file:
                 r = requests.post(
                     url,
-                    data,
-                    headers={'Content-type': 'application/json',
-                            'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
-                            self.settings.config['AUTHORIZATION_TOKEN_VALUE'])},
-                            verify=True )
-            if up_file:
-                r = requests.post(
-                    url,
-                    # User este header para solo datos de una forma sin archivos (imagenes, archivo, etc)
-                    # 'Content-type': 'application/x-www-form-urlencoded',
-                    headers={
-                    'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
-                        self.settings.config['AUTHORIZATION_TOKEN_VALUE'])},
+                    headers=headers,
                     verify=True,
                     files=up_file,
                     data=simplejson.loads(data))
 
-        else:
-            session = requests.Session()
-            if use_login or (self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']) and not use_api_key):
-                if not up_file:
-                    r = requests.post(url, data, headers={'Content-type': 'application/json'}, verify=False)#, files=file)
-                if up_file:
-                    r = requests.post(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
-
         response['status_code'] = r.status_code
+
         if r.content and type(r.content) is dict:
         	response['content'] = simplejson.loads(r.content)
         try:
@@ -191,77 +173,52 @@ class Network:
         return response
 
 
-    def do_patch(self, url, data, use_login=False, use_api_key=False, encoding='utf-8' ,up_file=False, use_jwt=False, params=False):
+    def do_patch(self, url, data, use_login=False, use_api_key=False, use_jwt=True, encoding='utf-8', up_file=False, params=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
-#	print 'API_KEY=', self.settings.config['IS_USING_APIKEY']
-#	print 'USE_API_KEY=', use_api_key
-#	print 'USE_LOGIN=', use_login
-        if use_jwt or (self.settings.config['JWT_KEY'] and not use_login):
-#	    print '#### ENTRO 1 ###'
-            headers={'Content-type': 'application/json','Authorization': 'JWT %s'%self.settings.config['JWT_KEY']}
-            if not up_file:
-                #print 'url', url
-                #print 'data=', data
-                r = requests.patch(
-                    url,
-                    data,
-                    headers=headers,
-                    verify=False )
-            if up_file:
-                r = requests.patch(
-                    url,
-                    headers=headers,
-                    verify=False,
-                    files=up_file,
-                    data=simplejson.loads(data))
-
-
-            # headers={'Content-type': 'application/json','Authorization': 'JWT %s'%self.settings.config['JWT_KEY']}
-            # if params:
-            #    r = requests.get(url, params=params, headers=headers,verify=False)
-            # else:
-            #    r = requests.get(url, headers=headers,verify=False)
+        if use_jwt:
+            headers = {'Content-type': 'application/json',
+                       'Authorization':'jwt {0}'.format(self.settings.config['JWT_KEY'])}
 
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
-#	    print '#### ENTRO 2 ###'
-#            print 'headers=', {'Content-type': 'application/json',
-#                         'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
-#                         self.settings.config['AUTHORIZATION_TOKEN_VALUE'])}
+            headers = {'Content-type': 'application/json',
+                       'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
+                          self.settings.config['AUTHORIZATION_TOKEN_VALUE'])}
 
+        else:
+            use_login = True
+            session = requests.Session()
+            if use_login or (self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']) and not use_api_key):
+                if not up_file:
+                    r = session.post(url, data, headers={'Content-type': 'application/json'}, verify=False)#, files=file)
+                if up_file:
+                    r = session.post(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
 
+        else:
+            session = requests.Session()
+            if use_login or (self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']) and not use_api_key):
+                if not up_file:
+                    r = session.patch(url, data, headers={'Content-type': 'application/json'}, verify=False)#, files=file)
+                if up_file:
+                    r = session.patch(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
+
+        if not use_login:
             if not up_file:
                 r = requests.request("patch",
                     url,
                     data=data,
-                    headers={'Content-type': 'application/json',
-                            'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'], 
-                            self.settings.config['AUTHORIZATION_TOKEN_VALUE'])},
-                            verify=True )
+                    headers=headers,
+                    verify=True )
             if up_file:
                 r = requests.patch(
                     url,
-                    # User este header para solo datos de una forma sin archivos (imagenes, archivo, etc)
-                    # 'Content-type': 'application/x-www-form-urlencoded',
-                    headers={
-                    'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
-                        self.settings.config['AUTHORIZATION_TOKEN_VALUE'])},
+                    headers=headers,
                     verify=False,
                     files=up_file,
                     data=simplejson.loads(data))
-        else:
-	    # Drepicated Method
-#	    print '#### ENTRO 3 ###'
-            session = requests.Session()
-            if use_login or (self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']) and not use_api_key):
-                if not up_file:
-                    print 'haria el patch por session que daba el 500'
-                    #r = requests.patch(url, data, headers={'Content-type': 'application/json'}, verify=False)#, files=file)
-                if up_file:
-                    print 'haria el patch por session que daba el 500'
-                    #r = requests.patch(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
 
         response['status_code'] = r.status_code
+
         if r.content and type(r.content) is dict:
             try:
                response['content'] = simplejson.loads(r.content)
