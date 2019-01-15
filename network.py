@@ -67,9 +67,9 @@ class Network:
         return response
 
 
-    def do_get(self, url, params= {}, use_login=False, use_api_key=False, use_jwt=True):
+    def do_get(self, url, params= {}, use_login=False, use_api_key=False, use_jwt=False):
         response = {'data':{}, 'status_code':''}
-        if use_jwt:
+        if use_jwt and not use_api_key:
             headers = {'Content-type': 'application/json',
                        'Authorization':'jwt {0}'.format(self.settings.config['JWT_KEY'])}
 
@@ -116,10 +116,10 @@ class Network:
         return response
 
 
-    def do_post(self, url, data, use_login=False, use_api_key=False, use_jwt=True, encoding='utf-8', up_file=False, params=False):
+    def do_post(self, url, data, use_login=False, use_api_key=False, use_jwt=False, encoding='utf-8', up_file=False, params=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
-        if use_jwt:
+        if use_jwt and not use_api_key:
             headers = {'Content-type': 'application/json',
                        'Authorization':'jwt {0}'.format(self.settings.config['JWT_KEY'])}
 
@@ -173,10 +173,10 @@ class Network:
         return response
 
 
-    def do_patch(self, url, data, use_login=False, use_api_key=False, use_jwt=True, encoding='utf-8', up_file=False, params=False):
+    def do_patch(self, url, data, use_login=False, use_api_key=False, use_jwt=False, encoding='utf-8', up_file=False, params=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
-        if use_jwt:
+        if use_jwt and not use_api_key:
             headers = {'Content-type': 'application/json',
                        'Authorization':'jwt {0}'.format(self.settings.config['JWT_KEY'])}
 
