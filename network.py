@@ -91,9 +91,9 @@ class Network:
 
         if not use_login:
             if params:
-                    r = requests.get(url, params=params, headers=headers, verify=False)
-                else:
-                    r = requests.get(url, headers=headers,verify=False)
+                r = requests.get(url, params=params, headers=headers, verify=False)
+            else:
+                r = requests.get(url, headers=headers,verify=False)
 
         response['status_code'] = r.status_code
 
@@ -187,14 +187,6 @@ class Network:
 
         else:
             use_login = True
-            session = requests.Session()
-            if use_login or (self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']) and not use_api_key):
-                if not up_file:
-                    r = session.post(url, data, headers={'Content-type': 'application/json'}, verify=False)#, files=file)
-                if up_file:
-                    r = session.post(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
-
-        else:
             session = requests.Session()
             if use_login or (self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']) and not use_api_key):
                 if not up_file:
