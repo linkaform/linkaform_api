@@ -51,19 +51,20 @@ class Network:
             data = json.dumps(data, encoding)
         #print 'url=', url
         #print 'method', method
+        use_jwt = self.settings.config['USE_JWT']
         if method == 'GET':
             if params:
-                response = self.do_get(url, params=params, use_login=use_login, use_api_key=use_api_key)
+                response = self.do_get(url, params=params, use_login=use_login, use_api_key=use_api_key, use_jwt=use_jwt)
             else:
-                response = self.do_get(url, use_login=use_login, use_api_key=use_api_key)
+                response = self.do_get(url, use_login=use_login, use_api_key=use_api_key, use_jwt=use_jwt)
         if method == 'POST':
             if data == '{}' or not data:
                 raise  ValueError('No data to post, check you post method')
-            response = self.do_post(url, data, use_login, use_api_key, up_file=up_file)
+            response = self.do_post(url, data, use_login, use_api_key, use_jwt=use_jwt, up_file=up_file)
         if method == 'PATCH':
             if data == '{}' or not data:
                 raise  ValueError('No data to post, check you post method')
-            response = self.do_patch(url, data, use_login, use_api_key, up_file=up_file)
+            response = self.do_patch(url, data, use_login, use_api_key, use_jwt=use_jwt, up_file=up_file)
         return response
 
 
