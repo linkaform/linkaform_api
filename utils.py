@@ -122,16 +122,31 @@ class Cache(object):
         return objects
 
 
+    def get_form_users(self, form_id, include_users=True, include_connections=True, include_owner=True):
+        #Returns all the form usrs... by default includes users and connections
+        connections = []
+        post_json = self.api_url.get_users_url()['get_form_users']
+        url = post_json['url'].format(form_id)
+        response = self.network.dispatch(url=url, method=post_json['method'])
+        all_form_users = response.get('objects', {})
+        if not include_connections:
+            [all_form_users.pop(pos) for pos, user in enumerate(all_form_users) if user['is_connection']]
+        if not include_users:
+            [all_form_users.pop(pos) for pos, user in enumerate(all_form_users) if not user['is_connection']]
+        if include_owner:
+            all_form_users = response.get('owner', {})
+        return all_form_users
+
     def get_form_connections(self, form_id):
         #TODO UPDATE SELF.ITESM
         #Returns all the connections
         connections = []
         post_json = self.api_url.get_connections_url()['form_connections']
-	print '####### POST-JSON ####### : ', post_json
+        print '####### POST-JSON ####### : ', post_json
         post_json['url'] = post_json['url'] + str(form_id)
         form_connections = self.network.dispatch(post_json)
         objects = form_connections['data']
-	print 'CONNECTIONS: ', objects
+        print 'CONNECTIONS: ', objects
         return objects
 
 
