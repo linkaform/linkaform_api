@@ -25,7 +25,7 @@ config = {
     'MONGODB_PORT':27017,
     'MONGODB_HOST': '',
     'PROTOCOL' : 'https', #http or https
-    'HOST' : 'dev2.linkaform.com',
+    'HOST' : 'qa.linkaform.com',
     'USER_ID' : '',
     'ACCOUNT_ID': '',
     'KEYS_POSITION' : {},
@@ -37,6 +37,7 @@ config = {
     'LOAD_DATA_USING' : ImportData.REST,
     'CREATE' : False, 
     'JWT_KEY': False,
+    'USE_JWT': True,
 }
 
 GLOBAL_ERRORS = []
