@@ -121,8 +121,7 @@ class Network:
         response = {'data':{}, 'status_code':''}
         send_data = {}
         if use_jwt and not use_api_key:
-            headers = {'Content-type': 'application/json',
-                       'Authorization':'jwt {0}'.format(self.settings.config['JWT_KEY'])}
+            headers = {'Authorization':'jwt {0}'.format(self.settings.config['JWT_KEY'])}
 
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
             headers = {'Content-type': 'application/json',
@@ -151,7 +150,7 @@ class Network:
                     headers=headers,
                     verify=True,
                     files=up_file,
-                    data=simplejson.loads(data))
+                    data=data)
 
         response['status_code'] = r.status_code
 
