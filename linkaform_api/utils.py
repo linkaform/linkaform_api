@@ -26,7 +26,6 @@ class Cache(object):
             self.items[item_type][item_id] = self.get_item_id(item_type, item_id)
         return self.items[item_type][item_id]
 
-
     def get_data(self, item_type, item_id, refresh=False):
         if not self.items_data.has_key(item_type):
             self.items_data[item_type] = {}
@@ -34,14 +33,12 @@ class Cache(object):
             self.items_data[item_type][item_id] = self.get_item_answer(item_type, item_id)
         return self.items_data[item_type][item_id]
 
-
     def get_item_fields(self, item_type, item_id, refresh=False):
         if not self.items_fields.has_key(item_type):
             self.items_fields[item_type] = {}
         if not self.items_fields[item_type].has_key(item_id):
             self.items_fields[item_type][item_id] = self.get_item_fields(item_type, item_id)
         return self.items_fields[item_type][item_id]
-
 
     def get_item_answer(self, item_type, item_id):
         if item_type =='form':
@@ -55,7 +52,6 @@ class Cache(object):
             return response['data']
         return False
 
-
     def get_item_fields(self, item_type, item_id):
         if item_type =='form':
             url = self.api_url.form['get_form_id_fields']['url'] + str(item_id)
@@ -68,7 +64,6 @@ class Cache(object):
             return response['data']
         return False
 
-
     def get_form_id_fields(self, form_id):
         url = self.api_url.form['get_form_id_fields']['url']+str(form_id)
         method = self.api_url.form['get_form_id_fields']['method']
@@ -77,13 +72,11 @@ class Cache(object):
             return response['data']
         return False
 
-
     def get_all_items(self, item_type):
         if item_type =='form':
             return self.get_all_forms()
         if item_type == 'catalog':
             return self.get_all_catalogs()
-
 
     def get_item_id(self, item_type, item_id):
         if item_type =='form':
@@ -94,9 +87,6 @@ class Cache(object):
             method = self.api_url['catalog']['get_catalog_id']['method']
         response = self.network.dispatch(url=url, method=method)
         return response
-
-
-
 
     def get_all_forms(self, use_jwt=False):
         #TODO UPDATE SELF.ITESM
@@ -111,8 +101,6 @@ class Cache(object):
                     items.append(obj)
         return items
 
-
-
     def get_all_connections(self):
         #TODO UPDATE SELF.ITESM
         #Returns all the connections
@@ -120,7 +108,6 @@ class Cache(object):
         all_connections = self.network.dispatch(self.api_url['connecions']['all_connections'])
         objects = all_connections['data']
         return objects
-
 
     def get_form_users(self, form_id, include_users=True, include_connections=True, include_owner=True):
         #Returns all the form usrs... by default includes users and connections
@@ -142,13 +129,10 @@ class Cache(object):
         #Returns all the connections
         connections = []
         post_json = self.api_url.get_connections_url()['form_connections']
-        print '####### POST-JSON ####### : ', post_json
         post_json['url'] = post_json['url'] + str(form_id)
         form_connections = self.network.dispatch(post_json)
         objects = form_connections['data']
-        print 'CONNECTIONS: ', objects
         return objects
-
 
     def get_connection_by_id(self, connection_id):
         #TODO UPDATE SELF.ITESM
@@ -159,13 +143,10 @@ class Cache(object):
         objects = connection['data']
         return objects
 
-
-
     def get_all_users(self):
         all_users = self.network.dispatch(self.api_url.users['all_users'])
         objects = all_users['data']
         return objects
-
 
     def get_user_by_id(self, user_id):
         #TODO UPDATE SELF.ITESM
@@ -177,13 +158,10 @@ class Cache(object):
         objects = user['data']
         return objects
 
-
     def get_from_fields(self, form_id):
         field = []
         url = self.api_url.form['get_form_fields']['url'] + str(form_id) + '/'
         method = self.api_url.form['get_form_fields']['method']
-        print 'url', url
-        print 'method', method
         fields =  self.network.dispatch(url=url, method=method)
         objects = fields['data']
         return objects
@@ -196,7 +174,6 @@ class Cache(object):
         response = self.network.dispatch(url=url, method=method)
         return response
 
-
     def get_record_answer(self, params = {}):
         if not params:
             params = {'limit':20,'offset':0}
@@ -204,7 +181,6 @@ class Cache(object):
         if response['status_code'] == 200:
             return response['data']
         return False
-
 
     def assigne_user_records(self, user_id, record_id_list, send_email=False, send_push_notification=False):
         url_method = self.api_url.record['assigne_user']
@@ -215,7 +191,6 @@ class Cache(object):
         if response['status_code'] == 200:
             return response['data']
         return response
-
 
     def assigne_connection_records(self, connection_id, record_id_list, user_of_connection=False, send_email=False, send_push_notification=False):
         url_method = self.api_url.record['assigne_connection']
@@ -228,7 +203,6 @@ class Cache(object):
         if response['status_code'] == 200:
             return response['data']
         return response
-
 
     def patch_multi_record(self, answers, form_id, folios=[], record_id=[]):
         if not answers or not (folios or record_id):
@@ -245,13 +219,11 @@ class Cache(object):
         data['form_id'] = form_id
         return  self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data)
 
-
     def post_upload_file(self, data, up_file):
         #data:
         #up_file:
         upload_url = self.network.dispatch(self.api_url.form['upload_file'], data=data, up_file=up_file)
         return upload_url
-
 
     def patch_record(self, data, record_id=None):
         #If no record_id is send, it is asuemed that the record_id
@@ -260,20 +232,16 @@ class Cache(object):
             data['_id'] = record_id
         return self.network.patch_forms_answers(data)
 
-
     def patch_record_list(self, data):
         #If no record_id is send, it is asuemed that the record_id
         #all ready comes inside the data dictionary
         return self.network.patch_forms_answers_list(data)
 
-
     def post_forms_answers(self, answers, test=False):
         return self.network.post_forms_answers(answers)
 
-
     def post_forms_answers_list(self, answers, test=False):
         return self.network.post_forms_answers_list(answers)
-
 
     def get_metadata(self, form_id=False, user_id=False):
         time_started = time.time()
@@ -289,7 +257,6 @@ class Cache(object):
         if not form_id:
             metadata.pop('form_id')
         return metadata
-
 
     def guess(self, value, answer):
         count = last_find = valuation = 0
@@ -309,7 +276,6 @@ class Cache(object):
                 value = value[:index] + value[index+1:]
                 last_find = index
         return (count, org_value)
-
 
     def make_infosync_select_json(self, answer, element, best_effort=False):
         if type(answer) != str:
@@ -349,7 +315,6 @@ class Cache(object):
 
         raise ValueError('element should have the keys field_type and field_id')
 
-
     def make_infosync_json(self, answer, element, best_effort=False):
         #answer: The answer or answer of certain field
         #element: should be the field for the answer
@@ -387,7 +352,6 @@ class Cache(object):
                 return {}
         return {}
 
-
     def validate(self, date_str, check='date'):
         #check args date, time or datetime
         if check == 'datetime':
@@ -408,7 +372,6 @@ class Cache(object):
     def get_jwt(self, user, password, get_jwt=True):
         session = False
         jwt = self.network.login(session, user, password, get_jwt=True)
-        print 'jwt', jwt
         return jwt
 
 
