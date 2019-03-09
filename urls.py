@@ -53,11 +53,11 @@ class Api_url:
 
     def get_users_url(self):
         return  {
-                'get_form_users' :{'url': 'https://preprod.linkaform.com' + '/api/infosync/item/{0}/get_users/?limit=0', 'method':'GET'},
-                }
-
                 'all_users': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'GET'},
                 'user_by_id': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'GET'},
+                'get_form_users' :{'url': self.dest_url + '/api/infosync/item/{0}/get_users/?limit=0', 'method':'GET'},
+                }
+
 
     def get_connections_url(self):
         return  {
