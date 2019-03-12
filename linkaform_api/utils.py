@@ -115,13 +115,13 @@ class Cache(object):
         post_json = self.api_url.get_users_url()['get_form_users']
         url = post_json['url'].format(form_id)
         response = self.network.dispatch(url=url, method=post_json['method'])
-        all_form_users = response.get('objects', {})
+        all_form_users = response.get('data', [])
         if not include_connections:
             [all_form_users.pop(pos) for pos, user in enumerate(all_form_users) if user['is_connection']]
         if not include_users:
             [all_form_users.pop(pos) for pos, user in enumerate(all_form_users) if not user['is_connection']]
         if include_owner:
-            all_form_users = response.get('owner', {})
+            all_form_users.append(response.get('json',{}).get('owner', {}))
         return all_form_users
 
     def get_form_connections(self, form_id):
