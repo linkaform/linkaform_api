@@ -121,7 +121,7 @@ class Network:
         response = {'data':{}, 'status_code':''}
         send_data = {}
         if use_jwt and not use_api_key:
-            headers = {'Authorization':'jwt {0}'.format(self.settings.config['JWT_KEY'])}
+            headers = {'Content-type':'application/json','Authorization':'jwt {0}'.format(self.settings.config['JWT_KEY'])}
 
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
             headers = {'Content-type': 'application/json',
