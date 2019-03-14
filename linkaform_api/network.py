@@ -111,6 +111,8 @@ class Network:
             r_data = simplejson.loads(r.content)
             if r_data.has_key('objects'):
             	response['data'] = r_data['objects']
+            elif r_data.has_key('json'):
+                response['data'] = r_data['json']
             else:
                 response['data'] = r_data
 	#print 'RESPONSE=', response
