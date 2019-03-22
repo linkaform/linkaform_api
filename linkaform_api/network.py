@@ -213,7 +213,7 @@ class Network:
                     headers=headers,
                     verify=False,
                     files=up_file,
-                    data=simplejson.loads(data))
+                    data=data)
 
         response['status_code'] = r.status_code
 
