@@ -321,7 +321,7 @@ class Cache(object):
         #this should contain ['field_type'] and ['field_id']
         #If best_effort is selected then it will try the best options
         # a select field has
-        if answer:
+        if answer or answer == 0:
             try:
                 if not element.has_key('field_type') or not element.has_key('field_id'):
                     raise ValueError('element should have the keys field_type and field_id')
@@ -329,7 +329,7 @@ class Cache(object):
                     return {element['field_id']:str(answer)}
                 if element['field_type'] in ('select-one', 'radio', 'select'):
                     answer = self.make_infosync_select_json(answer, element, best_effort)
-                    if answer:
+                    if answer or answer == 0:
                         return {element['field_id']:answer}
                 if element['field_type'] in ('checkbox'):
                     answer_list = []
