@@ -1,7 +1,7 @@
 # coding: utf-8
 #!/usr/bin/python
 
-import requests, simplejson, json
+import requests, simplejson, json, time
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
@@ -73,6 +73,7 @@ class Network:
         if response['status_code'] = 502:
             if count < 5 :
                 count = count + 1
+                time.sleep(5)
                 self.dispatch(url_method=url_method, url=url, method=method, data=data, params=params,
                     use_login=use_login, use_api_key=use_api_key, use_jwt=use_jwt, jwt_settings_key=jwt_settings_key, 
                     encoding=encoding, up_file=up_file, count=count)
