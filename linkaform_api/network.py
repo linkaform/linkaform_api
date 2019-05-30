@@ -36,7 +36,8 @@ class Network:
 
 
     def dispatch(self, url_method={}, url='', method='', data={}, params={},
-                use_login=False, use_api_key=False, use_jwt=False,  encoding='utf-8', up_file=False):
+                use_login=False, use_api_key=False, use_jwt=False, jwt_settings_key=False, 
+                encoding='utf-8', up_file=False, count=0):
         #must use the url_method or a url and method directly
         #url_method is a {} with a key url and method just like expres on urls
         #url defines the url to make the call
@@ -54,21 +55,32 @@ class Network:
         use_jwt = self.settings.config['USE_JWT']
         if method == 'GET':
             if params:
-                response = self.do_get(url, params=params, use_login=use_login, use_api_key=use_api_key, use_jwt=use_jwt)
+                response = self.do_get(url, params=params, use_login=use_login, 
+                    use_api_key=use_api_key, use_jwt=use_jwt, jwt_settings_key=jwt_settings_key)
             else:
-                response = self.do_get(url, use_login=use_login, use_api_key=use_api_key, use_jwt=use_jwt)
+                response = self.do_get(url, use_login=use_login, 
+                    use_api_key=use_api_key, use_jwt=use_jwt, jwt_settings_key=jwt_settings_key)
         if method == 'POST':
             if data == '{}' or not data:
                 raise  ValueError('No data to post, check you post method')
-            response = self.do_post(url, data, use_login, use_api_key, use_jwt=use_jwt, up_file=up_file)
+            response = self.do_post(url, data, use_login, use_api_key, use_jwt=use_jwt, 
+                jwt_settings_key=jwt_settings_key, up_file=up_file)
         if method == 'PATCH':
             if data == '{}' or not data:
                 raise  ValueError('No data to post, check you post method')
-            response = self.do_patch(url, data, use_login, use_api_key, use_jwt=use_jwt, up_file=up_file)
+            response = self.do_patch(url, data, use_login, use_api_key, use_jwt=use_jwt, 
+                jwt_settings_key=jwt_settings_key, up_file=up_file)
+        if response['status_code'] = 502:
+            if count < 5 :
+                count = count + 1
+                self.dispatch(url_method=url_method, url=url, method=method, data=data, params=params,
+                    use_login=use_login, use_api_key=use_api_key, use_jwt=use_jwt, jwt_settings_key=jwt_settings_key, 
+                    encoding=encoding, up_file=up_file, count=count)
         return response
 
 
-    def do_get(self, url, params= {}, use_login=False, use_api_key=False, use_jwt=False):
+    def do_get(self, url, params= {}, use_login=False, use_api_key=False, 
+        use_jwt=False, jwt_settings_key=False):
         response = {'data':{}, 'status_code':''}
         if use_jwt and not use_api_key:
             headers = {'Content-type': 'application/json',
@@ -119,7 +131,8 @@ class Network:
         return response
 
 
-    def do_post(self, url, data, use_login=False, use_api_key=False, use_jwt=False, encoding='utf-8', up_file=False, params=False):
+    def do_post(self, url, data, use_login=False, use_api_key=False,
+        use_jwt=False, jwt_settings_key=False, encoding='utf-8', up_file=False, params=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
         if use_jwt and not use_api_key:
@@ -177,7 +190,8 @@ class Network:
         return response
 
 
-    def do_patch(self, url, data, use_login=False, use_api_key=False, use_jwt=False, encoding='utf-8', up_file=False, params=False):
+    def do_patch(self, url, data, use_login=False, use_api_key=False,
+        use_jwt=False, jwt_settings_key=False, encoding='utf-8', up_file=False, params=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
         if use_jwt and not use_api_key:
@@ -232,14 +246,14 @@ class Network:
         return response
 
 
-    def post_forms_answers(self, answers):
+    def post_forms_answers(self, answers, jwt_settings_key=False):
         answers = [answers,]
         POST_CORRECTLY=0
         errors_json = []
         return self.post_forms_answers_list(answers, test=False)[0][1]
 
 
-    def post_forms_answers_list(self, answers, test=False):
+    def post_forms_answers_list(self, answers, test=False, jwt_settings_key=False):
         if type(answers) == dict:
             answers = [answers,]
         POST_CORRECTLY=0
@@ -268,13 +282,13 @@ class Network:
         return res
 
 
-    def patch_forms_answers(self, answers):
+    def patch_forms_answers(self, answers, jwt_settings_key=False):
         if type(answers) == dict:
             answers = [answers,]
         return self.patch_forms_answers_list(answers)[0][1]
 
 
-    def patch_forms_answers_list(self, answers):
+    def patch_forms_answers_list(self, answers, jwt_settings_key=False):
         if type(answers) == dict:
             answers = [answers,]
         POST_CORRECTLY=0
