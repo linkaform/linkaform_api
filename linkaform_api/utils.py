@@ -47,7 +47,7 @@ class Cache(object):
         if item_type =='catalog':
             url = self.api_url['catalog']['catalog_answer']['url'] + str(item_id)
             method = self.api_url['catalog']['catalog_answer']['method']
-        response = self.network.dispatch(url=url, method=method)
+        response = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
         if response['status_code'] == 200:
             return response['data']
         return False
@@ -59,7 +59,7 @@ class Cache(object):
         if item_type =='catalog':
             url = self.api_url['catalog']['catalog_id_fields']['url'] + str(item_id)
             method = self.api_url['catalog']['catalog_id_fields']['method']
-        response = self.network.dispatch(url=url, method=method)
+        response = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
         if response['status_code'] == 200:
             return response['data']
         return False
@@ -67,7 +67,7 @@ class Cache(object):
     def get_form_id_fields(self, form_id, jwt_settings_key=False):
         url = self.api_url.form['get_form_id_fields']['url']+str(form_id)
         method = self.api_url.form['get_form_id_fields']['method']
-        response = self.network.dispatch(url=url, method=method, use_api_key=False)
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
         if response['status_code'] == 200:
             return response['data']
         return False
@@ -85,7 +85,7 @@ class Cache(object):
         if item_type =='catalog':
             url = self.api_url['catalog']['get_catalog_id']['url'] + str(item_id)
             method = self.api_url['catalog']['get_catalog_id']['method']
-        response = self.network.dispatch(url=url, method=method)
+        response = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
         return response
 
     def get_all_forms(self, use_jwt=False, jwt_settings_key=False):
@@ -93,8 +93,8 @@ class Cache(object):
         #recives the url name on the config file,GET_FORMS or GET_CATALOGS
         items = []
         if use_jwt:
-            all_items = self.network.dispatch(self.api_url.form['all_forms'], use_jwt=use_jwt)
-        all_items = self.network.dispatch(self.api_url.form['all_forms'])
+            all_items = self.network.dispatch(self.api_url.form['all_forms'], use_jwt=use_jwt, jwt_settings_key=jwt_settings_key)
+        all_items = self.network.dispatch(self.api_url.form['all_forms'], jwt_settings_key=jwt_settings_key)
         objects = all_items['data']
         for obj in objects:
             if obj['itype'] == 'form':# or obj['itype'] == 'catalog':
@@ -105,7 +105,7 @@ class Cache(object):
         #TODO UPDATE SELF.ITESM
         #Returns all the connections
         connections = []
-        all_connections = self.network.dispatch(self.api_url['connecions']['all_connections'])
+        all_connections = self.network.dispatch(self.api_url['connecions']['all_connections'], jwt_settings_key=jwt_settings_key)
         objects = all_connections['data']
         return objects
 
@@ -115,7 +115,7 @@ class Cache(object):
         connections = []
         post_json = self.api_url.get_users_url()['get_form_users']
         url = post_json['url'].format(form_id)
-        response = self.network.dispatch(url=url, method=post_json['method'])
+        response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
         all_form_users = response.get('data', [])
         if not include_connections:
             [all_form_users.pop(pos) for pos, user in enumerate(all_form_users) if user['is_connection']]
@@ -131,7 +131,9 @@ class Cache(object):
         connections = []
         post_json = self.api_url.get_connections_url()['form_connections']
         post_json['url'] = post_json['url'] + str(form_id)
-        form_connections = self.network.dispatch(post_json)
+        print 'jwt_settins', jwt_settings_key
+        print '934329840328432094832-48093284032'
+        form_connections = self.network.dispatch(post_json, jwt_settings_key=jwt_settings_key)
         objects = form_connections['data']
         return objects
 
@@ -140,12 +142,12 @@ class Cache(object):
         #Returns the connections info
         url = self.api_url.connecions['connection_by_id']['url'] + str(connection_id) + '/'
         method = self.api_url.connecions['connection_by_id']['method']
-        connection = self.network.dispatch(url=url, method=method)
+        connection = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
         objects = connection['data']
         return objects
 
     def get_all_users(self, jwt_settings_key=False):
-        all_users = self.network.dispatch(self.api_url.users['all_users'])
+        all_users = self.network.dispatch(self.api_url.users['all_users'], jwt_settings_key=jwt_settings_key)
         objects = all_users['data']
         return objects
 
@@ -155,7 +157,7 @@ class Cache(object):
         connections = []
         url = self.api_url.users['user_by_id']['url'] + str(user_id) + '/'
         method = self.api_url.users['user_by_id']['method']
-        user = self.network.dispatch(url=url, method=method)
+        user = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
         objects = user['data']
         return objects
 
@@ -163,7 +165,7 @@ class Cache(object):
         field = []
         url = self.api_url.form['get_form_fields']['url'] + str(form_id) + '/'
         method = self.api_url.form['get_form_fields']['method']
-        fields =  self.network.dispatch(url=url, method=method)
+        fields =  self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
         objects = fields['data']
         return objects
 
@@ -172,13 +174,13 @@ class Cache(object):
         url = url_list[0] + str(form_id)
         url += '&' + url_list[1] + str(user_id)
         method = self.api_url.form['user_fileshare']['method']
-        response = self.network.dispatch(url=url, method=method)
+        response = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
         return response
 
     def get_record_answer(self, params = {}, jwt_settings_key=False):
         if not params:
             params = {'limit':20,'offset':0}
-        response = self.network.dispatch(self.api_url.record['form_answer'], params=params)
+        response = self.network.dispatch(self.api_url.record['form_answer'], params=params, jwt_settings_key=jwt_settings_key)
         if response['status_code'] == 200:
             return response['data']
         return False
@@ -189,7 +191,7 @@ class Cache(object):
         data = {'user_id': user_id, 'records': record_id_list,
                   'send_push_notification': send_push_notification,
                   'send_mail': send_email}
-        response = self.network.dispatch(url_method=url_method, data=data)
+        response = self.network.dispatch(url_method=url_method, data=data, jwt_settings_key=jwt_settings_key)
         if response['status_code'] == 200:
             return response['data']
         return response
@@ -202,7 +204,7 @@ class Cache(object):
                   'send_mail': send_email}
         if user_of_connection:
             data['userOfConnection'] = user_of_connection
-        response = self.network.dispatch(url_method=url_method, data=data)
+        response = self.network.dispatch(url_method=url_method, data=data, jwt_settings_key=jwt_settings_key)
         if response['status_code'] == 200:
             return response['data']
         return response
@@ -220,12 +222,12 @@ class Cache(object):
         else:
             data['records'] = record_id
         data['form_id'] = form_id
-        return  self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data)
+        return  self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
 
     def post_upload_file(self, data, up_file, jwt_settings_key=False):
         #data:
         #up_file:
-        upload_url = self.network.dispatch(self.api_url.form['upload_file'], data=data, up_file=up_file)
+        upload_url = self.network.dispatch(self.api_url.form['upload_file'], data=data, up_file=up_file, jwt_settings_key=jwt_settings_key)
         return upload_url
 
     def patch_record(self, data, record_id=None, jwt_settings_key=False):
@@ -233,18 +235,20 @@ class Cache(object):
         #all ready comes inside the data dictionary
         if record_id:
             data['_id'] = record_id
-        return self.network.patch_forms_answers(data)
+        print 'jwtttttttttttt'
+        return self.network.patch_forms_answers(data , jwt_settings_key=jwt_settings_key)
 
     def patch_record_list(self, data, jwt_settings_key=False):
         #If no record_id is send, it is asuemed that the record_id
         #all ready comes inside the data dictionary
-        return self.network.patch_forms_answers_list(data)
+        return self.network.patch_forms_answers_list(data, jwt_settings_key=jwt_settings_key)
 
     def post_forms_answers(self, answers, test=False, jwt_settings_key=False):
-        return self.network.post_forms_answers(answers)
+        print 'post_forms_answers', jwt_settings_key
+        return self.network.post_forms_answers(answers, jwt_settings_key=jwt_settings_key)
 
-    def post_forms_answers_list(self, answers, test=False):
-        return self.network.post_forms_answers_list(answers)
+    def post_forms_answers_list(self, answers, test=False, jwt_settings_key=False ):
+        return self.network.post_forms_answers_list(answers, jwt_settings_key=jwt_settings_key)
 
     def get_metadata(self, form_id=False, user_id=False):
         time_started = time.time()

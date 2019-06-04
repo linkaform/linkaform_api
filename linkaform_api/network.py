@@ -52,6 +52,7 @@ class Network:
             data = json.dumps(data, encoding)
         #print 'url=', url
         #print 'method', method
+        #print 'jwt_settings_key',jwt_settings_key
         use_jwt = self.settings.config['USE_JWT']
         if method == 'GET':
             if params:
@@ -70,7 +71,7 @@ class Network:
                 raise  ValueError('No data to post, check you post method')
             response = self.do_patch(url, data, use_login, use_api_key, use_jwt=use_jwt, 
                 jwt_settings_key=jwt_settings_key, up_file=up_file)
-        if response['status_code'] = 502:
+        if response['status_code'] == 502:
             if count < 5 :
                 count = count + 1
                 time.sleep(5)
@@ -83,9 +84,12 @@ class Network:
     def do_get(self, url, params= {}, use_login=False, use_api_key=False, 
         use_jwt=False, jwt_settings_key=False):
         response = {'data':{}, 'status_code':''}
+        JWT = self.settings.config['JWT_KEY']
+        if jwt_settings_key:
+            JWT = self.settings.config[jwt_settings_key]
         if use_jwt and not use_api_key:
             headers = {'Content-type': 'application/json',
-                       'Authorization':'jwt {0}'.format(self.settings.config['JWT_KEY'])}
+                       'Authorization':'jwt {0}'.format(JWT)}
 
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
             headers = {'Content-type': 'application/json',
@@ -136,8 +140,13 @@ class Network:
         use_jwt=False, jwt_settings_key=False, encoding='utf-8', up_file=False, params=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
+        JWT = self.settings.config['JWT_KEY']
+        if jwt_settings_key:
+            JWT = self.settings.config[jwt_settings_key]
+        print 'POSOOOOOOST', jwt_settings_key
         if use_jwt and not use_api_key:
-            headers = {'Authorization':'jwt {0}'.format(self.settings.config['JWT_KEY'])}
+            print 'use_jwtuse_jwtuse_jwt'
+            headers = {'Authorization':'jwt {0}'.format(JWT)}
             if not up_file:
                 headers['Content-type'] = 'application/json'
 
@@ -195,9 +204,12 @@ class Network:
         use_jwt=False, jwt_settings_key=False, encoding='utf-8', up_file=False, params=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
+        JWT = self.settings.config['JWT_KEY']
+        if jwt_settings_key:
+            JWT = self.settings.config[jwt_settings_key]
         if use_jwt and not use_api_key:
             headers = {'Content-type': 'application/json',
-                       'Authorization':'jwt {0}'.format(self.settings.config['JWT_KEY'])}
+                       'Authorization':'jwt {0}'.format(JWT)}
 
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
             headers = {'Content-type': 'application/json',
@@ -251,7 +263,7 @@ class Network:
         answers = [answers,]
         POST_CORRECTLY=0
         errors_json = []
-        return self.post_forms_answers_list(answers, test=False)[0][1]
+        return self.post_forms_answers_list(answers, test=False, jwt_settings_key=jwt_settings_key)[0][1]
 
 
     def post_forms_answers_list(self, answers, test=False, jwt_settings_key=False):
@@ -264,7 +276,7 @@ class Network:
             answers = [answers[0],answers[1]]
         for index, answer in enumerate(answers):
             #print 'answer', answer
-            r = self.dispatch(self.api_url.form['set_form_answer'], data=answer)
+            r = self.dispatch(self.api_url.form['set_form_answer'], data=answer, jwt_settings_key=jwt_settings_key )
             #r = dispatch(api_url['catalog']['set_catalog_answer'], data=answer)
             if r['status_code'] in  (201,200,202,204):
                 print "Answer %s saved."%(index + 1)
@@ -286,7 +298,7 @@ class Network:
     def patch_forms_answers(self, answers, jwt_settings_key=False):
         if type(answers) == dict:
             answers = [answers,]
-        return self.patch_forms_answers_list(answers)[0][1]
+        return self.patch_forms_answers_list(answers, jwt_settings_key=jwt_settings_key)[0][1]
 
 
     def patch_forms_answers_list(self, answers, jwt_settings_key=False):
@@ -303,7 +315,7 @@ class Network:
                 raise ValueError('The answer must have a record_id')
             url = self.api_url.record['form_answer_patch']['url'] +  str(record_id) + '/'
             method = self.api_url.record['form_answer_patch']['method']
-            r = self.dispatch(url=url, method=method, data=answer)
+            r = self.dispatch(url=url, method=method, data=answer, jwt_settings_key=jwt_settings_key)
             #r = self.dispatch(api_url['catalog']['set_catalog_answer'], data=answer)
             if r['status_code'] in  (201,200,202,204):
                 print "Answer %s saved."%(index + 1)
