@@ -4,6 +4,7 @@
 import requests, simplejson, json, time
 from pymongo import MongoClient
 from pymongo.collection import Collection
+requests.packages.urllib3.disable_warnings() 
 
 
 class Network:
@@ -294,12 +295,10 @@ class Network:
                 self.settings.GLOBAL_ERRORS.append(errors_json)
         return res
 
-
     def patch_forms_answers(self, answers, jwt_settings_key=False):
         if type(answers) == dict:
             answers = [answers,]
         return self.patch_forms_answers_list(answers, jwt_settings_key=jwt_settings_key)[0][1]
-
 
     def patch_forms_answers_list(self, answers, jwt_settings_key=False):
         if type(answers) == dict:
@@ -330,7 +329,6 @@ class Network:
             print 'errors_json=', errors_json
             self.settings.GLOBAL_ERRORS.append(errors_json)
         return res
-
 
     def upload_answers_to_database(self, answers):
         print "> Uploading Content ..."
@@ -373,7 +371,6 @@ class Network:
         connection['db'] = connection['client'][user_db_name]
         return connection
 
-
     def get_infosync_connection(self):
         connection = {}
         if self.settings.config.has_key('ACCOUNT_ID'):
@@ -394,7 +391,6 @@ class Network:
         connection['db'] = connection['client'][db_name]
         return connection
 
-
     def create_collection(self, collection, user_connection):
         if config['CREATE'] and collection in user_connection['db'].collection_names():
             oldCollection = user_connection['db'][collection]
@@ -402,11 +398,9 @@ class Network:
         newCollection = Collection(user_connection['db'], collection, create=config['CREATE'])
         return newCollection
 
-
     def get_collections(self, collection='form_answer', create=False):
         database = self.get_user_connection()
         return Collection(database['db'], collection, create)
-
 
     def get_infsoync_collections(self, collection='form_answer', create=False):
         database = get_infosync_connection()

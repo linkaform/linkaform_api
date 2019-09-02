@@ -1,8 +1,10 @@
 # coding: utf-8
 #!/usr/bin/python
 
-import time, datetime
+import time, datetime, threading, concurrent.futures
 
+#import threading
+#import concurrent.futures
 #from forms import Form
 import network
 
@@ -16,6 +18,7 @@ class Cache(object):
         from urls import Api_url
         self.api_url = Api_url(settings)
         self.network = network.Network(self.settings)
+        self.thread_result = {}
 
 
     def get(self, item_type, item_id):
@@ -131,8 +134,6 @@ class Cache(object):
         connections = []
         post_json = self.api_url.get_connections_url()['form_connections']
         post_json['url'] = post_json['url'] + str(form_id)
-        print 'jwt_settins', jwt_settings_key
-        print '934329840328432094832-48093284032'
         form_connections = self.network.dispatch(post_json, jwt_settings_key=jwt_settings_key)
         objects = form_connections['data']
         return objects
@@ -209,6 +210,13 @@ class Cache(object):
             return response['data']
         return response
 
+    def thread_function(self, record, data,  jwt_settings_key):
+        print 'Starting Thread with data: ', record
+        res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
+        self.thread_result[record] = res
+        logging.info("Finishing with code"%(record, res))
+
+
     def patch_multi_record(self, answers, form_id, folios=[], record_id=[], jwt_settings_key=False):
         if not answers or not (folios or record_id):
             return {}
@@ -222,7 +230,12 @@ class Cache(object):
         else:
             data['records'] = record_id
         data['form_id'] = form_id
-        return  self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=25) as executor:
+            if data.get('records', False):
+                executor.map(lambda x: self.thread_function(x, data, jwt_settings_key=jwt_settings_key), data['records'])
+            elif data.get('folios', False):
+                executor.map(lambda x: self.thread_function(x, data, jwt_settings_key=jwt_settings_key), data['folios'])
+        return  self.thread_result
 
     def post_upload_file(self, data, up_file, jwt_settings_key=False):
         #data:
