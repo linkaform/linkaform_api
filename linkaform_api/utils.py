@@ -20,11 +20,6 @@ class Cache(object):
         self.network = network.Network(self.settings)
         self.thread_dict = {}
 
-    def chunks(self, l, n=5):
-        """Yield successive n-sized chunks from l."""
-        return [ l [i:i + n] for i in range(0, len(l), n) ]
-        # for i in xrange(0, len(l), n):
-        #     yield l[i:i + n] 
 
     def get(self, item_type, item_id):
         if not self.items.has_key(item_type):
@@ -216,11 +211,12 @@ class Cache(object):
         return response
 
     def thread_function_dict(self, record, data,  jwt_settings_key):
-        data['folios'] = record
-        print 'recordrecordrecordrecordrecordrecord', record
-        res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
-        self.thread_dict[record] = res
+        if record not in self.thread_dict.keys():
+            data['folios'] = [record]
+            res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
+            self.thread_dict[record] = res
         #logging.info("Finishing with code"%(record, res))
+
 
     def patch_multi_record(self, answers, form_id, folios=[], record_id=[], jwt_settings_key=False):
         if not answers or not (folios or record_id):
@@ -240,19 +236,14 @@ class Cache(object):
         with concurrent.futures.ThreadPoolExecutor(max_workers=75) as executor:
             if data.get('records', False):
                 records = data.pop('records')
-                data['key'] = 'records'
-                
-                for record in self.chunks(records ,5):
+                for record in records:
+                    data['records'] = [record]
                     executor.map(lambda x: self.thread_function_dict(x, data, jwt_settings_key=jwt_settings_key), [record])
-
             elif data.get('folios', False):
                 folios = data.pop('folios')
-                data['key'] = 'folios'
                 print 'folios', folios
-                for folio in self.chunks(folios ,5):
-                    print 'entra????'
+                for folio in folios:
                     executor.map(lambda x: self.thread_function_dict(x, data, jwt_settings_key=jwt_settings_key), [folio])
-        
         print 'final del apiiiiii', self.thread_dict
         return  self.thread_dict
 
