@@ -18,8 +18,13 @@ class Cache(object):
         from urls import Api_url
         self.api_url = Api_url(settings)
         self.network = network.Network(self.settings)
-        self.thread_result = {}
+        self.thread_dict = {}
 
+    def chunks(self, l, n=5):
+        """Yield successive n-sized chunks from l."""
+        return [ l [i:i + n] for i in range(0, len(l), n) ]
+        # for i in xrange(0, len(l), n):
+        #     yield l[i:i + n] 
 
     def get(self, item_type, item_id):
         if not self.items.has_key(item_type):
@@ -210,12 +215,12 @@ class Cache(object):
             return response['data']
         return response
 
-    def thread_function(self, record, data,  jwt_settings_key):
-        print 'Starting Thread with data: ', record
+    def thread_function_dict(self, record, data,  jwt_settings_key):
+        data['folios'] = record
+        print 'recordrecordrecordrecordrecordrecord', record
         res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
-        self.thread_result[record] = res
-        logging.info("Finishing with code"%(record, res))
-
+        self.thread_dict[record] = res
+        #logging.info("Finishing with code"%(record, res))
 
     def patch_multi_record(self, answers, form_id, folios=[], record_id=[], jwt_settings_key=False):
         if not answers or not (folios or record_id):
@@ -229,13 +234,27 @@ class Cache(object):
             data['records'] = record_id
         else:
             data['records'] = record_id
+
         data['form_id'] = form_id
-        with concurrent.futures.ThreadPoolExecutor(max_workers=25) as executor:
+        #return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=75) as executor:
             if data.get('records', False):
-                executor.map(lambda x: self.thread_function(x, data, jwt_settings_key=jwt_settings_key), data['records'])
+                records = data.pop('records')
+                data['key'] = 'records'
+                
+                for record in self.chunks(records ,5):
+                    executor.map(lambda x: self.thread_function_dict(x, data, jwt_settings_key=jwt_settings_key), [record])
+
             elif data.get('folios', False):
-                executor.map(lambda x: self.thread_function(x, data, jwt_settings_key=jwt_settings_key), data['folios'])
-        return  self.thread_result
+                folios = data.pop('folios')
+                data['key'] = 'folios'
+                print 'folios', folios
+                for folio in self.chunks(folios ,5):
+                    print 'entra????'
+                    executor.map(lambda x: self.thread_function_dict(x, data, jwt_settings_key=jwt_settings_key), [folio])
+        
+        print 'final del apiiiiii', self.thread_dict
+        return  self.thread_dict
 
     def post_upload_file(self, data, up_file, jwt_settings_key=False):
         #data:
@@ -248,7 +267,6 @@ class Cache(object):
         #all ready comes inside the data dictionary
         if record_id:
             data['_id'] = record_id
-        print 'jwtttttttttttt'
         return self.network.patch_forms_answers(data , jwt_settings_key=jwt_settings_key)
 
     def patch_record_list(self, data, jwt_settings_key=False):

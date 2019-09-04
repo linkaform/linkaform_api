@@ -1,7 +1,8 @@
 # coding: utf-8
 #!/usr/bin/python
 
-import requests, simplejson, json, time
+import requests, simplejson, json, time, threading, concurrent.futures
+
 from pymongo import MongoClient
 from pymongo.collection import Collection
 requests.packages.urllib3.disable_warnings() 
@@ -14,6 +15,7 @@ class Network:
         from urls import Api_url
         self.settings = settings
         self.api_url = Api_url(settings)
+        self.thread_result = []
 
     def login(self, session, username, password, get_jwt=False):
         #data = simplejson.dumps({"password": self.settings.config['PASS'], "username": self.settings.config['USERNAME']})
@@ -73,7 +75,7 @@ class Network:
             response = self.do_patch(url, data, use_login, use_api_key, use_jwt=use_jwt, 
                 jwt_settings_key=jwt_settings_key, up_file=up_file)
         if response['status_code'] == 502:
-            if count < 5 :
+            if count < 11 :
                 count = count + 1
                 time.sleep(5)
                 self.dispatch(url_method=url_method, url=url, method=method, data=data, params=params,
@@ -266,18 +268,28 @@ class Network:
         errors_json = []
         return self.post_forms_answers_list(answers, test=False, jwt_settings_key=jwt_settings_key)[0][1]
 
+    def thread_function(self, record, url, data,  jwt_settings_key):
+        print 'Starting Thread with data: ', record
+        res = self.network.dispatch(url, data=record, jwt_settings_key=jwt_settings_key)
+        self.thread_result.append(res)
+        logging.info("Finishing with code"%(record, res))
 
     def post_forms_answers_list(self, answers, test=False, jwt_settings_key=False):
         if type(answers) == dict:
             answers = [answers,]
         POST_CORRECTLY=0
         errors_json = []
-        res = []
+        url = self.api_url.form['set_form_answer']
         if test:
             answers = [answers[0],answers[1]]
-        for index, answer in enumerate(answers):
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
+            executor.map(lambda x: self.thread_function(x, data, jwt_settings_key=jwt_settings_key), answers)
+
+        #for index, answer in enumerate(answers):
             #print 'answer', answer
-            r = self.dispatch(self.api_url.form['set_form_answer'], data=answer, jwt_settings_key=jwt_settings_key )
+        for r in self.thread_result:
+            #r = self.dispatch(self.api_url.form['set_form_answer'], data=answer, jwt_settings_key=jwt_settings_key )
             #r = dispatch(api_url['catalog']['set_catalog_answer'], data=answer)
             if r['status_code'] in  (201,200,202,204):
                 print "Answer %s saved."%(index + 1)
@@ -287,13 +299,13 @@ class Network:
                 #print 'data',answer
                 #print stop_post_forms
                 errors_json.append(r)
-            res.append((index, r))
+            #res.append((index, r))
             print 'Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, index+1)
         if errors_json:
             #print 'errors_json=', errors_json
             if test:
                 self.settings.GLOBAL_ERRORS.append(errors_json)
-        return res
+        return self.thread_result
 
     def patch_forms_answers(self, answers, jwt_settings_key=False):
         if type(answers) == dict:
