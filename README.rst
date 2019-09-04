@@ -25,14 +25,9 @@ $ pip install linkaform_api-0.1.tar.gz
 ```
 
 #### Crear tar.gz
-Para crear un tar.gz solo se tienen que ejecutar las siguientes líneas de comando
-```sh
-$ rm -r dist
-$ python setup.py sdist
+Para crear un tar.gz solo se tienen que ejecutar el siguiente comando
 ```
-Para subir el .tar.gz a backblaze se tiene que iniciar sesión en b2 y subir el tar.gz a:
-```sh
-$ b2 upload_file lkf-resources dist/linkaform_api-0.1.tar.gz linkaform_api-0.1.tar.gz
+./create_tar.sh
 ```
 
    [express]: <http://expressjs.com>
