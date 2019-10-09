@@ -1,7 +1,8 @@
 # coding: utf-8
 #!/usr/bin/python
 
-import requests, simplejson, json, time, threading, concurrent.futures
+import requests, simplejson, simplejson, time, threading, concurrent.futures
+from bson import json_util
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
@@ -47,12 +48,14 @@ class Network:
         #method is the method to use
         #use_login -Optinal- forces the dispatch to be made by login method, if not will use  the config method
         #use_api_key -Optinal- forces the dispatch to be made by api_key method, if not will use  the config method
+        #print 'in do dispatch'
+        #print 'url_method', url_method
         url, method = self.get_url_method(url_method, url=url, method=method)
         response = False
         #print 'DISPATCH'
         #print 'data=', data
         if type(data) in (dict,str) and not up_file:
-            data = json.dumps(data, encoding)
+                data = simplejson.dumps(data, default=json_util.default, for_json=True)
         #print 'url=', url
         #print 'method', method
         #print 'jwt_settings_key',jwt_settings_key
@@ -138,17 +141,17 @@ class Network:
 	#print 'RESPONSE=', response
         return response
 
-
     def do_post(self, url, data, use_login=False, use_api_key=False,
         use_jwt=False, jwt_settings_key=False, encoding='utf-8', up_file=False, params=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
+        #print 'do post'
         JWT = self.settings.config['JWT_KEY']
         if jwt_settings_key:
             JWT = self.settings.config[jwt_settings_key]
-        print 'POSOOOOOOST', jwt_settings_key
+        #print 'POSOOOOOOST', jwt_settings_key
         if use_jwt and not use_api_key:
-            print 'use_jwtuse_jwtuse_jwt'
+            #print 'use_jwtuse_jwtuse_jwt'
             headers = {'Authorization':'jwt {0}'.format(JWT)}
             if not up_file:
                 headers['Content-type'] = 'application/json'
@@ -202,12 +205,12 @@ class Network:
                 response['data'] = r_data['objects']
         return response
 
-
     def do_patch(self, url, data, use_login=False, use_api_key=False,
         use_jwt=False, jwt_settings_key=False, encoding='utf-8', up_file=False, params=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
         JWT = self.settings.config['JWT_KEY']
+        #print 'in do patch'
         if jwt_settings_key:
             JWT = self.settings.config[jwt_settings_key]
         if use_jwt and not use_api_key:
@@ -227,7 +230,6 @@ class Network:
                     r = session.patch(url, data, headers={'Content-type': 'application/json'}, verify=False)#, files=file)
                 if up_file:
                     r = session.patch(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
-
         if not use_login:
             if not up_file:
                 r = requests.request("patch",
@@ -259,22 +261,21 @@ class Network:
             response['status_code'] = r.status_code
             response['json'] = r.json()
             response['data'] = simplejson.loads(r.content)
+        #print 'response', response
         return response
-
 
     def post_forms_answers(self, answers, jwt_settings_key=False):
         answers = [answers,]
         POST_CORRECTLY=0
         errors_json = []
-        return self.post_forms_answers_list(answers, test=False, jwt_settings_key=jwt_settings_key)[0][1]
+        return self.post_forms_answers_list(answers, test=False, jwt_settings_key=jwt_settings_key)[0]
 
-    def thread_function(self, record, url, data,  jwt_settings_key):
-        print 'Starting Thread with data: ', record
-        res = self.network.dispatch(url, data=record, jwt_settings_key=jwt_settings_key)
+    def thread_function(self, record, url, jwt_settings_key):
+        res = self.dispatch(self.api_url.form['set_form_answer'], data=record, jwt_settings_key=jwt_settings_key)
         self.thread_result.append(res)
-        logging.info("Finishing with code"%(record, res))
 
     def post_forms_answers_list(self, answers, test=False, jwt_settings_key=False):
+        #print 'netowrk post_forms_answers_list'
         if type(answers) == dict:
             answers = [answers,]
         POST_CORRECTLY=0
@@ -282,13 +283,14 @@ class Network:
         url = self.api_url.form['set_form_answer']
         if test:
             answers = [answers[0],answers[1]]
-
-        with concurrent.futures.ThreadPoolExecutor(max_workers=50) as executor:
-            executor.map(lambda x: self.thread_function(x, data, jwt_settings_key=jwt_settings_key), answers)
-
+        with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+            print 'in concurrent.....'
+            executor.map(lambda x: self.thread_function(x, url, jwt_settings_key=jwt_settings_key), answers)
+        #print ' self.thread_result',  self.thread_result
         #for index, answer in enumerate(answers):
             #print 'answer', answer
-        for r in self.thread_result:
+        for index, r in enumerate(self.thread_result):
+            #print 'r' ,r
             #r = self.dispatch(self.api_url.form['set_form_answer'], data=answer, jwt_settings_key=jwt_settings_key )
             #r = dispatch(api_url['catalog']['set_catalog_answer'], data=answer)
             if r['status_code'] in  (201,200,202,204):

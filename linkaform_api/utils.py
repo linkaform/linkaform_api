@@ -1,7 +1,7 @@
 # coding: utf-8
 #!/usr/bin/python
 
-import time, datetime, threading, concurrent.futures
+import time, datetime, concurrent.futures
 
 #import threading
 #import concurrent.futures
@@ -20,6 +20,29 @@ class Cache(object):
         self.network = network.Network(self.settings)
         self.thread_dict = {}
 
+    def assigne_user_records(self, user_id, record_id_list, send_email=False, 
+        send_push_notification=False, jwt_settings_key=False):
+        url_method = self.api_url.record['assigne_user']
+        data = {'user_id': user_id, 'records': record_id_list,
+                  'send_push_notification': send_push_notification,
+                  'send_mail': send_email}
+        response = self.network.dispatch(url_method=url_method, data=data, jwt_settings_key=jwt_settings_key)
+        if response['status_code'] == 200:
+            return response['data']
+        return response
+
+    def assigne_connection_records(self, connection_id, record_id_list, user_of_connection=False, 
+        send_email=False, send_push_notification=False, jwt_settings_key=False):
+        url_method = self.api_url.record['assigne_connection']
+        data = {'connection_id': connection_id, 'records': record_id_list,
+                  'send_push_notification': send_push_notification,
+                  'send_mail': send_email}
+        if user_of_connection:
+            data['userOfConnection'] = user_of_connection
+        response = self.network.dispatch(url_method=url_method, data=data, jwt_settings_key=jwt_settings_key)
+        if response['status_code'] == 200:
+            return response['data']
+        return response
 
     def get(self, item_type, item_id):
         if not self.items.has_key(item_type):
@@ -185,93 +208,7 @@ class Cache(object):
         if response['status_code'] == 200:
             return response['data']
         return False
-
-    def assigne_user_records(self, user_id, record_id_list, send_email=False, 
-        send_push_notification=False, jwt_settings_key=False):
-        url_method = self.api_url.record['assigne_user']
-        data = {'user_id': user_id, 'records': record_id_list,
-                  'send_push_notification': send_push_notification,
-                  'send_mail': send_email}
-        response = self.network.dispatch(url_method=url_method, data=data, jwt_settings_key=jwt_settings_key)
-        if response['status_code'] == 200:
-            return response['data']
-        return response
-
-    def assigne_connection_records(self, connection_id, record_id_list, user_of_connection=False, 
-        send_email=False, send_push_notification=False, jwt_settings_key=False):
-        url_method = self.api_url.record['assigne_connection']
-        data = {'connection_id': connection_id, 'records': record_id_list,
-                  'send_push_notification': send_push_notification,
-                  'send_mail': send_email}
-        if user_of_connection:
-            data['userOfConnection'] = user_of_connection
-        response = self.network.dispatch(url_method=url_method, data=data, jwt_settings_key=jwt_settings_key)
-        if response['status_code'] == 200:
-            return response['data']
-        return response
-
-    def thread_function_dict(self, record, data,  jwt_settings_key):
-        if record not in self.thread_dict.keys():
-            data['folios'] = [record]
-            res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
-            self.thread_dict[record] = res
-        #logging.info("Finishing with code"%(record, res))
-
-
-    def patch_multi_record(self, answers, form_id, folios=[], record_id=[], jwt_settings_key=False):
-        if not answers or not (folios or record_id):
-            return {}
-        data = {}
-        data['answers'] = answers
-        data['form_id'] = form_id
-        if folios and not record_id:
-            data['folios'] = folios
-        elif not folios and record_id:
-            data['records'] = record_id
-        else:
-            data['records'] = record_id
-
-        data['form_id'] = form_id
-        #return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
-        with concurrent.futures.ThreadPoolExecutor(max_workers=75) as executor:
-            if data.get('records', False):
-                records = data.pop('records')
-                for record in records:
-                    data['records'] = [record]
-                    executor.map(lambda x: self.thread_function_dict(x, data, jwt_settings_key=jwt_settings_key), [record])
-            elif data.get('folios', False):
-                folios = data.pop('folios')
-                print 'folios', folios
-                for folio in folios:
-                    executor.map(lambda x: self.thread_function_dict(x, data, jwt_settings_key=jwt_settings_key), [folio])
-        print 'final del apiiiiii', self.thread_dict
-        return  self.thread_dict
-
-    def post_upload_file(self, data, up_file, jwt_settings_key=False):
-        #data:
-        #up_file:
-        upload_url = self.network.dispatch(self.api_url.form['upload_file'], data=data, up_file=up_file, jwt_settings_key=jwt_settings_key)
-        return upload_url
-
-    def patch_record(self, data, record_id=None, jwt_settings_key=False):
-        #If no record_id is send, it is asuemed that the record_id
-        #all ready comes inside the data dictionary
-        if record_id:
-            data['_id'] = record_id
-        return self.network.patch_forms_answers(data , jwt_settings_key=jwt_settings_key)
-
-    def patch_record_list(self, data, jwt_settings_key=False):
-        #If no record_id is send, it is asuemed that the record_id
-        #all ready comes inside the data dictionary
-        return self.network.patch_forms_answers_list(data, jwt_settings_key=jwt_settings_key)
-
-    def post_forms_answers(self, answers, test=False, jwt_settings_key=False):
-        print 'post_forms_answers', jwt_settings_key
-        return self.network.post_forms_answers(answers, jwt_settings_key=jwt_settings_key)
-
-    def post_forms_answers_list(self, answers, test=False, jwt_settings_key=False ):
-        return self.network.post_forms_answers_list(answers, jwt_settings_key=jwt_settings_key)
-
+   
     def get_metadata(self, form_id=False, user_id=False):
         time_started = time.time()
         metadata = {
@@ -381,6 +318,70 @@ class Cache(object):
                 #print 'value', answer
                 return {}
         return {}
+
+    def thread_function_dict(self, record, data,  jwt_settings_key):
+        #if record not in self.thread_dict.keys():
+        data['folios'] = [record]
+        res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
+        self.thread_dict[record] = res
+        #logging.info("Finishing with code"%(record, res))
+
+    def patch_multi_record(self, answers, form_id, folios=[], record_id=[], jwt_settings_key=False, threading=False):
+        if not answers or not (folios or record_id):
+            print 'patch_multi_record >> no obtubo answers o folios'
+            return {}
+        data = {}
+        data['answers'] = answers
+        data['form_id'] = form_id
+        if folios and not record_id:
+            data['folios'] = folios
+        elif not folios and record_id:
+            data['records'] = record_id
+        else:
+            data['records'] = record_id
+
+        data['form_id'] = form_id
+        
+        if threading:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+                if data.get('records', False):
+                    records = data.pop('records')
+                    for record in records:
+                        data['records'] = [record]
+                        executor.map(lambda x: self.thread_function_dict(x, data, jwt_settings_key=jwt_settings_key), [record])
+                elif data.get('folios', False):
+                    folios = data.pop('folios')
+                    for folio in folios:
+                        executor.map(lambda x: self.thread_function_dict(x, data, jwt_settings_key=jwt_settings_key), [folio])
+            return  self.thread_dict
+        
+        return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
+
+    def post_upload_file(self, data, up_file, jwt_settings_key=False):
+        #data:
+        #up_file:
+        upload_url = self.network.dispatch(self.api_url.form['upload_file'], data=data, up_file=up_file, jwt_settings_key=jwt_settings_key)
+        return upload_url
+
+    def patch_record(self, data, record_id=None, jwt_settings_key=False):
+        #If no record_id is send, it is asuemed that the record_id
+        #all ready comes inside the data dictionary
+        if record_id:
+            data['_id'] = record_id
+        return self.network.patch_forms_answers(data , jwt_settings_key=jwt_settings_key)
+
+    def patch_record_list(self, data, jwt_settings_key=False):
+        #If no record_id is send, it is asuemed that the record_id
+        #all ready comes inside the data dictionary
+        return self.network.patch_forms_answers_list(data, jwt_settings_key=jwt_settings_key)
+
+    def post_forms_answers(self, answers, test=False, jwt_settings_key=False):
+        print 'post_forms_answers', jwt_settings_key
+        return self.network.post_forms_answers(answers, jwt_settings_key=jwt_settings_key)
+
+    def post_forms_answers_list(self, answers, test=False, jwt_settings_key=False ):
+        print 'utls post_forms_answers_list'
+        return self.network.post_forms_answers_list(answers, jwt_settings_key=jwt_settings_key)
 
     def validate(self, date_str, check='date'):
         #check args date, time or datetime
