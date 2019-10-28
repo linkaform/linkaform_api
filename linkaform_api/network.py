@@ -268,14 +268,15 @@ class Network:
         answers = [answers,]
         POST_CORRECTLY=0
         errors_json = []
-        return self.post_forms_answers_list(answers, test=False, jwt_settings_key=jwt_settings_key)[0]
+        response = self.post_forms_answers_list(answers, test=False, jwt_settings_key=jwt_settings_key)[0]
+        self.thread_result = []
+        return response
 
     def thread_function(self, record, url, jwt_settings_key):
         res = self.dispatch(self.api_url.form['set_form_answer'], data=record, jwt_settings_key=jwt_settings_key)
         self.thread_result.append(res)
 
     def post_forms_answers_list(self, answers, test=False, jwt_settings_key=False):
-        #print 'netowrk post_forms_answers_list'
         if type(answers) == dict:
             answers = [answers,]
         POST_CORRECTLY=0
@@ -284,7 +285,6 @@ class Network:
         if test:
             answers = [answers[0],answers[1]]
         with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
-            print 'in concurrent.....'
             executor.map(lambda x: self.thread_function(x, url, jwt_settings_key=jwt_settings_key), answers)
         #print ' self.thread_result',  self.thread_result
         #for index, answer in enumerate(answers):

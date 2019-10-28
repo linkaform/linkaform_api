@@ -322,7 +322,8 @@ class Cache(object):
     def thread_function_dict(self, record, data,  jwt_settings_key):
         #if record not in self.thread_dict.keys():
         data['folios'] = [record]
-        res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
+        res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, 
+            jwt_settings_key=jwt_settings_key)
         self.thread_dict[record] = res
         #logging.info("Finishing with code"%(record, res))
 
@@ -333,8 +334,10 @@ class Cache(object):
         data = {}
         data['answers'] = answers
         data['form_id'] = form_id
+
         if folios and not record_id:
             data['folios'] = folios
+
         elif not folios and record_id:
             data['records'] = record_id
         else:
@@ -348,14 +351,51 @@ class Cache(object):
                     records = data.pop('records')
                     for record in records:
                         data['records'] = [record]
-                        executor.map(lambda x: self.thread_function_dict(x, data, jwt_settings_key=jwt_settings_key), [record])
+                        executor.map(lambda x: self.thread_function_dict(x, data, 
+                            jwt_settings_key=jwt_settings_key), [record])
                 elif data.get('folios', False):
                     folios = data.pop('folios')
                     for folio in folios:
-                        executor.map(lambda x: self.thread_function_dict(x, data, jwt_settings_key=jwt_settings_key), [folio])
+                        executor.map(lambda x: self.thread_function_dict(x, data, 
+                            jwt_settings_key=jwt_settings_key), [folio])
             return  self.thread_dict
         
+        return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, 
+            jwt_settings_key=jwt_settings_key)
+
+    def thread_function_bulk_patch(self, data, form_id,  jwt_settings_key):
+        #if record not in self.thread_dict.keys():
+        data['form_id'] = form_id
+        print 'data=', data
+
+        res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, 
+            jwt_settings_key=jwt_settings_key)
+        print 'res=',res
+        if data.get('folio'):
+            self.thread_dict[data['folio']] = res
+        else:
+            self.thread_dict[data['records']] = res
+        #logging.info("Finishing with code"%(record, res))
+
+    def bulk_patch(self, records, form_id, jwt_settings_key=False, threading=False):
+        # if not records:
+        #     print 'bulk_patch >> no obtubo answers o folios'
+        #     return {}
+        # if not records.get('folios') or records.get('records'):
+        #     print 'no folio provided'
+        #     return {}
+        print 'entra a bulk_patch'
+        print '++++++++++++++++++'
+        print 'records',records 
+        if threading:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+                for data in records:
+                    executor.map(lambda x: self.thread_function_bulk_patch(x, form_id, 
+                        jwt_settings_key=jwt_settings_key), [data])
+            return  self.thread_dict
+        print '++++++++++++++'
         return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
+
 
     def post_upload_file(self, data, up_file, jwt_settings_key=False):
         #data:
