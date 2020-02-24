@@ -274,6 +274,8 @@ class Network:
 
     def thread_function(self, record, url, jwt_settings_key):
         res = self.dispatch(self.api_url.form['set_form_answer'], data=record, jwt_settings_key=jwt_settings_key)
+        if record.has_key('folio'):
+            res.update({'folio':record['folio']})
         self.thread_result.append(res)
 
     def post_forms_answers_list(self, answers, test=False, jwt_settings_key=False):
