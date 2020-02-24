@@ -307,7 +307,9 @@ class Network:
             #print 'errors_json=', errors_json
             if test:
                 self.settings.GLOBAL_ERRORS.append(errors_json)
-        return self.thread_result
+        response = self.thread_result
+        self.thread_result = []
+        return response
 
     def patch_forms_answers(self, answers, jwt_settings_key=False):
         if type(answers) == dict:

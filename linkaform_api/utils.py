@@ -44,6 +44,26 @@ class Cache(object):
             return response['data']
         return response
 
+    def drop_fields_for_patch(self, record):
+        fields_to_drop = ['end_date','editable','updated_at','duration','index', 
+                        'created_at', 'version', 'start_date', 'updated_by','voucher' ,
+                        'voucher_id','connection_record_id','other_versions']
+        for field in fields_to_drop:
+            try:
+                record.pop(field)
+            except KeyError:
+                pass
+        return record
+
+    def ftp_upload(self, server, username, password, file_name, file_path):
+        import ftplib
+        session = ftplib.FTP(server, username, password)
+        file = open(file_path,'rb')                  
+        session.storbinary('STOR {}'.format(file_name), file)     
+        file.close()                                   
+        session.quit()
+        return True
+
     def get(self, item_type, item_id):
         if not self.items.has_key(item_type):
             #self.items[item_type] = self.get_all_items(item_type)
@@ -366,11 +386,11 @@ class Cache(object):
     def thread_function_bulk_patch(self, data, form_id,  jwt_settings_key):
         #if record not in self.thread_dict.keys():
         data['form_id'] = form_id
-        print 'data=', data
+        #print 'data=', data
 
         res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, 
             jwt_settings_key=jwt_settings_key)
-        print 'res=',res
+        #print 'res=',res
         if data.get('folio'):
             self.thread_dict[data['folio']] = res
         else:
@@ -384,18 +404,13 @@ class Cache(object):
         # if not records.get('folios') or records.get('records'):
         #     print 'no folio provided'
         #     return {}
-        print 'entra a bulk_patch'
-        print '++++++++++++++++++'
-        print 'records',records 
         if threading:
             with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
                 for data in records:
                     executor.map(lambda x: self.thread_function_bulk_patch(x, form_id, 
                         jwt_settings_key=jwt_settings_key), [data])
             return  self.thread_dict
-        print '++++++++++++++'
         return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
-
 
     def post_upload_file(self, data, up_file, jwt_settings_key=False):
         #data:
