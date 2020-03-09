@@ -273,6 +273,7 @@ class Network:
         return response
 
     def thread_function(self, record, url, jwt_settings_key):
+        print "++++++ record to save Api:",record
         res = self.dispatch(self.api_url.form['set_form_answer'], data=record, jwt_settings_key=jwt_settings_key)
         if record.has_key('folio'):
             res.update({'folio':record['folio']})
