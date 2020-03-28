@@ -47,7 +47,7 @@ class Cache(object):
     def drop_fields_for_patch(self, record):
         fields_to_drop = ['end_date','editable','updated_at','duration','index', 
                         'created_at', 'version', 'start_date', 'updated_by','voucher' ,
-                        'voucher_id','connection_record_id','other_versions']
+                        'voucher_id','connection_record_id','other_versions','mobile_record_id']
         for field in fields_to_drop:
             try:
                 record.pop(field)
