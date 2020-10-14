@@ -3,6 +3,7 @@
 
 import requests, simplejson, simplejson, time, threading, concurrent.futures
 from bson import json_util
+from urllib import quote_plus
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
@@ -368,44 +369,46 @@ class Network:
     ###
 
 
+    def get_mongo_uri(self,db_name):
+        param_url = '?authSource={0}&maxidletimems={1}&maxPoolSize={2}'.format(db_name, 
+            self.settings.config['MONGODB_MAX_IDLE_TIME'],
+            self.settings.config['MONGODB_MAX_POOL_SIZE'])
+
+        user = self.settings.config['MONGODB_USER']
+        password = self.settings.config['MONGODB_PASSWORD']
+        mongo_hosts = self.settings.config['MONGODB_HOST']
+
+        if self.settings.config.get('MONGODB_REPLICASET'):
+            param_url += '&replicaSet={}'.format(self.settings.config['MONGODB_REPLICASET'])
+        if self.settings.config.get('MONGODB_READPREFERENCE'):
+            param_url += '&readPreference={}'.format(self.settings.config['MONGODB_READPREFERENCE'])
+
+        MONGODB_URI = 'mongodb://{0}:{1}@{2}/{3}'.format(
+            quote_plus(user), quote_plus(password), mongo_hosts, param_url)
+        print 'MONGODB_URI', MONGODB_URI
+        return MONGODB_URI
+
     def get_user_connection(self):
         connection = {}
         if self.settings.config.has_key('ACCOUNT_ID'):
             user_id = self.settings.config['ACCOUNT_ID']
         else:
             user_id = self.settings.config['USER_ID']
-        if not self.settings.config.has_key('REPLICASET'):
-            self.settings.config['REPLICASET'] = ''
-        if self.settings.config.has_key('MONGODB_URI'):
-            print 'url=', self.settings.config['MONGODB_URI']
-            connection['client'] = MongoClient(self.settings.config['MONGODB_URI'])
-        elif self.settings.config.has_key('PORT'):
-            connection['client'] = MongoClient(self.settings.config['MONGODB_HOST'],self.settings.config['MONGODB_PORT'], replicaset=self.settings.config['REPLICASET'])
-        else:
-            connection['client'] = MongoClient(self.settings.config['MONGODB_HOST'], replicaset=self.settings.config['REPLICASET'] )
         user_db_name = "infosync_answers_client_{0}".format(user_id)
-        if not user_db_name:
-            return None
-        connection['db'] = connection['client'][user_db_name]
-        return connection
+        return self.get_infosync_connection(db_name=user_db_name)
 
-    def get_infosync_connection(self):
+    def get_infosync_connection(self, db_name="infosync"):
         connection = {}
-        if self.settings.config.has_key('ACCOUNT_ID'):
-            user_id = self.settings.config['ACCOUNT_ID']
-        else:
-            user_id = self.settings.config['USER_ID']
-        if not self.settings.config.has_key('REPLICASET'):
-            self.settings.config['REPLICASET'] = ''
+        # if self.settings.config.has_key('ACCOUNT_ID'):
+        #     user_id = self.settings.config['ACCOUNT_ID']
+        # else:
+        #     user_id = self.settings.config['USER_ID']
         if self.settings.config.has_key('MONGODB_URI'):
             connection['client'] = MongoClient(self.settings.config['MONGODB_URI'])
-        elif self.settings.config.has_key('PORT'):
-            connection['client'] = MongoClient(self.settings.config['MONGODB_HOST'],self.settings.config['MONGODB_PORT'], replicaset=self.settings.config['REPLICASET'])
         else:
-            connection['client'] = MongoClient(self.settings.config['MONGODB_HOST'], replicaset=self.settings.config['REPLICASET'] )
-        db_name = "infosync"
-        if not db_name:
-            return None
+            mongo_uri = self.get_mongo_uri(db_name)
+            connection['client'] = MongoClient(mongo_uri)
+        
         connection['db'] = connection['client'][db_name]
         return connection
 

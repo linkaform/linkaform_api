@@ -9,9 +9,10 @@ setup(name='linkaform_api',
     license='GNU',
     packages=['linkaform_api'],
     install_requires=[
-        'simplejson',
+        'futures',
         'pymongo',
         'pyexcel',
-        'wget'
+        'simplejson',
+        'wget',
     ],
     zip_safe=False)

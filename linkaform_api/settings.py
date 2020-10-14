@@ -21,9 +21,12 @@ config = {
     'USERNAME' : 'josepato@linkaform.com',
     'PASS' : '654321',
     'COLLECTION' : 'form_answer',
-    'MONGODB_URI':MONGODB_URI,
     'MONGODB_PORT':27017,
     'MONGODB_HOST': '',
+    # 'MONGODB_REPLICASET': 'linkaform_replica',
+    # 'MONGO_READPREFERENCE': 'secondaryPreferred',
+    'MONGODB_MAX_IDLE_TIME': 12000,
+    'MONGODB_MAX_POOL_SIZE': 1000,
     'PROTOCOL' : 'https', #http or https
     'HOST' : 'qa.linkaform.com',
     'USER_ID' : '',
