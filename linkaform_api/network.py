@@ -370,9 +370,7 @@ class Network:
 
 
     def get_mongo_uri(self,db_name):
-        param_url = '?authSource={0}&maxidletimems={1}&maxPoolSize={2}'.format(db_name, 
-            self.settings.config['MONGODB_MAX_IDLE_TIME'],
-            self.settings.config['MONGODB_MAX_POOL_SIZE'])
+        param_url = '?authSource={0}'.format(db_name)
 
         user = self.settings.config['MONGODB_USER']
         password = self.settings.config['MONGODB_PASSWORD']
@@ -382,6 +380,10 @@ class Network:
             param_url += '&replicaSet={}'.format(self.settings.config['MONGODB_REPLICASET'])
         if self.settings.config.get('MONGODB_READPREFERENCE'):
             param_url += '&readPreference={}'.format(self.settings.config['MONGODB_READPREFERENCE'])
+        if self.settings.config.get('MONGODB_MAX_POOL_SIZE'):
+            param_url += '&maxPoolSize={}'.format(self.settings.config['MONGODB_MAX_POOL_SIZE'])
+        if self.settings.config.get('MONGODB_MAX_IDLE_TIME'):
+            param_url += '&maxidletimems={}'.format(self.settings.config['MONGODB_MAX_IDLE_TIME'])
 
         MONGODB_URI = 'mongodb://{0}:{1}@{2}/{3}'.format(
             quote_plus(user), quote_plus(password), mongo_hosts, param_url)
