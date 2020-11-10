@@ -6,7 +6,7 @@ import time, datetime, concurrent.futures
 #import threading
 #import concurrent.futures
 #from forms import Form
-import network
+from linkaform_api import network
 
 class Cache(object):
 
@@ -333,7 +333,7 @@ class Cache(object):
                 if element['field_type'] in ('date', 'time', 'datetime'):
                     date_str = self.validate(str(answer), check=element['field_type'])
                     return {element['field_id']:date_str}
-            except ValueError, e:
+            except ValueError as e:
                 #print('error', e)
                 #print('value', answer)
                 return {}
