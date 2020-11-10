@@ -49,17 +49,17 @@ class Network:
         #method is the method to use
         #use_login -Optinal- forces the dispatch to be made by login method, if not will use  the config method
         #use_api_key -Optinal- forces the dispatch to be made by api_key method, if not will use  the config method
-        #print 'in do dispatch'
-        #print 'url_method', url_method
+        #print('in do dispatch')
+        #print('url_method', url_method)
         url, method = self.get_url_method(url_method, url=url, method=method)
         response = False
-        #print 'DISPATCH'
-        #print 'data=', data
+        #print('DISPATCH')
+        #print('data=', data)
         if type(data) in (dict,str) and not up_file:
                 data = simplejson.dumps(data, default=json_util.default, for_json=True)
-        #print 'url=', url
-        #print 'method', method
-        #print 'jwt_settings_key',jwt_settings_key
+        #print('url=', url)
+        #print('method', method)
+        #print('jwt_settings_key',jwt_settings_key)
         use_jwt = self.settings.config['USE_JWT']
         if method == 'GET':
             if params:
@@ -123,7 +123,7 @@ class Network:
         response['status_code'] = r.status_code
 
         if r.content and type(r.content) is dict:
-            #print 'IMPRIMIENDO CONTENT: ', r.content
+            #print('IMPRIMIENDO CONTENT: ', r.content)
             response['content'] = simplejson.loads(r.content)
 	
         try:
@@ -139,20 +139,20 @@ class Network:
                 response['data'] = r_data['json']
             else:
                 response['data'] = r_data
-	#print 'RESPONSE=', response
+	#print('RESPONSE=', response)
         return response
 
     def do_post(self, url, data, use_login=False, use_api_key=False,
         use_jwt=False, jwt_settings_key=False, encoding='utf-8', up_file=False, params=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
-        #print 'do post'
+        #print('do post')
         JWT = self.settings.config['JWT_KEY']
         if jwt_settings_key:
             JWT = self.settings.config[jwt_settings_key]
-        #print 'POSOOOOOOST', jwt_settings_key
+        #print('POSOOOOOOST', jwt_settings_key)
         if use_jwt and not use_api_key:
-            #print 'use_jwtuse_jwtuse_jwt'
+            #print('use_jwtuse_jwtuse_jwt')
             headers = {'Authorization':'jwt {0}'.format(JWT)}
             if not up_file:
                 headers['Content-type'] = 'application/json'
@@ -211,7 +211,7 @@ class Network:
         response = {'data':{}, 'status_code':''}
         send_data = {}
         JWT = self.settings.config['JWT_KEY']
-        #print 'in do patch'
+        #print('in do patch')
         if jwt_settings_key:
             JWT = self.settings.config[jwt_settings_key]
         if use_jwt and not use_api_key:
@@ -262,7 +262,7 @@ class Network:
             response['status_code'] = r.status_code
             response['json'] = r.json()
             response['data'] = simplejson.loads(r.content)
-        #print 'response', response
+        #print('response', response)
         return response
 
     def post_forms_answers(self, answers, jwt_settings_key=False):
@@ -289,25 +289,25 @@ class Network:
             answers = [answers[0],answers[1]]
         with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
             executor.map(lambda x: self.thread_function(x, url, jwt_settings_key=jwt_settings_key), answers)
-        #print ' self.thread_result',  self.thread_result
+        #print(' self.thread_result',  self.thread_result)
         #for index, answer in enumerate(answers):
-            #print 'answer', answer
+            #print('answer', answer)
         for index, r in enumerate(self.thread_result):
-            #print 'r' ,r
+            #print('r' ,r)
             #r = self.dispatch(self.api_url.form['set_form_answer'], data=answer, jwt_settings_key=jwt_settings_key )
             #r = dispatch(api_url['catalog']['set_catalog_answer'], data=answer)
             if r['status_code'] in  (201,200,202,204):
-                print "Answer %s saved."%(index + 1)
+                print("Answer %s saved."%(index + 1))
                 POST_CORRECTLY += 1
             else:
-                print "Answer %s was rejected."%(index + 1)
-                #print 'data',answer
-                #print stop_post_forms
+                print("Answer %s was rejected."%(index + 1))
+                #print('data',answer)
+                #print(stop_post_forms)
                 errors_json.append(r)
             #res.append((index, r))
-            print 'Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, index+1)
+            print('Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, index+1))
         if errors_json:
-            #print 'errors_json=', errors_json
+            #print('errors_json=', errors_json)
             if test:
                 self.settings.GLOBAL_ERRORS.append(errors_json)
         response = self.thread_result
@@ -326,7 +326,7 @@ class Network:
         errors_json = []
         res = []
         for index, answer in enumerate(answers):
-            #print 'answers', answer
+            #print('answers', answer)
             if answer.has_key('_id') and answer['_id']:
                 record_id = answer.pop('_id')
             else:
@@ -336,21 +336,21 @@ class Network:
             r = self.dispatch(url=url, method=method, data=answer, jwt_settings_key=jwt_settings_key)
             #r = self.dispatch(api_url['catalog']['set_catalog_answer'], data=answer)
             if r['status_code'] in  (201,200,202,204):
-                print "Answer %s saved."%(index + 1)
+                print("Answer %s saved."%(index + 1))
                 POST_CORRECTLY += 1
             else:
-                print "Answer %s was rejected."%(index + 1)
+                print("Answer %s was rejected."%(index + 1))
                 r['id'] = str(record_id)
                 errors_json.append(r)
             res.append((index, r))
-        print 'Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, len(answers))
+        print('Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, len(answers)))
         if errors_json:
-            print 'errors_json=', errors_json
+            print('errors_json=', errors_json)
             self.settings.GLOBAL_ERRORS.append(errors_json)
         return res
 
     def upload_answers_to_database(self, answers):
-        print "> Uploading Content ..."
+        print("> Uploading Content ...")
         user_connection = self.get_user_connection(config['USER_ID'])
         collection = self.create_collection(config['COLLECTION'], user_connection)
         counter = 0
@@ -359,7 +359,7 @@ class Network:
                 document = collection.insert(answer)
             except:
                 pass
-                #print "The document {0} was not inserted".format(answer)
+                #print("The document {0} was not inserted".format(answer))
             finally:
                 counter = counter +1
 
@@ -387,7 +387,6 @@ class Network:
 
         MONGODB_URI = 'mongodb://{0}:{1}@{2}/{3}'.format(
             quote_plus(user), quote_plus(password), mongo_hosts, param_url)
-        print 'MONGODB_URI', MONGODB_URI
         return MONGODB_URI
 
     def get_user_connection(self):

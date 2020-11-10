@@ -35,7 +35,7 @@ def get_records_2fix(record):
             _continue = False
     if _continue:
         return 0
-    # print 'checking fields....'
+    # print('checking fields....')
     for field in record['voucher']['fields']:
         if _continue:
             return 0
@@ -44,11 +44,11 @@ def get_records_2fix(record):
             if field['required'] and not field.has_key('group'):
                 if not record['answers'].has_key(_id):
                     # count += 1
-                    # print 'folio=', record['folio']
-                    # print 'form_id=', record['form_id']
-                    # print 'version=', record['other_versions']
-                    # print 'start_timestamp=', record['start_timestamp']
-                    # print '======================'
+                    # print('folio=', record['folio'])
+                    # print('form_id=', record['form_id'])
+                    # print('version=', record['other_versions'])
+                    # print('start_timestamp=', record['start_timestamp'])
+                    # print('======================')
                     answer_count += 1
                     _continue = True
                     return 1
@@ -63,11 +63,11 @@ def get_records_2fix(record):
                 has_image = True
     if answer_count == 0 and has_image:
         # count += 1
-        # print 'folio=', record['folio']
-        # print 'form_id=', record['form_id']
-        # print 'version=', record['other_versions']
-        # print 'start_timestamp=', record['start_timestamp']
-        # print '======================'
+        # print('folio=', record['folio'])
+        # print('form_id=', record['form_id'])
+        # print('version=', record['other_versions'])
+        # print('start_timestamp=', record['start_timestamp'])
+        # print('======================')
         return 1
     return 0
 
@@ -87,7 +87,7 @@ def fix_records():
         result = get_records(query)
         answers_post = record['answers']
         answers_pics = result[0]['answers']
-        print 'folio', result[0]['folio']
+        print('folio', result[0]['folio'])
         answers_pics.update(answers_post)
         cur_col.update(
             query,
@@ -109,11 +109,11 @@ def update_groups(record):
             group_id = field['field_id']['id']
 
         if group_id:
-            # print 'folio=',record['folio']
+            # print('folio=',record['folio'])
             if record['answers'].has_key(group_id) and record['answers'][group_id]:
-                # print record['answers'][group_id]
+                # print(record['answers'][group_id])
                 if isinstance(record['answers'][group_id], dict):
-                    print 'folio=',record['folio']
+                    print('folio=',record['folio'])
                     cur_col.update(
                         {'_id':ObjectId(record['_id'])},
                         {
@@ -128,7 +128,7 @@ for dbname in databases:
     if dbname in ['infosync', 'local']:
         continue
 
-    print dbname.strip('infosync_answers_client_')
+    print(dbname.strip('infosync_answers_client_'))
     # cur_db = mongo_util.connect_mongodb(dbname, host, port)
     cur_db = mongo_util.connect_mongodb(dbname, host, port)
     cur_col = mongo_util.get_mongo_collection(cur_db, collection_name)
@@ -149,4 +149,4 @@ for dbname in databases:
     for record in records:
         count += get_records_2fix(record)
     if count > 0:
-        print dbname ,',', count
+        print(dbname ,',', count)

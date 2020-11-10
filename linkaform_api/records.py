@@ -13,8 +13,8 @@ def get_parent(user_id):
     try:
         conn = psycopg2.connect("dbname='infosync' user='postgres' port=5434",)
     except Exception, e:
-        print "I am unable to connect to the database"
-        print e
+        print("I am unable to connect to the database")
+        print(e)
         sys.exit()
 
     cur = conn.cursor()
@@ -35,7 +35,7 @@ def update_records_connections(db_data, records, user_col, user):
     changed_folios = []
     for record in records:
         if not 'record' in record:
-            print record['_id']
+            print(record['_id'])
         else:
             changed_folios.append(record['folio'])
         connection = record['user_id']
@@ -79,4 +79,4 @@ for dbname in databases:
     user_db, user_col = connect_to_db(db_data['dbname'], db_data['host'], db_data['port'], db_data['collection'])
     records = search_records(user_col, user)
     changed_folios = update_records_connections(db_data, records, user_col, user)
-    print changed_folios
+    print(changed_folios)

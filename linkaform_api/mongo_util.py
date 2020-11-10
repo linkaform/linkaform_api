@@ -30,12 +30,12 @@ def get_collection_objects(cur_col, query = None):
     objects = cur_col.find()
   try:
     if objects.count() == 0:
-      print 'NO RECORDS FOUND'
+      print('NO RECORDS FOUND')
   except TypeError:
-    print 'NO RECORDS FOUND'
+    print('NO RECORDS FOUND')
   return objects
 
 
 def update_one(cur_col, this_filter, update, upsert=False, bypass_document_validation=False, collation=None, array_filters=None, session=None):
   response = cur_col.update_one(this_filter, update, upsert, bypass_document_validation, collation, array_filters, session)
-  print 'response', response
+  print('response', response)

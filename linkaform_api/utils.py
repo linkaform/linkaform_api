@@ -269,15 +269,15 @@ class Cache(object):
         try:
             answer = answer.decode('utf-8')
         except Exception as e:
-            print 'error decoding', e
+            print('error decoding', e)
         if element.has_key('options') and  element.has_key('options'):
             options = element['options']
             default = False
             best_guess = (0,0)
-            #print 'options', options
+            #print('options', options)
             for opt in options:
-                #print 'opt', opt['value']
-                #print 'opt type', type(opt['value'])
+                #print('opt', opt['value'])
+                #print('opt type', type(opt['value']))
                 if answer == opt['value']:
                     return opt['value']
                 if answer.lower().replace(' ', '_') == opt['value']:
@@ -334,8 +334,8 @@ class Cache(object):
                     date_str = self.validate(str(answer), check=element['field_type'])
                     return {element['field_id']:date_str}
             except ValueError, e:
-                #print 'error', e
-                #print 'value', answer
+                #print('error', e)
+                #print('value', answer)
                 return {}
         return {}
 
@@ -349,7 +349,7 @@ class Cache(object):
 
     def patch_multi_record(self, answers, form_id, folios=[], record_id=[], jwt_settings_key=False, threading=False):
         if not answers or not (folios or record_id):
-            print 'patch_multi_record >> no obtubo answers o folios'
+            print('patch_multi_record >> no obtubo answers o folios')
             return {}
         data = {}
         data['answers'] = answers
@@ -386,11 +386,11 @@ class Cache(object):
     def thread_function_bulk_patch(self, data, form_id,  jwt_settings_key):
         #if record not in self.thread_dict.keys():
         data['form_id'] = form_id
-        #print 'data=', data
+        #print('data=', data)
 
         res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, 
             jwt_settings_key=jwt_settings_key)
-        #print 'res=',res
+        #print('res=',res)
         if data.get('folio'):
             self.thread_dict[data['folio']] = res
         else:
@@ -399,10 +399,10 @@ class Cache(object):
 
     def bulk_patch(self, records, form_id, jwt_settings_key=False, threading=False):
         # if not records:
-        #     print 'bulk_patch >> no obtubo answers o folios'
+        #     print('bulk_patch >> no obtubo answers o folios')
         #     return {}
         # if not records.get('folios') or records.get('records'):
-        #     print 'no folio provided'
+        #     print('no folio provided')
         #     return {}
         if threading:
             with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
@@ -431,11 +431,11 @@ class Cache(object):
         return self.network.patch_forms_answers_list(data, jwt_settings_key=jwt_settings_key)
 
     def post_forms_answers(self, answers, test=False, jwt_settings_key=False):
-        print 'post_forms_answers', jwt_settings_key
+        print('post_forms_answers', jwt_settings_key)
         return self.network.post_forms_answers(answers, jwt_settings_key=jwt_settings_key)
 
     def post_forms_answers_list(self, answers, test=False, jwt_settings_key=False ):
-        print 'utls post_forms_answers_list'
+        print('utls post_forms_answers_list')
         return self.network.post_forms_answers_list(answers, jwt_settings_key=jwt_settings_key)
 
     def validate(self, date_str, check='date'):
@@ -463,7 +463,7 @@ class Cache(object):
 
 def warning(*objs):
     '''
-    To print stuff at stderr
+    To print(stuff at stderr)
     '''
     output = "warning:%s\n" % objs
     stderr.write(output)

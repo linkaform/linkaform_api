@@ -52,19 +52,19 @@ class Item(object):
         return res
 
     def get_item_id_from_file(self, file_path, item_type=False):
-        #print 'self, tendra ya todas las formsa', self.all_forms
+        #print('self, tendra ya todas las formsa', self.all_forms)
         filename = file_path.strip(settings.config['FILE_PATH_DIR']).split('.')[0]
         item_id = False
         if item_type == 'form' or not item_type:
             for form in self.all_forms:
                 if filename == form['name']:
-                    print '=================================================='
+                    print('==================================================')
                     item_id = form['id']
                     return item_id
         if item_type == 'catalog' or not item_type:
             for form in self.all_catalogs:
                 if filename == form['name']:
-                    print '##################catalog', form['id']
+                    print('##################catalog', form['id'])
                     item_id = form['id']
                     return item_id
         if not item_id and not item_type:
@@ -73,18 +73,18 @@ class Item(object):
 
     def get_variables_definition(self):
         fields_list = []
-        print 'self catalog id', self.catalog_id
-        print 'self form id', self.form_id
+        print('self catalog id', self.catalog_id)
+        print('self form id', self.form_id)
         if self.form_id:
         #revisar porque get items fields no regresa los campos de la forma
             fields = settings.cache.get_item_fields('form', self.form_id)
-            print 'fields', fields
+            print('fields', fields)
         if self.catalog_id:
             fields = settings.cache.get_item_fields('catalog', self.catalog_id)
         if fields:
             for field in fields[0]['fields']:
                 fields_list.append(self.prepare_field_definitin(field))
-        print 'fields_list' ,fields_list
+        print('fields_list' ,fields_list)
         return fields_list
 
     def prepare_field_definitin(self, field):
@@ -173,7 +173,7 @@ class Item(object):
     def recursive_extraction_answers(self, configuration, answer_line):
         answers = {}
         answer_keys = answer_line.keys()
-        print '.'
+        print('.')
         for item in configuration:
             settings.GLOBAL_VAR['count'] += 1
             if isinstance(item, dict):
@@ -185,8 +185,8 @@ class Item(object):
                         if field_form_collection[0] == FieldType.CATALOG and result:
                             result = {'data':result}
                         answers[field_form_collection[1]] = result
-                        #print 'asi va quedando answers'
-                        #print 'one line answers=',answers
+                        #print('asi va quedando answers')
+                        #print('one line answers=',answers)
                     elif field_form_collection[0] == FieldType.GROUP_FIELD:
                         try:
                             answers_in_group = field_form_file.split(',')
@@ -253,7 +253,7 @@ class Form(Item):
 #
 #     def get_catalog_data(self, catalog_id):
 #         catalog_data = settings.cache.get('catalog', catalog_id)
-#         print 'catalog_data', catalog_data
+#         print('catalog_data', catalog_data)
 #         form_more_data = settings.cache.get_data('catalog', catalog_id)
-#         print 'more data', form_more_data
+#         print('more data', form_more_data)
 #         return True

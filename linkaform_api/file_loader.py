@@ -17,7 +17,7 @@ def get_files_from_path():
     return file_names
 
 def load_answers(metadata, file_path):
-    print 'file_path', file_path
+    print('file_path', file_path)
     load_file = get_file_to_import(file_path)
     answers = []
     item = Item(
@@ -48,17 +48,17 @@ def load_answers(metadata, file_path):
         answer_metadata = form.get_form()
     if item.catalog_id:
         answer_metadata = {'catalog_id': item.catalog_id}
-    print 'load_file', load_file
+    print('load_file', load_file)
     for answer_line in load_file:
-        print 'answer_line', answer_line
+        print('answer_line', answer_line)
         line = item.get_answers(answer_line)
-        print ' line', line
-        print ds
+        print(' line', line)
+        print(ds)
         if item.catalog_id:
             line = {'answers':line}
         line.update(answer_metadata)
         answers.append(line)
-    print '============= ALL RECORDS LOADED ======== '
+    print('============= ALL RECORDS LOADED ======== ')
     return answers
 
 def get_file_to_import(file_path):

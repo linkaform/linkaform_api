@@ -175,7 +175,7 @@ class LoadFile:
         metadata = self.lkf_api.get_metadata(form_id=form_id, user_id=self.settings.config['USER_ID'] )
         header_dict = self.make_header_dict(header)
         non_group_fields = self.get_nongroup_fields(pos_field_id)
-        print 'len records', len(records)
+        print('len records', len(records))
         for record in records:
             is_group_iteration = self.check_record_is_group_iterration(non_group_fields, record)
             is_group_iteration = False
@@ -264,16 +264,16 @@ class LoadFile:
 
 
     def print_help(self):
-        print '---------------- HELP --------------------------'
-        print 'more arguments needed'
-        print 'the script should be run like this'
-        print '''python upload_excel_file.py '{"file_name":"/tmp/personal.xlsx", "form_id":"1234", "equivalcens_map":{"foo":"bar"}}' '''
-        print '* form_id: where 1234 is the id of the form, is a requierd argument'
-        print '** file_name: file in you local machine'
-        print '** file_url: file on a remote url'
-        print 'if running from console you shoud send the settings json a second argument'
-        print 'running from console example'
-        print ''''python upload_excel_file.py '{"file_name":"/tmp/personal.xlsx", "form_id":"1234", "equivalcens_map":{"foo":"bar"}} '{"USERNAME": "mike"}' '''
+        print('---------------- HELP --------------------------')
+        print('more arguments needed')
+        print('the script should be run like this')
+        print('''python upload_excel_file.py '{"file_name":"/tmp/personal.xlsx", "form_id":"1234", "equivalcens_map":{"foo":"bar"}}' ''')
+        print('* form_id: where 1234 is the id of the form, is a requierd argument')
+        print('** file_name: file in you local machine')
+        print('** file_url: file on a remote url')
+        print('if running from console you shoud send the settings json a second argument')
+        print('running from console example')
+        print(''''python upload_excel_file.py '{"file_name":"/tmp/personal.xlsx", "form_id":"1234", "equivalcens_map":{"foo":"bar"}} '{"USERNAME": "mike"}' ''')
 
 
 if __name__ == "__main__":

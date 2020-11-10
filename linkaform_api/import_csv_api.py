@@ -35,7 +35,7 @@ class ImportData:
 
 if __name__ == "__main__":
     all_files = get_files_from_path()
-    print 'all_files', all_files
+    print('all_files', all_files)
     try:
         test = argv[1]
     except:
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     for file_name in all_files:
         if file_name:
             file_path = config['FILE_PATH_DIR'] + file_name
-            #print "Filename: {0}".format(file_path)
+            #print("Filename: {0}".format(file_path))
             time_started = time.time()
             metadata = {
                 'form_id' : None,
@@ -54,17 +54,17 @@ if __name__ == "__main__":
                 'is_catalog': file_is_catalogo(file_path),
             }
             answers = load_answers(metadata, file_path)
-            print "Total answers: ",len(answers)
+            print("Total answers: ",len(answers))
             try:
-                print "Sample of answers:"
-                print answers[0]
-                print answers[1]
-                print answers[2]
-                # print answers[3]
+                print("Sample of answers:")
+                print(answers[0])
+                print(answers[1])
+                print(answers[2])
+                # print(answers[3])
             except:
                 pass
             if len(answers) > 0:
-                print "%s answers loaded." % len(answers)
+                print("%s answers loaded." % len(answers))
                 if settings.config['LOAD_DATA_USING'] == ImportData.MONGO:
                     network.upload_answers_to_database(answers)
                 elif settings.config['LOAD_DATA_USING'] == ImportData.REST:
@@ -74,7 +74,7 @@ if __name__ == "__main__":
             else:
                  "No answers loaded."
     if test or len(settings.GLOBAL_ERRORS):
-        print '=================== TEST RESULTS ================================'
-        print 'total errors', len(GLOBAL_ERRORS)
+        print('=================== TEST RESULTS ================================')
+        print('total errors', len(GLOBAL_ERRORS))
         for error in settings.GLOBAL_ERRORS:
-            print error
+            print(error)
