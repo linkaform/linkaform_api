@@ -14,7 +14,7 @@ class Network:
 
     def __init__(self, settings={}):
         #linkaform api
-        from urls import Api_url
+        from .urls import Api_url
         self.settings = settings
         self.api_url = Api_url(settings)
         self.thread_result = []
@@ -29,11 +29,11 @@ class Network:
 
 
     def get_url_method(self, url_method={}, url='', method=''):
-        if not url and url_method.has_key('url'):
+        if not url and url_method.get('url'):
             url = url_method['url']
         elif not url:
             raise Exception ("No URL found")
-        if not method and url_method.has_key('method'):
+        if not method and url_method.get('method'):
             method = url_method['method']
         elif not method:
             raise Exception ("No Method found")
@@ -133,9 +133,9 @@ class Network:
 
         if r.status_code == 200:
             r_data = simplejson.loads(r.content)
-            if r_data.has_key('objects'):
+            if r_data.get('objects'):
             	response['data'] = r_data['objects']
-            elif r_data.has_key('json'):
+            elif r_data.get('json'):
                 response['data'] = r_data['json']
             else:
                 response['data'] = r_data
@@ -199,7 +199,7 @@ class Network:
             r_data = simplejson.loads(r.content)
             if up_file:
                 response['data'] = r_data
-            elif r_data.has_key('success'):
+            elif r_data.get('success'):
                 if r_data['success']:
                     return response
             else:
@@ -275,7 +275,7 @@ class Network:
 
     def thread_function(self, record, url, jwt_settings_key):
         res = self.dispatch(self.api_url.form['set_form_answer'], data=record, jwt_settings_key=jwt_settings_key)
-        if record.has_key('folio'):
+        if record.get('folio'):
             res.update({'folio':record['folio']})
         self.thread_result.append(res)
 
@@ -327,7 +327,7 @@ class Network:
         res = []
         for index, answer in enumerate(answers):
             #print('answers', answer)
-            if answer.has_key('_id') and answer['_id']:
+            if answer.get('_id') and answer['_id']:
                 record_id = answer.pop('_id')
             else:
                 raise ValueError('The answer must have a record_id')
@@ -391,7 +391,7 @@ class Network:
 
     def get_user_connection(self):
         connection = {}
-        if self.settings.config.has_key('ACCOUNT_ID'):
+        if self.settings.config.get('ACCOUNT_ID'):
             user_id = self.settings.config['ACCOUNT_ID']
         else:
             user_id = self.settings.config['USER_ID']
@@ -400,11 +400,11 @@ class Network:
 
     def get_infosync_connection(self, db_name="infosync"):
         connection = {}
-        # if self.settings.config.has_key('ACCOUNT_ID'):
+        # if self.settings.config.get('ACCOUNT_ID'):
         #     user_id = self.settings.config['ACCOUNT_ID']
         # else:
         #     user_id = self.settings.config['USER_ID']
-        if self.settings.config.has_key('MONGODB_URI'):
+        if self.settings.config.get('MONGODB_URI'):
             connection['client'] = MongoClient(self.settings.config['MONGODB_URI'])
         else:
             mongo_uri = self.get_mongo_uri(db_name)

@@ -13,7 +13,7 @@
 #
 # from re import findall
 
-from urls import api_url
+from .urls import api_url
 import network
 #from utils import Cache
 import utils
@@ -90,7 +90,7 @@ class Item(object):
     def prepare_field_definitin(self, field):
         field_dir = {}
         fields_type = 2
-        if field['field_type'] == 'group' or field.has_key('group') and field['group'].has_key('group_id'):
+        if field['field_type'] == 'group' or field.get('group') and field['group'].get('group_id'):
             fields_type = 1
         field_dir[field['label']] = (fields_type, field['field_id'], field['field_type'])
         return field_dir

@@ -6,7 +6,7 @@ import os, re
 #linkaform api
 from utils import Cache
 from forms import Form, Catalog, Item
-from urls import api_url
+from .urls import api_url
 import settings
 
 

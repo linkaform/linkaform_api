@@ -2,7 +2,7 @@
 #!/usr/bin/python
 
 
-from urls import api_url
+from .urls import api_url
 import network
 #from utils import Cache
 import utils

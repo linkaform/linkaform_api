@@ -15,7 +15,7 @@ class Cache(object):
         self.items_data = {}
         self.items_fields = {}
         self.settings = settings
-        from urls import Api_url
+        from .urls import Api_url
         self.api_url = Api_url(settings)
         self.network = network.Network(self.settings)
         self.thread_dict = {}
@@ -65,24 +65,24 @@ class Cache(object):
         return True
 
     def get(self, item_type, item_id):
-        if not self.items.has_key(item_type):
+        if not self.items.get(item_type):
             #self.items[item_type] = self.get_all_items(item_type)
             self.items[item_type] = {}
-        if not self.items[item_type].has_key(item_id):
+        if not self.items[item_type].get(item_id):
             self.items[item_type][item_id] = self.get_item_id(item_type, item_id)
         return self.items[item_type][item_id]
 
     def get_data(self, item_type, item_id, refresh=False):
-        if not self.items_data.has_key(item_type):
+        if not self.items_data.get(item_type):
             self.items_data[item_type] = {}
-        if not self.items_data[item_type].has_key(item_id):
+        if not self.items_data[item_type].get(item_id):
             self.items_data[item_type][item_id] = self.get_item_answer(item_type, item_id)
         return self.items_data[item_type][item_id]
 
     def get_item_fields(self, item_type, item_id, refresh=False):
-        if not self.items_fields.has_key(item_type):
+        if not self.items_fields.get(item_type):
             self.items_fields[item_type] = {}
-        if not self.items_fields[item_type].has_key(item_id):
+        if not self.items_fields[item_type].get(item_id):
             self.items_fields[item_type][item_id] = self.get_item_fields(item_type, item_id)
         return self.items_fields[item_type][item_id]
 
@@ -270,7 +270,7 @@ class Cache(object):
             answer = answer.decode('utf-8')
         except Exception as e:
             print('error decoding', e)
-        if element.has_key('options') and  element.has_key('options'):
+        if element.get('options') and  element.get('options'):
             options = element['options']
             default = False
             best_guess = (0,0)
@@ -284,9 +284,9 @@ class Cache(object):
                     return opt['value']
                 elif answer == opt['label']:
                     return opt['value']
-                elif opt.has_key('selected') and opt['selected']:
+                elif opt.get('selected') and opt['selected']:
                     default = opt['value']
-                elif opt.has_key('default') and opt['default']:
+                elif opt.get('default') and opt['default']:
                     default = opt['value']
                 if best_effort:
                     best_guess_opt = self.guess(opt['value'], answer)
@@ -308,9 +308,9 @@ class Cache(object):
         #If best_effort is selected then it will try the best options
         # a select field has
         #if answer or answer == 0:
-        if answer or (answer==0 and element.has_key('field_type') and element['field_type'] in ('integer','float','decimal')):
+        if answer or (answer==0 and element.get('field_type') and element['field_type'] in ('integer','float','decimal')):
             try:
-                if not element.has_key('field_type') or not element.has_key('field_id'):
+                if not element.get('field_type') or not element.get('field_id'):
                     raise ValueError('element should have the keys field_type and field_id')
                 if element['field_type'] in ('text', 'textarea', 'email', 'password'):
                     return {element['field_id']:str(answer)}
@@ -459,7 +459,6 @@ class Cache(object):
         session = False
         jwt = self.network.login(session, user, password, get_jwt=True)
         return jwt
-
 
     def run_script(self, data, jwt_settings_key=False):
         return self.network.dispatch(self.api_url.script['run_script'], data=data, jwt_settings_key=jwt_settings_key)

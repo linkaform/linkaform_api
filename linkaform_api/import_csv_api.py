@@ -14,10 +14,10 @@ from re import findall
 
 #linkaform api
 import settings
-from forms import Form
-from urls import api_url
-from settings import config
-from file_loader import load_answers, get_files_from_path, file_is_catalogo
+from .forms import Form
+from .urls import api_url
+from .settings import config
+from .file_loader import load_answers, get_files_from_path, file_is_catalogo
 import network
 
 

@@ -41,8 +41,8 @@ def get_records_2fix(record):
             return 0
         _id = field['field_id']['id']
         if field['field_type'] not in ('image', 'signature', 'document', 'file'):
-            if field['required'] and not field.has_key('group'):
-                if not record['answers'].has_key(_id):
+            if field['required'] and not field.get('group'):
+                if not record['answers'].get(_id):
                     # count += 1
                     # print('folio=', record['folio'])
                     # print('form_id=', record['form_id'])
@@ -54,12 +54,12 @@ def get_records_2fix(record):
                     return 1
                 else:
                     answer_count += 1
-            elif not field.has_key('group'):
-                if record['answers'].has_key(_id):
+            elif not field.get('group'):
+                if record['answers'].get(_id):
                     answer_count += 1
                     _continue = True
         if field['field_type'] in ('image', 'signature', 'document', 'file'):
-            if record['answers'].has_key(_id):
+            if record['answers'].get(_id):
                 has_image = True
     if answer_count == 0 and has_image:
         # count += 1
@@ -110,7 +110,7 @@ def update_groups(record):
 
         if group_id:
             # print('folio=',record['folio'])
-            if record['answers'].has_key(group_id) and record['answers'][group_id]:
+            if record['answers'].get(group_id) and record['answers'][group_id]:
                 # print(record['answers'][group_id])
                 if isinstance(record['answers'][group_id], dict):
                     print('folio=',record['folio'])

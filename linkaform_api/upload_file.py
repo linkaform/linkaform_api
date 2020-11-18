@@ -71,7 +71,7 @@ class LoadFile:
 
     def convert_to_sting_date(self, field):
         res = {'field_id':field['field_id'], 'field_type':field['field_type'], 'label':field['label'], 'options':field['options']}
-        if field.has_key('group') and field['group']:
+        if field.get('group') and field['group']:
             res['group_id'] = field['group']['group_id']
         return res
 
@@ -104,7 +104,7 @@ class LoadFile:
             fields_json = {}
             if 'folio' in header_dict.keys():
                 pos_field_id[header_dict['folio']] = {'field_type':'folio'}
-            elif equivalcens_map.has_key('folio'):
+            elif equivalcens_map.get('folio'):
                 for eq_opt in  equivalcens_map['folio']:
                     if eq_opt in header_dict.keys():
                         pos_field_id[header_dict[eq_opt]] = {'field_type':'folio'}
@@ -156,7 +156,7 @@ class LoadFile:
     def get_nongroup_fields(self, pos_field_id):
         res = []
         for pos, element in pos_field_id.iteritems():
-            if element.has_key('group_id') and element['group_id']:
+            if element.get('group_id') and element['group_id']:
                 continue
             else:
                 res.append(pos)
@@ -192,11 +192,11 @@ class LoadFile:
                     this_record['folio'] = str(record[pos])
                 else:
                     element_answer = self.lkf_api.make_infosync_json(record[pos], element)
-                    if element.has_key('group_id') and element['group_id'] and element_answer:
-                        if not answer.has_key(element['group_id']):
+                    if element.get('group_id') and element['group_id'] and element_answer:
+                        if not answer.get(element['group_id']):
                             answer[element['group_id']] = []
                         #answer.update(element_answer)
-                        if not group_iteration.has_key(element['group_id']):
+                        if not group_iteration.get(element['group_id']):
                             group_iteration[element['group_id']] = {}
                         group_iteration[element['group_id']].update(element_answer)
                     else:
@@ -281,9 +281,9 @@ if __name__ == "__main__":
         config = simplejson.loads(argv[1])
         if argv[1] == 'help' or argv[1] == '--help':
             LoadFile(settings).print_help()
-        elif not config.has_key('form_id'):
+        elif not config.get('form_id'):
             LoadFile(settings).print_help()
-        elif not config.has_key('file_name') and not config.has_key('file_url'):
+        elif not config.get('file_name') and not config.get('file_url'):
             LoadFile(settings).print_help()
         else:
             try:
