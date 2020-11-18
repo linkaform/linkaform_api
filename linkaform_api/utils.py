@@ -461,6 +461,10 @@ class Cache(object):
         return jwt
 
 
+    def run_script(self, data, jwt_settings_key=False):
+        return self.network.dispatch(self.api_url.script['run_script'], data=data, jwt_settings_key=jwt_settings_key)
+
+
 def warning(*objs):
     '''
     To print(stuff at stderr)

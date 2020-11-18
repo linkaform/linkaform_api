@@ -13,6 +13,7 @@ class Api_url:
         self.catalog = self.get_catalog_url()
         self.users = self.get_users_url()
         self.connecions = self.get_connections_url()
+        self.script = self.get_script()
 
 
     def get_global_url(self):
@@ -65,4 +66,9 @@ class Api_url:
                 'connection_by_id': {'url': self.dest_url + '/api/infosync/connection/', 'method':'GET'},
                 'form_connections': {'url': self.dest_url + '/api/infosync/connection_record_filter/?form_id=', 'method':'GET'},
                 'user_by_form' : {'url': self.dest_url + '/api/infosync/file_shared/?form_id=&user_id=', 'method':'GET'},
+                }
+
+    def get_script(self):
+        return  {
+                'run_script': {'url': self.dest_url + '/api/infosync/scripts/run/', 'method':'POST'},
                 }
