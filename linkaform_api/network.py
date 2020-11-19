@@ -429,3 +429,72 @@ class Network:
     def get_infsoync_collections(self, collection='form_answer', create=False):
         database = get_infosync_connection()
         return Collection(database['db'], collection, create)
+
+####
+#### Catalogos
+####
+
+    def post_catalog_answers(self, answers):
+        answers = [answers,]
+        POST_CORRECTLY=0
+        errors_json = []
+        return self.post_catalog_answers_list(answers, test=False)[0][1]
+
+    def post_catalog_answers_list(self, answers, test=False):
+        if type(answers) == dict:
+            answers = [answers,]
+        POST_CORRECTLY=0
+        errors_json = []
+        res = []
+        if test:
+            answers = [answers[0],answers[1]]
+        for index, answer in enumerate(answers):
+            # este original se va a quedar despues de migrar al api
+            #r = self.dispatch(self.api_url.catalog['set_catalog_answer'], data=answer)
+            # este se va a quitar al migrarlo al api
+            r = self.__network.dispatch(self.api_url.catalog['set_catalog_answer'], data=answer)
+            if r['status_code'] in  (201,200,202,204):
+                print("Answer %s saved."%(index + 1))
+                POST_CORRECTLY += 1
+            else:
+                print("Answer %s was rejected."%(index + 1))
+                errors_json.append(r)
+            res.append((index, r))
+            print('Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, index+1))
+        if errors_json:
+            if test:
+                self.settings.GLOBAL_ERRORS.append(errors_json)
+        return res
+
+    def patch_catalog_answers(self, answers):
+        if type(answers) == dict:
+            answers = [answers,]
+        return self.patch_catalog_answers_list(answers)[0][1]
+
+    def patch_catalog_answers_list(self, answers):
+        if type(answers) == dict:
+            answers = [answers,]
+        POST_CORRECTLY=0
+        errors_json = []
+        res = []
+        for index, answer in enumerate(answers):
+            '''if answer.has_key('record_id') and answer['record_id']:
+                record_id = answer['record_id']
+            else:
+                raise ValueError('The answer must have a record_id')'''
+            url = self.api_url.catalog['update_catalog_answer']['url']
+            method = self.api_url.catalog['update_catalog_answer']['method']
+            r = self.__network.dispatch(url=url, method=method, data=answer)
+            if r['status_code'] in  (201,200,202,204):
+                print("Answer %s saved."%(index + 1))
+                POST_CORRECTLY += 1
+            else:
+                print("Answer %s was rejected."%(index + 1))
+                #r['id'] = str(record_id)
+                errors_json.append(r)
+            res.append((index, r))
+        print('Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, len(answers)))
+        if errors_json:
+            print('errors_json=', errors_json)
+            self.settings.GLOBAL_ERRORS.append(errors_json)
+        return res

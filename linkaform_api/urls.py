@@ -45,10 +45,12 @@ class Api_url:
 
     def get_catalog_url(self):
         return  {
-                'all_catalogs': {'url': self.dest_url + '/api/infosync/catalog/', 'method':'GET'},
-                'catalog_answer': {'url': self.dest_url + '/api/infosync/catalog_answer/?catalog_id=', 'method':'GET'},
-                'catalog_id_fields': {'url': self.dest_url + '/api/infosync/catalog_data/?catalog_id=', 'method':'GET'},
-                'set_catalog_answer': {'url': self.dest_url + '/api/infosync/catalog_answer/', 'method':'POST'},
+                'catalog_id_fields': {'url': self.dest_url + '/api/infosync/catalog_model/send_catalog/', 'method':'GET'},
+                'set_catalog_answer': {'url': self.dest_url + '/api/infosync/catalog_answers/', 'method':'POST'},
+                'get_record_by_folio': {'url': self.dest_url + '/api/infosync/catalog/find/', 'method':'POST'},
+                'update_catalog_answer': {'url': self.dest_url + '/api/infosync/catalog_answers/', 'method': 'PATCH'},
+                'delete_catalog_record': {'url': self.dest_url + '/api/infosync/catalog/bulk_docs/', 'method': 'POST'}
+
                 }
 
 
