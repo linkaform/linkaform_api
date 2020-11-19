@@ -263,6 +263,31 @@ class Cache(object):
                 last_find = index
         return (count, org_value)
 
+    def make_excel_file(self, header, records, form_id, file_field_id, jwt_settings_key='JWT_KEY'):
+        records.insert(0,header)
+        #rows = make_array(orders)
+        date = time.strftime("%Y_%m_%d_%H_%M_%S")
+        file_name = "/tmp/output_%s.xlsx"%(date)
+        pyexcel.save_as(array=records, dest_file_name=file_name)
+        os_file_name = make_excel_file(record_errors)
+        csv_file = open(os_file_name,'rb')
+        csv_file_dir = {'File': csv_file}
+        try:
+            upload_data = {'form_id': form_id, 'field_id': file_field_id}
+            upload_url = lkf_api.post_upload_file(data=upload_data, up_file=csv_file_dir,  jwt_settings_key=jwt_settings_key)
+            print "******************** upload_url :",upload_url
+        except:
+            return "No se pudo generar el archivo de error "
+        csv_file.close()
+        try:
+            file_url = upload_url['data']['file']
+            file_date = time.strftime("%Y_%m_%d")
+            excel_file = {file_field_id: {'file_name':'Errores de Carga %s.xlsx'%file_date,
+                                                'file_url':file_url}}
+        except KeyError:
+            print 'could not save file Errores'
+        return excel_file
+
     def make_infosync_select_json(self, answer, element, best_effort=False):
         if type(answer) != str:
                 answer = str(answer)
