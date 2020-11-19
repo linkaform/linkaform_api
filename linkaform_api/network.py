@@ -24,7 +24,11 @@ class Network:
         data = {"password": self.settings.config['PASS'], "username": self.settings.config['USERNAME']}
         response = self.dispatch(self.api_url.globals['login'], data=data, use_login=True)
         if get_jwt:
-            return response['content']['jwt']
+            if response.get('content'):
+                return response['content']['jwt']
+            if response.get('json'):
+                return response['json']['jwt']
+
         return response['status_code'] == 200
 
 
@@ -146,7 +150,6 @@ class Network:
         use_jwt=False, jwt_settings_key=False, encoding='utf-8', up_file=False, params=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
-        #print('do post')
         JWT = self.settings.config['JWT_KEY']
         if jwt_settings_key:
             JWT = self.settings.config[jwt_settings_key]
@@ -162,7 +165,7 @@ class Network:
                        'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
                           self.settings.config['AUTHORIZATION_TOKEN_VALUE'])}
 
-        else:
+        if use_login:
             use_login = True
             session = requests.Session()
             if use_login or (self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']) and not use_api_key):
@@ -187,7 +190,6 @@ class Network:
                     data=data)
 
         response['status_code'] = r.status_code
-
         if r.content and type(r.content) is dict:
         	response['content'] = simplejson.loads(r.content)
         try:

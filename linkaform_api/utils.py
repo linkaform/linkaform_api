@@ -457,7 +457,7 @@ class Cache(object):
 
     def get_jwt(self, user, password, get_jwt=True):
         session = False
-        jwt = self.network.login(session, user, password, get_jwt=True)
+        jwt = self.network.login(session, user, password, get_jwt=get_jwt)
         return jwt
 
     def run_script(self, data, jwt_settings_key=False):
