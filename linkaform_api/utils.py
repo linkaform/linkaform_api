@@ -457,8 +457,97 @@ class Cache(object):
 
     def get_jwt(self, user, password, get_jwt=True):
         session = False
-        jwt = self.network.login(session, user, password, get_jwt=True)
+        jwt = self.network.login(session, user, password, get_jwt=get_jwt)
         return jwt
+
+####
+#### Catalogos
+####
+
+    def get_catalog_id_fields(self, catalog_id):
+        url = self.api_url.catalog['catalog_id_fields']['url']+str(catalog_id)+'/'
+        method = self.api_url.catalog['catalog_id_fields']['method']
+        response = self.network.dispatch(url=url, method=method, use_api_key=False)
+        if response['status_code'] == 200:
+            return response['data']
+        return False
+
+    def get_catalog_metadata(self, catalog_id=False):
+        time_started = time.time()
+        metadata = {
+        "catalog_id": catalog_id,
+        "geolocation": [],
+        "start_timestamp" : time.time(),
+        "end_timestamp" : time.time()
+        }
+        if not catalog_id:
+            metadata.pop('catalog_id')
+        return metadata
+
+    def post_catalog_answers(self, answers, test=False):
+        return self.__network.post_catalog_answers(answers)
+
+    def prepare_response_find(self, response):
+        list_data = response.get('json',{}).get('objects',[])
+        list_to_response = []
+        for d in list_data:
+            answers_data = d.get('answers',{})
+            answers_data.update({'_id':d.get('_id',''), '_rev':d.get('_rev','')})
+            list_to_response.append(answers_data)
+        return list_to_response
+
+    def search_catalog(self, catalog_id, mango_query):
+        url = self.api_url.catalog['get_record_by_folio']['url']
+        method = self.api_url.catalog['get_record_by_folio']['method']
+        data_for_post = {
+            'catalog_id':catalog_id,
+            'mango':mango_query
+            }
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post)
+
+        if response['status_code'] == 200:
+            return self.prepare_response_find(response)
+        if response['status_code'] == 440:
+            if response.get('json'):
+                return response['json'].get('error')
+            if response.get('content'):
+                return response['content'].get('error')
+        return False
+
+    def get_catalog_record_by_folio(self, catalog_id, catalog_folio):
+        mango = {
+                'selector':{
+                    '$and':[{'_id':{'$eq':catalog_folio}}
+                    ]
+                    }
+                }
+        return self.search_catalog(catalog_id, mango_query)
+
+
+    def update_catalog_answers(self, data, record_id=None):
+        if record_id:
+            data['_id'] = record_id
+        return self.__network.patch_catalog_answers(data)
+
+
+    def delete_catalog_record(self, catalog_id, id_record, rev):
+        url = self.api_url.catalog['delete_catalog_record']['url']
+        method = self.api_url.catalog['delete_catalog_record']['method']
+        data_for_post = {"docs":[{"_id":id_record, "_rev":rev, "_deleted":True, "index":0}],"catalog_id":catalog_id}
+        #response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post)
+        #return response
+        data = simplejson.dumps(data_for_post, default=json_util.default, for_json=True)
+        response = {'data':{}, 'status_code':''}
+        JWT = settings.config['JWT_KEY']
+        headers = {'Authorization':'jwt {0}'.format(JWT), 'Content-type': 'application/json'}
+        r = requests.post(url,data,headers=headers,verify=True)
+        response['status_code'] = r.status_code
+        response['data'] = r.json()
+        return response
+
+
+
+
 
 
 def warning(*objs):
