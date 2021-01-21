@@ -2,7 +2,7 @@
 #!/usr/bin/python
 
 import requests, simplejson, simplejson, time, threading, concurrent.futures
-from bson import json_util
+from bson import json_util, ObjectId
 from urllib import quote_plus
 
 from pymongo import MongoClient
@@ -30,7 +30,6 @@ class Network:
                 return response['json']['jwt']
         return response['status_code'] == 200
 
-
     def get_url_method(self, url_method={}, url='', method=''):
         if not url and url_method.has_key('url'):
             url = url_method['url']
@@ -41,7 +40,6 @@ class Network:
         elif not method:
             raise Exception ("No Method found")
         return url, method.upper()
-
 
     def dispatch(self, url_method={}, url='', method='', data={}, params={},
                 use_login=False, use_api_key=False, use_jwt=False, jwt_settings_key=False, 
@@ -89,7 +87,6 @@ class Network:
                     use_login=use_login, use_api_key=use_api_key, use_jwt=use_jwt, jwt_settings_key=jwt_settings_key, 
                     encoding=encoding, up_file=up_file, count=count)
         return response
-
 
     def do_get(self, url, params= {}, use_login=False, use_api_key=False, 
         use_jwt=False, jwt_settings_key=False):
@@ -197,7 +194,12 @@ class Network:
             pass
 
         if r.status_code == 200:
-            r_data = simplejson.loads(r.content)
+            try:
+                r_data = simplejson.loads(r.content)
+            except:
+                response['data'] = r.text
+                return response
+
             if up_file:
                 response['data'] = r_data
             elif r_data.has_key('success'):
@@ -364,6 +366,25 @@ class Network:
             finally:
                 counter = counter +1
 
+    def pdf_record(self, record_id, template_id=None, upload_data=None, jwt_settings_key=False):
+        url = self.api_url.record['get_record_pdf']['url']
+        method = self.api_url.record['get_record_pdf']['method']
+        body = {
+            'answer_uri': '/api/infosync/form_answer/{}/'.format(record_id),
+            'filter_id':None,
+            'template':template_id,
+        }
+        response = self.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
+        if upload_data:
+            file_name = upload_data.get('file_name', '{}.pdf'.format(str(ObjectId()))) 
+            f = open('/tmp/{}'.format(file_name),'w')
+            f.write(response['data'])
+            f.close()
+            csv_file = open('/tmp/{}'.format(file_name),'rb')
+            csv_file_dir = {'File': csv_file}
+            upload_url = self.dispatch(self.api_url.form['upload_file'], data=upload_data, up_file=csv_file_dir, jwt_settings_key=jwt_settings_key)
+            return upload_url
+        return response
 
     ###
     ### Database Connection

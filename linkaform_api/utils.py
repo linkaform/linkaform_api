@@ -6,6 +6,7 @@ import time, datetime, concurrent.futures
 #import threading
 #import concurrent.futures
 #from forms import Form
+import pyexcel
 import network
 
 class Cache(object):
@@ -263,26 +264,27 @@ class Cache(object):
                 last_find = index
         return (count, org_value)
 
-    def make_excel_file(self, header, records, form_id, file_field_id, jwt_settings_key='JWT_KEY'):
+    def make_excel_file(self, header, records, form_id, file_field_id, upload_name=None, jwt_settings_key='JWT_KEY'):
         records.insert(0,header)
         #rows = make_array(orders)
         date = time.strftime("%Y_%m_%d_%H_%M_%S")
+        if not upload_name:
+            upload_name = "file_" + date
         file_name = "/tmp/output_%s.xlsx"%(date)
         pyexcel.save_as(array=records, dest_file_name=file_name)
-        os_file_name = make_excel_file(record_errors)
-        csv_file = open(os_file_name,'rb')
+        #os_file_name = self.make_excel_file(record_errors)
+        csv_file = open(file_name,'rb')
         csv_file_dir = {'File': csv_file}
-        try:
+        #try:
+        if True:
             upload_data = {'form_id': form_id, 'field_id': file_field_id}
-            upload_url = lkf_api.post_upload_file(data=upload_data, up_file=csv_file_dir,  jwt_settings_key=jwt_settings_key)
-            print "******************** upload_url :",upload_url
-        except:
-            return "No se pudo generar el archivo de error "
+            upload_url = self.post_upload_file(data=upload_data, up_file=csv_file_dir,  jwt_settings_key=jwt_settings_key)
+        #except:
+        #    return "No se pudo generar el archivo de error "
         csv_file.close()
         try:
             file_url = upload_url['data']['file']
-            file_date = time.strftime("%Y_%m_%d")
-            excel_file = {file_field_id: {'file_name':'Errores de Carga %s.xlsx'%file_date,
+            excel_file = {file_field_id: {'file_name':'%s.xlsx'%upload_name,
                                                 'file_url':file_url}}
         except KeyError:
             print 'could not save file Errores'
@@ -484,6 +486,9 @@ class Cache(object):
         session = False
         jwt = self.network.login(session, user, password, get_jwt=get_jwt)
         return jwt
+
+    def get_pdf_record(self, record_id, template_id=None, upload_data=None, jwt_settings_key=False):
+        return self.network.pdf_record(record_id , template_id=template_id, upload_data=upload_data, jwt_settings_key=jwt_settings_key)
 
 ####
 #### Catalogos
