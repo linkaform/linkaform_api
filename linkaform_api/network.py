@@ -149,7 +149,6 @@ class Network:
         JWT = self.settings.config['JWT_KEY']
         if jwt_settings_key:
             JWT = self.settings.config[jwt_settings_key]
-        #print 'POSOOOOOOST', jwt_settings_key
         if use_jwt and not use_api_key:
             #print 'use_jwtuse_jwtuse_jwt'
             headers = {'Authorization':'jwt {0}'.format(JWT)}
@@ -185,6 +184,10 @@ class Network:
                     data=data)
 
         response['status_code'] = r.status_code
+        try:
+            response['headers'] = r.headers
+        except:
+            response['headers'] = {}
 
         if r.content and type(r.content) is dict:
         	response['content'] = simplejson.loads(r.content)
@@ -206,7 +209,7 @@ class Network:
                 if r_data['success']:
                     return response
             else:
-                response['data'] = r_data['objects']
+                response['data'] = r_data.get('objects',r_data)
         return response
 
     def do_patch(self, url, data, use_login=False, use_api_key=False,
@@ -376,7 +379,12 @@ class Network:
         }
         response = self.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
         if upload_data:
-            file_name = upload_data.get('file_name', '{}.pdf'.format(str(ObjectId()))) 
+            try:
+                headers = response.get('headers')
+                file_name = header['Content-Disposition'].split(';')[1].split('=')[1].strip('"')
+            except:
+                file_name = upload_data.get('file_name', '{}.pdf'.format(str(ObjectId()))) 
+            upload_data.update({'file_name':file_name})
             f = open('/tmp/{}'.format(file_name),'w')
             f.write(response['data'])
             f.close()

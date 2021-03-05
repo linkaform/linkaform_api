@@ -445,6 +445,13 @@ class Cache(object):
         upload_url = self.network.dispatch(self.api_url.form['upload_file'], data=data, up_file=up_file, jwt_settings_key=jwt_settings_key)
         return upload_url
 
+    def cdb_upload(self, data, jwt_settings_key=False):
+        #data:
+        url = self.api_url.record['cdb_upload']['url']
+        method = self.api_url.record['cdb_upload']['method']
+        response = self.network.dispatch(url=url, method=method, data=data,  jwt_settings_key=jwt_settings_key)
+        return response
+
     def patch_record(self, data, record_id=None, jwt_settings_key=False):
         #If no record_id is send, it is asuemed that the record_id
         #all ready comes inside the data dictionary
@@ -482,9 +489,15 @@ class Cache(object):
         except ValueError:
             raise ValueError("Incorrect data format, should be YYYY-MM-DD")
 
-    def get_jwt(self, user, password, get_jwt=True):
+    def get_jwt(self, user=None, password=None, get_jwt=True):
         session = False
+        if not user:
+            user = self.settings.config.get('USERNAME')
+        if not password:
+            password = self.settings.config.get('PASS')
+
         jwt = self.network.login(session, user, password, get_jwt=get_jwt)
+
         return jwt
 
     def get_pdf_record(self, record_id, template_id=None, upload_data=None, jwt_settings_key=False):

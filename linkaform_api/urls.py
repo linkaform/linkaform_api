@@ -35,6 +35,7 @@ class Api_url:
     def get_records_url(self):
         return  {
                 'form_answer': {'url': self.dest_url + '/api/infosync/form_answer/', 'method':'GET'},
+                'cdb_upload': {'url': self.dest_url + '/api/infosync/cdb_upload/', 'method':'POST'},
                 'form_answer_patch': {'url': self.dest_url + '/api/infosync/form_answer/', 'method':'PATCH'},
                 'form_answer_patch_multi': {'url': self.dest_url + '/api/infosync/form_answer/update_records/', 'method':'PATCH'},
                 'assigne_user':{'url': self.dest_url + '/api/infosync/form_answer/assign_lead/', 'method':'POST'},
