@@ -381,7 +381,7 @@ class Network:
         if upload_data:
             try:
                 headers = response.get('headers')
-                file_name = header['Content-Disposition'].split(';')[1].split('=')[1].strip('"')
+                file_name = header['Content-Disposition'].split(';')[1].split('=')[1].strip('"').split('.')[0]
             except:
                 file_name = upload_data.get('file_name', '{}.pdf'.format(str(ObjectId()))) 
             upload_data.update({'file_name':file_name})
