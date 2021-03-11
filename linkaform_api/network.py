@@ -417,7 +417,7 @@ class Network:
 
         MONGODB_URI = 'mongodb://{0}:{1}@{2}/{3}'.format(
             quote_plus(user), quote_plus(password), mongo_hosts, param_url)
-        print 'MONGODB_URI', MONGODB_URI
+        #print 'MONGODB_URI', MONGODB_URI
         return MONGODB_URI
 
     def get_user_connection(self):
