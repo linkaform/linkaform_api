@@ -380,18 +380,19 @@ class Network:
         response = self.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
         if upload_data:
             try:
+                file_name = upload_data.get('file_name', '{}.pdf'.format(str(ObjectId()))) 
+            except:
                 headers = response.get('headers')
                 file_name = headers['Content-Disposition'].split(';')[1].split('=')[1].strip('"').split('.')[0]
-            except:
-                file_name = upload_data.get('file_name', '{}.pdf'.format(str(ObjectId()))) 
             upload_data.update({'file_name':file_name})
             f = open('/tmp/{}'.format(file_name),'w')
-            f.write(response['data'])
-            f.close()
-            csv_file = open('/tmp/{}'.format(file_name),'rb')
-            csv_file_dir = {'File': csv_file}
-            upload_url = self.dispatch(self.api_url.form['upload_file'], data=upload_data, up_file=csv_file_dir, jwt_settings_key=jwt_settings_key)
-            return upload_url
+            if response.get('status_code') == 200:
+                f.write(response['data'])
+                f.close()
+                csv_file = open('/tmp/{}'.format(file_name),'rb')
+                csv_file_dir = {'File': csv_file}
+                upload_url = self.dispatch(self.api_url.form['upload_file'], data=upload_data, up_file=csv_file_dir, jwt_settings_key=jwt_settings_key)
+                return upload_url
         return response
 
     ###
