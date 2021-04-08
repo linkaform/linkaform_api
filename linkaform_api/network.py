@@ -3,7 +3,7 @@
 
 import requests, simplejson, simplejson, time, threading, concurrent.futures
 from bson import json_util
-from urllib.parse import quote_plus
+from urllib.parse import quote
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
@@ -388,7 +388,7 @@ class Network:
             param_url += '&maxidletimems={}'.format(self.settings.config['MONGODB_MAX_IDLE_TIME'])
 
         MONGODB_URI = 'mongodb://{0}:{1}@{2}/{3}'.format(
-            urllib.parse.quote(user), urllib.parse.quote(password), mongo_hosts, param_url)
+            quote(user), quote(password), mongo_hosts, param_url)
         return MONGODB_URI
 
     def get_user_connection(self):
