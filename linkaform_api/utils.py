@@ -489,16 +489,20 @@ class Cache(object):
         except ValueError:
             raise ValueError("Incorrect data format, should be YYYY-MM-DD")
 
-    def get_jwt(self, user=None, password=None, get_jwt=True):
+    def get_jwt(self, user=None, password=None, get_jwt=True, api_key=None):
         session = False
         if not user:
             user = self.settings.config.get('USERNAME')
         if not password:
             password = self.settings.config.get('PASS')
-
-        jwt = self.network.login(session, user, password, get_jwt=get_jwt)
-
+        if api_key:
+            if type(api_key) = bool:
+                api_key = self.settings.config.get('api_key')
+            jwt = self.network.login(session, username=user, get_jwt=get_jwt, api_key=api_key)
+        else:
+            jwt = self.network.login(session, user, password, get_jwt=get_jwt)
         return jwt
+
 
     def get_pdf_record(self, record_id, template_id=None, upload_data=None, jwt_settings_key=False):
         return self.network.pdf_record(record_id , template_id=template_id, upload_data=upload_data, jwt_settings_key=jwt_settings_key)
