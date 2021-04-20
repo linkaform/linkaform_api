@@ -496,7 +496,7 @@ class Cache(object):
         if not password:
             password = self.settings.config.get('PASS')
         if api_key:
-            if type(api_key) = bool:
+            if type(api_key) == bool:
                 api_key = self.settings.config.get('api_key')
             jwt = self.network.login(session, username=user, get_jwt=get_jwt, api_key=api_key)
         else:
