@@ -592,6 +592,9 @@ class Cache(object):
         response['data'] = r.json()
         return response
 
+    def saludos_desde_api(self):
+        return 'Hola mundo desde Api'
+
 
 
 
