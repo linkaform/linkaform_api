@@ -1,7 +1,7 @@
 # coding: utf-8
 #!/usr/bin/python
 
-import time, datetime, concurrent.futures
+import simplejson, time, datetime, concurrent.futures
 
 #import threading
 #import concurrent.futures
@@ -511,10 +511,10 @@ class Cache(object):
 #### Catalogos
 ####
 
-    def get_catalog_id_fields(self, catalog_id):
+    def get_catalog_id_fields(self, catalog_id, jwt_settings_key=False):
         url = self.api_url.catalog['catalog_id_fields']['url']+str(catalog_id)+'/'
         method = self.api_url.catalog['catalog_id_fields']['method']
-        response = self.network.dispatch(url=url, method=method, use_api_key=False)
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
         if response['status_code'] == 200:
             return response['data']
         return False
@@ -531,8 +531,8 @@ class Cache(object):
             metadata.pop('catalog_id')
         return metadata
 
-    def post_catalog_answers(self, answers, test=False):
-        return self.__network.post_catalog_answers(answers)
+    def post_catalog_answers(self, answers, test=False, jwt_settings_key=False):
+        return self.network.post_catalog_answers(answers, jwt_settings_key=jwt_settings_key)
 
     def prepare_response_find(self, response):
         list_data = response.get('json',{}).get('objects',[])
@@ -543,14 +543,14 @@ class Cache(object):
             list_to_response.append(answers_data)
         return list_to_response
 
-    def search_catalog(self, catalog_id, mango_query):
+    def search_catalog(self, catalog_id, mango_query, jwt_settings_key=False):
         url = self.api_url.catalog['get_record_by_folio']['url']
         method = self.api_url.catalog['get_record_by_folio']['method']
         data_for_post = {
             'catalog_id':catalog_id,
             'mango':mango_query
             }
-        response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post)
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post, jwt_settings_key=jwt_settings_key)
 
         if response['status_code'] == 200:
             return self.prepare_response_find(response)
@@ -568,16 +568,16 @@ class Cache(object):
                     ]
                     }
                 }
-        return self.search_catalog(catalog_id, mango_query)
+        return self.search_catalog(catalog_id, mango)
 
 
-    def update_catalog_answers(self, data, record_id=None):
+    def update_catalog_answers(self, data, record_id=None, jwt_settings_key=False):
         if record_id:
             data['_id'] = record_id
-        return self.__network.patch_catalog_answers(data)
+        return self.network.patch_catalog_answers(data, jwt_settings_key=jwt_settings_key)
 
 
-    def delete_catalog_record(self, catalog_id, id_record, rev):
+    def delete_catalog_record(self, catalog_id, id_record, rev, jwt_settings_key=False):
         url = self.api_url.catalog['delete_catalog_record']['url']
         method = self.api_url.catalog['delete_catalog_record']['method']
         data_for_post = {"docs":[{"_id":id_record, "_rev":rev, "_deleted":True, "index":0}],"catalog_id":catalog_id}
@@ -585,7 +585,9 @@ class Cache(object):
         #return response
         data = simplejson.dumps(data_for_post, default=json_util.default, for_json=True)
         response = {'data':{}, 'status_code':''}
-        JWT = settings.config['JWT_KEY']
+        JWT = self.settings.config['JWT_KEY']
+        if jwt_settings_key:
+            JWT = self.settings.config[jwt_settings_key]
         headers = {'Authorization':'jwt {0}'.format(JWT), 'Content-type': 'application/json'}
         r = requests.post(url,data,headers=headers,verify=True)
         response['status_code'] = r.status_code
@@ -595,10 +597,16 @@ class Cache(object):
     def saludos_desde_api(self):
         return 'Hola mundo desde Api'
 
-
-
-
-
+    def update_catalog_multi_record(self, answers, catalog_id, record_id=[], jwt_settings_key=False):
+        if not answers or not record_id:
+            print('update_catalog_multi_record >> no obtubo answers o record_id')
+            return {}
+        data = {
+            'answers': answers,
+            'catalog_id': catalog_id,
+            'objects': record_id
+        }
+        return self.network.dispatch(self.api_url.catalog['update_catalog_multi'], data=data, jwt_settings_key=jwt_settings_key)
 
 def warning(*objs):
     '''
