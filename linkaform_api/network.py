@@ -467,13 +467,13 @@ class Network:
 #### Catalogos
 ####
 
-    def post_catalog_answers(self, answers):
+    def post_catalog_answers(self, answers, jwt_settings_key=False):
         answers = [answers,]
         POST_CORRECTLY=0
         errors_json = []
-        return self.post_catalog_answers_list(answers, test=False)[0][1]
+        return self.post_catalog_answers_list(answers, test=False, jwt_settings_key=jwt_settings_key)[0][1]
 
-    def post_catalog_answers_list(self, answers, test=False):
+    def post_catalog_answers_list(self, answers, test=False, jwt_settings_key=False):
         if type(answers) == dict:
             answers = [answers,]
         POST_CORRECTLY=0
@@ -485,7 +485,7 @@ class Network:
             # este original se va a quedar despues de migrar al api
             #r = self.dispatch(self.api_url.catalog['set_catalog_answer'], data=answer)
             # este se va a quitar al migrarlo al api
-            r = self.dispatch(self.api_url.catalog['set_catalog_answer'], data=answer)
+            r = self.dispatch(self.api_url.catalog['set_catalog_answer'], data=answer, jwt_settings_key=jwt_settings_key)
             if r['status_code'] in  (201,200,202,204):
                 print "Answer %s saved."%(index + 1)
                 POST_CORRECTLY += 1

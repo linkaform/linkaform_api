@@ -594,9 +594,6 @@ class Cache(object):
         response['data'] = r.json()
         return response
 
-    def saludos_desde_api(self):
-        return 'Hola mundo desde Api'
-
     def update_catalog_multi_record(self, answers, catalog_id, record_id=[], jwt_settings_key=False):
         if not answers or not record_id:
             print('update_catalog_multi_record >> no obtubo answers o record_id')
