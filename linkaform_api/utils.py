@@ -605,6 +605,18 @@ class Cache(object):
         }
         return self.network.dispatch(self.api_url.catalog['update_catalog_multi'], data=data, jwt_settings_key=jwt_settings_key)
 
+    def create_filter(self, catalog_id, filter_name, filter_to_search, jwt_settings_key=False):
+        url = self.api_url.catalog['create_filter']['url']
+        method = self.api_url.catalog['create_filter']['method']
+        data_for_post = { 
+            "catalog_id": catalog_id,
+            "filter": filter_to_search,
+            "filter_name": filter_name,
+            "pageSize": 20
+        }
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post, jwt_settings_key=jwt_settings_key)
+        return response
+
 def warning(*objs):
     '''
     To print stuff at stderr
