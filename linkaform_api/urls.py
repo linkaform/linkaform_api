@@ -60,7 +60,7 @@ class Api_url:
         return  {
                 'all_users': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'GET'},
                 'user_by_id': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'GET'},
-                'get_form_users' :{'url': self.dest_url + '/api/infosync/item/{0}/get_users/?limit=0', 'method':'GET'},
+                'get_form_users' :{'url': self.dest_url + '/api/infosync/item/{0}/get_users/?limit=0', 'method':'GET'}
                 }
 
 
@@ -70,4 +70,5 @@ class Api_url:
                 'connection_by_id': {'url': self.dest_url + '/api/infosync/connection/', 'method':'GET'},
                 'form_connections': {'url': self.dest_url + '/api/infosync/connection_record_filter/?form_id=', 'method':'GET'},
                 'user_by_form' : {'url': self.dest_url + '/api/infosync/file_shared/?form_id=&user_id=', 'method':'GET'},
+                'user_connection': {'url': self.dest_url + '/api/infosync/user_connection/load_user/?email=', 'method': 'GET'}
                 }

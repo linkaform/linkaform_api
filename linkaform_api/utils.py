@@ -617,6 +617,16 @@ class Cache(object):
         response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post, jwt_settings_key=jwt_settings_key)
         return response
 
+    def get_user_connection(self, email_user, jwt_settings_key=False):
+        #TODO UPDATE SELF.ITESM
+        #Returns all the connections
+        connections = []
+        post_json = self.api_url.get_connections_url()['user_connection']
+        post_json['url'] = post_json['url'] + str(email_user)
+        user_connection = self.network.dispatch(post_json, jwt_settings_key=jwt_settings_key)
+        objects = user_connection['data']
+        return objects
+
 def warning(*objs):
     '''
     To print stuff at stderr
