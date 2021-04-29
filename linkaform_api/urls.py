@@ -53,6 +53,7 @@ class Api_url:
                 'delete_catalog_record': {'url': self.dest_url + '/api/infosync/catalog/bulk_docs/', 'method': 'POST'},
                 'update_catalog_multi': {'url': self.dest_url + '/api/infosync/catalog_answers/update_catalogs/', 'method': 'PATCH'},
                 'create_filter': {'url': self.dest_url + '/api/infosync/user_properties/create_filter/', 'method': 'POST'},
+                'delete_filter': {'url': self.dest_url + '/api/infosync/catalog//delete_filter/', 'method': 'POST'},
                 'share_catalog': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'}
                 }
 

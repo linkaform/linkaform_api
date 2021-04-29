@@ -157,12 +157,14 @@ class Cache(object):
         return objects
 
     def get_form_users(self, form_id, include_users=True, include_connections=True, 
-        include_owner=True, jwt_settings_key=False):
+        include_owner=True, is_catalog=False, jwt_settings_key=False):
         #Returns all the form usrs... by default includes users and connections
         connections = []
         post_json = self.api_url.get_users_url()['get_form_users']
         url = post_json['url'].format(form_id)
         response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
+        if is_catalog:
+            return response
         all_form_users = response.get('data', [])
         if not include_connections:
             [all_form_users.pop(pos) for pos, user in enumerate(all_form_users) if user['is_connection']]
@@ -617,6 +619,16 @@ class Cache(object):
         response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post, jwt_settings_key=jwt_settings_key)
         return response
 
+    def delete_filter(self, catalog_id, filter_name, jwt_settings_key=False):
+        url = self.api_url.catalog['delete_filter']['url']
+        method = self.api_url.catalog['delete_filter']['method']
+        data_for_post = { 
+            "catalog_id": catalog_id,
+            "filter_name": filter_name
+        }
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post, jwt_settings_key=jwt_settings_key)
+        return response
+
     def get_user_connection(self, email_user, jwt_settings_key=False):
         #TODO UPDATE SELF.ITESM
         #Returns all the connections
@@ -627,12 +639,13 @@ class Cache(object):
         objects = user_connection['data']
         return objects
 
-    def share_catalog(self, data_to_share, jwt_settings_key=False):
+    def share_catalog(self, data_to_share, unshare=False, jwt_settings_key=False):
         url = self.api_url.catalog['share_catalog']['url']
         method = self.api_url.catalog['share_catalog']['method']
-        data = {
-            'objects': [ data_to_share, ]
-        }
+        if unshare:
+            data = { 'objects': [], 'deleted_objects': data_to_share }
+        else:
+            data = { 'objects': [ data_to_share, ] }
         r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
         return r
 
