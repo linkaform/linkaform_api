@@ -627,6 +627,15 @@ class Cache(object):
         objects = user_connection['data']
         return objects
 
+    def share_catalog(self, data_to_share, jwt_settings_key=False):
+        url = self.api_url.catalog['share_catalog']['url']
+        method = self.api_url.catalog['share_catalog']['method']
+        data = {
+            'objects': [ data_to_share, ]
+        }
+        r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+        return r
+
 def warning(*objs):
     '''
     To print stuff at stderr
