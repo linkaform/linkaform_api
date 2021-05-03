@@ -7,7 +7,7 @@ from urllib.parse import quote
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
-requests.packages.urllib3.disable_warnings() 
+requests.packages.urllib3.disable_warnings()
 
 
 class Network:
@@ -19,18 +19,19 @@ class Network:
         self.api_url = Api_url(settings)
         self.thread_result = []
 
-    def login(self, session, username, password, get_jwt=False):
+    def login(self, session, username, password=None, get_jwt=False ,api_key=None):
         #data = simplejson.dumps({"password": self.settings.config['PASS'], "username": self.settings.config['USERNAME']})
-        data = {"password": self.settings.config['PASS'], "username": self.settings.config['USERNAME']}
+        if api_key:
+            data = {"username":username, "api_key": api_key}
+        else:
+            data = {"password": self.settings.config['PASS'], "username": self.settings.config['USERNAME']}
         response = self.dispatch(self.api_url.globals['login'], data=data, use_login=True)
-        if get_jwt:
+        if get_jwt and response['status_code'] != 400:
             if response.get('content'):
                 return response['content']['jwt']
             if response.get('json'):
                 return response['json']['jwt']
-
         return response['status_code'] == 200
-
 
     def get_url_method(self, url_method={}, url='', method=''):
         if not url and url_method.get('url'):
@@ -45,7 +46,7 @@ class Network:
 
 
     def dispatch(self, url_method={}, url='', method='', data={}, params={},
-                use_login=False, use_api_key=False, use_jwt=False, jwt_settings_key=False, 
+                use_login=False, use_api_key=False, use_jwt=False, jwt_settings_key=False,
                 encoding='utf-8', up_file=False, count=0):
         #must use the url_method or a url and method directly
         #url_method is a {} with a key url and method just like expres on urls
@@ -67,32 +68,32 @@ class Network:
         use_jwt = self.settings.config['USE_JWT']
         if method == 'GET':
             if params:
-                response = self.do_get(url, params=params, use_login=use_login, 
+                response = self.do_get(url, params=params, use_login=use_login,
                     use_api_key=use_api_key, use_jwt=use_jwt, jwt_settings_key=jwt_settings_key)
             else:
-                response = self.do_get(url, use_login=use_login, 
+                response = self.do_get(url, use_login=use_login,
                     use_api_key=use_api_key, use_jwt=use_jwt, jwt_settings_key=jwt_settings_key)
         if method == 'POST':
             if data == '{}' or not data:
                 raise  ValueError('No data to post, check you post method')
-            response = self.do_post(url, data, use_login, use_api_key, use_jwt=use_jwt, 
+            response = self.do_post(url, data, use_login, use_api_key, use_jwt=use_jwt,
                 jwt_settings_key=jwt_settings_key, up_file=up_file)
         if method == 'PATCH':
             if data == '{}' or not data:
                 raise  ValueError('No data to post, check you post method')
-            response = self.do_patch(url, data, use_login, use_api_key, use_jwt=use_jwt, 
+            response = self.do_patch(url, data, use_login, use_api_key, use_jwt=use_jwt,
                 jwt_settings_key=jwt_settings_key, up_file=up_file)
         if response['status_code'] == 502:
             if count < 11 :
                 count = count + 1
                 time.sleep(5)
                 self.dispatch(url_method=url_method, url=url, method=method, data=data, params=params,
-                    use_login=use_login, use_api_key=use_api_key, use_jwt=use_jwt, jwt_settings_key=jwt_settings_key, 
+                    use_login=use_login, use_api_key=use_api_key, use_jwt=use_jwt, jwt_settings_key=jwt_settings_key,
                     encoding=encoding, up_file=up_file, count=count)
         return response
 
 
-    def do_get(self, url, params= {}, use_login=False, use_api_key=False, 
+    def do_get(self, url, params= {}, use_login=False, use_api_key=False,
         use_jwt=False, jwt_settings_key=False):
         response = {'data':{}, 'status_code':''}
         JWT = self.settings.config['JWT_KEY']
@@ -129,7 +130,7 @@ class Network:
         if r.content and type(r.content) is dict:
             #print('IMPRIMIENDO CONTENT: ', r.content)
             response['content'] = simplejson.loads(r.content)
-	
+
         try:
             response['json'] = r.json()
         except simplejson.scanner.JSONDecodeError:
@@ -411,7 +412,7 @@ class Network:
         else:
             mongo_uri = self.get_mongo_uri(db_name)
             connection['client'] = MongoClient(mongo_uri)
-        
+
         connection['db'] = connection['client'][db_name]
         return connection
 
