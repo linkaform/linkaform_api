@@ -1,12 +1,13 @@
 # coding: utf-8
 #!/usr/bin/python
 
-import time, datetime, concurrent.futures
+import simplejson, time, datetime, concurrent.futures
 
 #import threading
 #import concurrent.futures
 #from forms import Form
 from linkaform_api import network
+import pyexcel
 
 class Cache(object):
 
@@ -20,7 +21,7 @@ class Cache(object):
         self.network = network.Network(self.settings)
         self.thread_dict = {}
 
-    def assigne_user_records(self, user_id, record_id_list, send_email=False, 
+    def assigne_user_records(self, user_id, record_id_list, send_email=False,
         send_push_notification=False, jwt_settings_key=False):
         url_method = self.api_url.record['assigne_user']
         data = {'user_id': user_id, 'records': record_id_list,
@@ -31,7 +32,7 @@ class Cache(object):
             return response['data']
         return response
 
-    def assigne_connection_records(self, connection_id, record_id_list, user_of_connection=False, 
+    def assigne_connection_records(self, connection_id, record_id_list, user_of_connection=False,
         send_email=False, send_push_notification=False, jwt_settings_key=False):
         url_method = self.api_url.record['assigne_connection']
         data = {'connection_id': connection_id, 'records': record_id_list,
@@ -45,7 +46,7 @@ class Cache(object):
         return response
 
     def drop_fields_for_patch(self, record):
-        fields_to_drop = ['end_date','editable','updated_at','duration','index', 
+        fields_to_drop = ['end_date','editable','updated_at','duration','index',
                         'created_at', 'version', 'start_date', 'updated_by','voucher' ,
                         'voucher_id','connection_record_id','other_versions','mobile_record_id']
         for field in fields_to_drop:
@@ -58,9 +59,9 @@ class Cache(object):
     def ftp_upload(self, server, username, password, file_name, file_path):
         import ftplib
         session = ftplib.FTP(server, username, password)
-        file = open(file_path,'rb')                  
-        session.storbinary('STOR {}'.format(file_name), file)     
-        file.close()                                   
+        file = open(file_path,'rb')
+        session.storbinary('STOR {}'.format(file_name), file)
+        file.close()
         session.quit()
         return True
 
@@ -155,7 +156,7 @@ class Cache(object):
         objects = all_connections['data']
         return objects
 
-    def get_form_users(self, form_id, include_users=True, include_connections=True, 
+    def get_form_users(self, form_id, include_users=True, include_connections=True,
         include_owner=True, jwt_settings_key=False):
         #Returns all the form usrs... by default includes users and connections
         connections = []
@@ -228,7 +229,7 @@ class Cache(object):
         if response['status_code'] == 200:
             return response['data']
         return False
-   
+
     def get_metadata(self, form_id=False, user_id=False):
         time_started = time.time()
         metadata = {
@@ -262,6 +263,31 @@ class Cache(object):
                 value = value[:index] + value[index+1:]
                 last_find = index
         return (count, org_value)
+
+    def make_excel_file(self, header, records, form_id, file_field_id, upload_name=None, jwt_settings_key='JWT_KEY'):
+        records.insert(0,header)
+        #rows = make_array(orders)
+        date = time.strftime("%Y_%m_%d_%H_%M_%S")
+        if not upload_name:
+            upload_name = "file_" + date
+        file_name = "/tmp/output_%s.xlsx"%(date)
+        pyexcel.save_as(array=records, dest_file_name=file_name)
+        #os_file_name = self.make_excel_file(record_errors)
+        csv_file = open(file_name,'rb')
+        csv_file_dir = {'File': csv_file}
+        try:
+            upload_data = {'form_id': form_id, 'field_id': file_field_id}
+            upload_url = self.post_upload_file(data=upload_data, up_file=csv_file_dir,  jwt_settings_key=jwt_settings_key)
+        except:
+           return "No se pudo generar el archivo de error "
+        csv_file.close()
+        try:
+            file_url = upload_url['data']['file']
+            excel_file = {file_field_id: {'file_name':'%s.xlsx'%upload_name,
+                                                'file_url':file_url}}
+        except KeyError:
+            print('could not save file Errores')
+        return excel_file
 
     def make_infosync_select_json(self, answer, element, best_effort=False):
         if type(answer) != str:
@@ -342,7 +368,7 @@ class Cache(object):
     def thread_function_dict(self, record, data,  jwt_settings_key):
         #if record not in self.thread_dict.keys():
         data['folios'] = [record]
-        res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, 
+        res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data,
             jwt_settings_key=jwt_settings_key)
         self.thread_dict[record] = res
         #logging.info("Finishing with code"%(record, res))
@@ -364,23 +390,23 @@ class Cache(object):
             data['records'] = record_id
 
         data['form_id'] = form_id
-        
+
         if threading:
             with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
                 if data.get('records', False):
                     records = data.pop('records')
                     for record in records:
                         data['records'] = [record]
-                        executor.map(lambda x: self.thread_function_dict(x, data, 
+                        executor.map(lambda x: self.thread_function_dict(x, data,
                             jwt_settings_key=jwt_settings_key), [record])
                 elif data.get('folios', False):
                     folios = data.pop('folios')
                     for folio in folios:
-                        executor.map(lambda x: self.thread_function_dict(x, data, 
+                        executor.map(lambda x: self.thread_function_dict(x, data,
                             jwt_settings_key=jwt_settings_key), [folio])
             return  self.thread_dict
-        
-        return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, 
+
+        return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data,
             jwt_settings_key=jwt_settings_key)
 
     def thread_function_bulk_patch(self, data, form_id,  jwt_settings_key):
@@ -388,7 +414,7 @@ class Cache(object):
         data['form_id'] = form_id
         #print('data=', data)
 
-        res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, 
+        res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data,
             jwt_settings_key=jwt_settings_key)
         #print('res=',res)
         if data.get('folio'):
@@ -407,7 +433,7 @@ class Cache(object):
         if threading:
             with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
                 for data in records:
-                    executor.map(lambda x: self.thread_function_bulk_patch(x, form_id, 
+                    executor.map(lambda x: self.thread_function_bulk_patch(x, form_id,
                         jwt_settings_key=jwt_settings_key), [data])
             return  self.thread_dict
         return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
@@ -417,6 +443,13 @@ class Cache(object):
         #up_file:
         upload_url = self.network.dispatch(self.api_url.form['upload_file'], data=data, up_file=up_file, jwt_settings_key=jwt_settings_key)
         return upload_url
+
+    def cdb_upload(self, data, jwt_settings_key=False):
+        #data:
+        url = self.api_url.record['cdb_upload']['url']
+        method = self.api_url.record['cdb_upload']['method']
+        response = self.network.dispatch(url=url, method=method, data=data,  jwt_settings_key=jwt_settings_key)
+        return response
 
     def patch_record(self, data, record_id=None, jwt_settings_key=False):
         #If no record_id is send, it is asuemed that the record_id
@@ -455,23 +488,36 @@ class Cache(object):
         except ValueError:
             raise ValueError("Incorrect data format, should be YYYY-MM-DD")
 
-    def get_jwt(self, user, password, get_jwt=True):
+    def get_jwt(self, user=None, password=None, get_jwt=True, api_key=None):
         session = False
-        jwt = self.network.login(session, user, password, get_jwt=get_jwt)
+        if not user:
+            user = self.settings.config.get('USERNAME')
+        if not password:
+            password = self.settings.config.get('PASS')
+        if api_key:
+            if type(api_key) == bool:
+                api_key = self.settings.config.get('api_key')
+            jwt = self.network.login(session, username=user, get_jwt=get_jwt, api_key=api_key)
+        else:
+            jwt = self.network.login(session, user, password, get_jwt=get_jwt)
         return jwt
+
+    def get_pdf_record(self, record_id, template_id=None, upload_data=None, jwt_settings_key=False):
+        return self.network.pdf_record(record_id , template_id=template_id, upload_data=upload_data, jwt_settings_key=jwt_settings_key)
+
 
     def run_script(self, data, jwt_settings_key=False):
         return self.network.dispatch(self.api_url.script['run_script'], data=data, jwt_settings_key=jwt_settings_key)
 
- 
+
 ####
 #### Catalogos
 ####
 
-    def get_catalog_id_fields(self, catalog_id):
+    def get_catalog_id_fields(self, catalog_id, jwt_settings_key=False):
         url = self.api_url.catalog['catalog_id_fields']['url']+str(catalog_id)+'/'
         method = self.api_url.catalog['catalog_id_fields']['method']
-        response = self.network.dispatch(url=url, method=method, use_api_key=False)
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
         if response['status_code'] == 200:
             return response['data']
         return False
@@ -488,8 +534,8 @@ class Cache(object):
             metadata.pop('catalog_id')
         return metadata
 
-    def post_catalog_answers(self, answers, test=False):
-        return self.__network.post_catalog_answers(answers)
+    def post_catalog_answers(self, answers, test=False, jwt_settings_key=False):
+        return self.network.post_catalog_answers(answers, jwt_settings_key=jwt_settings_key)
 
     def prepare_response_find(self, response):
         list_data = response.get('json',{}).get('objects',[])
@@ -500,14 +546,14 @@ class Cache(object):
             list_to_response.append(answers_data)
         return list_to_response
 
-    def search_catalog(self, catalog_id, mango_query):
+    def search_catalog(self, catalog_id, mango_query, jwt_settings_key=False):
         url = self.api_url.catalog['get_record_by_folio']['url']
         method = self.api_url.catalog['get_record_by_folio']['method']
         data_for_post = {
             'catalog_id':catalog_id,
             'mango':mango_query
             }
-        response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post)
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post, jwt_settings_key=jwt_settings_key)
 
         if response['status_code'] == 200:
             return self.prepare_response_find(response)
@@ -528,13 +574,13 @@ class Cache(object):
         return self.search_catalog(catalog_id, mango_query)
 
 
-    def update_catalog_answers(self, data, record_id=None):
+    def update_catalog_answers(self, data, record_id=None, jwt_settings_key=False):
         if record_id:
             data['_id'] = record_id
-        return self.__network.patch_catalog_answers(data)
+        return self.network.patch_catalog_answers(data, jwt_settings_key=jwt_settings_key)
 
 
-    def delete_catalog_record(self, catalog_id, id_record, rev):
+    def delete_catalog_record(self, catalog_id, id_record, rev, jwt_settings_key=False):
         url = self.api_url.catalog['delete_catalog_record']['url']
         method = self.api_url.catalog['delete_catalog_record']['method']
         data_for_post = {"docs":[{"_id":id_record, "_rev":rev, "_deleted":True, "index":0}],"catalog_id":catalog_id}
@@ -542,18 +588,68 @@ class Cache(object):
         #return response
         data = simplejson.dumps(data_for_post, default=json_util.default, for_json=True)
         response = {'data':{}, 'status_code':''}
-        JWT = settings.config['JWT_KEY']
+        JWT = self.settings.config['JWT_KEY']
+        if jwt_settings_key:
+            JWT = self.settings.config[jwt_settings_key]
         headers = {'Authorization':'jwt {0}'.format(JWT), 'Content-type': 'application/json'}
         r = requests.post(url,data,headers=headers,verify=True)
         response['status_code'] = r.status_code
         response['data'] = r.json()
         return response
 
+    def update_catalog_multi_record(self, answers, catalog_id, record_id=[], jwt_settings_key=False):
+        if not answers or not record_id:
+            print('update_catalog_multi_record >> no obtubo answers o record_id')
+            return {}
+        data = {
+            'answers': answers,
+            'catalog_id': catalog_id,
+            'objects': record_id
+        }
+        return self.network.dispatch(self.api_url.catalog['update_catalog_multi'], data=data, jwt_settings_key=jwt_settings_key)
 
+    def create_filter(self, catalog_id, filter_name, filter_to_search, jwt_settings_key=False):
+        url = self.api_url.catalog['create_filter']['url']
+        method = self.api_url.catalog['create_filter']['method']
+        data_for_post = {
+            "catalog_id": catalog_id,
+            "filter": filter_to_search,
+            "filter_name": filter_name,
+            "pageSize": 20
+        }
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post, jwt_settings_key=jwt_settings_key)
+        return response
 
+    def delete_filter(self, catalog_id, filter_name, jwt_settings_key=False):
+        url = self.api_url.catalog['delete_filter']['url']
+        method = self.api_url.catalog['delete_filter']['method']
+        data_for_post = {
+            "catalog_id": catalog_id,
+            "filter_name": filter_name
+        }
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post, jwt_settings_key=jwt_settings_key)
+        return response
 
+    def get_user_connection(self, email_user, jwt_settings_key=False):
+        #TODO UPDATE SELF.ITESM
+        #Returns all the connections
+        connections = []
+        post_json = self.api_url.get_connections_url()['user_connection']
+        post_json['url'] = post_json['url'] + str(email_user)
+        user_connection = self.network.dispatch(post_json, jwt_settings_key=jwt_settings_key)
+        objects = user_connection['data']
+        return objects
 
- 
+    def share_catalog(self, data_to_share, unshare=False, jwt_settings_key=False):
+        url = self.api_url.catalog['share_catalog']['url']
+        method = self.api_url.catalog['share_catalog']['method']
+        if unshare:
+            data = { 'objects': [], 'deleted_objects': data_to_share }
+        else:
+            data = { 'objects': [ data_to_share, ] }
+        r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+        return r
+
 
 
 def warning(*objs):

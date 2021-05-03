@@ -366,6 +366,31 @@ class Network:
             finally:
                 counter = counter +1
 
+    def pdf_record(self, record_id, template_id=None, upload_data=None, jwt_settings_key=False):
+        url = self.api_url.record['get_record_pdf']['url']
+        method = self.api_url.record['get_record_pdf']['method']
+        body = {
+            'answer_uri': '/api/infosync/form_answer/{}/'.format(record_id),
+            'filter_id':None,
+            'template':template_id,
+        }
+        response = self.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
+        if upload_data:
+            try:
+                file_name = upload_data.get('file_name', '{}.pdf'.format(str(ObjectId())))
+            except:
+                headers = response.get('headers')
+                file_name = headers['Content-Disposition'].split(';')[1].split('=')[1].strip('"').split('.')[0]
+            upload_data.update({'file_name':file_name})
+            f = open('/tmp/{}'.format(file_name),'w')
+            if response.get('status_code') == 200:
+                f.write(response['data'])
+                f.close()
+                csv_file = open('/tmp/{}'.format(file_name),'rb')
+                csv_file_dir = {'File': csv_file}
+                upload_url = self.dispatch(self.api_url.form['upload_file'], data=upload_data, up_file=csv_file_dir, jwt_settings_key=jwt_settings_key)
+                return upload_url
+        return response
 
     ###
     ### Database Connection
@@ -435,13 +460,13 @@ class Network:
 #### Catalogos
 ####
 
-    def post_catalog_answers(self, answers):
+    def post_catalog_answers(self, answers, jwt_settings_key=False):
         answers = [answers,]
         POST_CORRECTLY=0
         errors_json = []
-        return self.post_catalog_answers_list(answers, test=False)[0][1]
+        return self.post_catalog_answers_list(answers, test=False, jwt_settings_key=jwt_settings_key)[0][1]
 
-    def post_catalog_answers_list(self, answers, test=False):
+    def post_catalog_answers_list(self, answers, test=False, jwt_settings_key=False):
         if type(answers) == dict:
             answers = [answers,]
         POST_CORRECTLY=0
@@ -453,7 +478,7 @@ class Network:
             # este original se va a quedar despues de migrar al api
             #r = self.dispatch(self.api_url.catalog['set_catalog_answer'], data=answer)
             # este se va a quitar al migrarlo al api
-            r = self.__network.dispatch(self.api_url.catalog['set_catalog_answer'], data=answer)
+            r = self.dispatch(self.api_url.catalog['set_catalog_answer'], data=answer, jwt_settings_key=jwt_settings_key)
             if r['status_code'] in  (201,200,202,204):
                 print("Answer %s saved."%(index + 1))
                 POST_CORRECTLY += 1
@@ -470,9 +495,9 @@ class Network:
     def patch_catalog_answers(self, answers):
         if type(answers) == dict:
             answers = [answers,]
-        return self.patch_catalog_answers_list(answers)[0][1]
+        return self.patch_catalog_answers_list(answers, jwt_settings_key=jwt_settings_key)[0][1]
 
-    def patch_catalog_answers_list(self, answers):
+    def patch_catalog_answers_list(self, answers, jwt_settings_key=False):
         if type(answers) == dict:
             answers = [answers,]
         POST_CORRECTLY=0
@@ -485,7 +510,7 @@ class Network:
                 raise ValueError('The answer must have a record_id')'''
             url = self.api_url.catalog['update_catalog_answer']['url']
             method = self.api_url.catalog['update_catalog_answer']['method']
-            r = self.__network.dispatch(url=url, method=method, data=answer)
+            r = self.dispatch(url=url, method=method, data=answer, jwt_settings_key=jwt_settings_key)
             if r['status_code'] in  (201,200,202,204):
                 print("Answer %s saved."%(index + 1))
                 POST_CORRECTLY += 1

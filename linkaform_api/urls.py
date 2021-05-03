@@ -48,6 +48,8 @@ class Api_url:
                 'catalog_id_fields': {'url': self.dest_url + '/api/infosync/catalog_model/send_catalog/', 'method':'GET'},
                 'set_catalog_answer': {'url': self.dest_url + '/api/infosync/catalog_answers/', 'method':'POST'},
                 'get_record_by_folio': {'url': self.dest_url + '/api/infosync/catalog/find/', 'method':'POST'},
+                'delete_catalog_record': {'url': self.dest_url + '/api/infosync/catalog/bulk_docs/', 'method': 'POST'},
+                'get_record_by_folio': {'url': self.dest_url + '/api/infosync/catalog/find/', 'method':'POST'},
                 'update_catalog_answer': {'url': self.dest_url + '/api/infosync/catalog_answers/', 'method': 'PATCH'},
                 'delete_catalog_record': {'url': self.dest_url + '/api/infosync/catalog/bulk_docs/', 'method': 'POST'}
 
