@@ -21,7 +21,7 @@ class Cache(object):
         self.network = network.Network(self.settings)
         self.thread_dict = {}
 
-    def assigne_user_records(self, user_id, record_id_list, send_email=False, 
+    def assigne_user_records(self, user_id, record_id_list, send_email=False,
         send_push_notification=False, jwt_settings_key=False):
         url_method = self.api_url.record['assigne_user']
         data = {'user_id': user_id, 'records': record_id_list,
@@ -32,7 +32,7 @@ class Cache(object):
             return response['data']
         return response
 
-    def assigne_connection_records(self, connection_id, record_id_list, user_of_connection=False, 
+    def assigne_connection_records(self, connection_id, record_id_list, user_of_connection=False,
         send_email=False, send_push_notification=False, jwt_settings_key=False):
         url_method = self.api_url.record['assigne_connection']
         data = {'connection_id': connection_id, 'records': record_id_list,
@@ -46,7 +46,7 @@ class Cache(object):
         return response
 
     def drop_fields_for_patch(self, record):
-        fields_to_drop = ['end_date','editable','updated_at','duration','index', 
+        fields_to_drop = ['end_date','editable','updated_at','duration','index',
                         'created_at', 'version', 'start_date', 'updated_by','voucher' ,
                         'voucher_id','connection_record_id','other_versions','mobile_record_id']
         for field in fields_to_drop:
@@ -59,9 +59,9 @@ class Cache(object):
     def ftp_upload(self, server, username, password, file_name, file_path):
         import ftplib
         session = ftplib.FTP(server, username, password)
-        file = open(file_path,'rb')                  
-        session.storbinary('STOR {}'.format(file_name), file)     
-        file.close()                                   
+        file = open(file_path,'rb')
+        session.storbinary('STOR {}'.format(file_name), file)
+        file.close()
         session.quit()
         return True
 
@@ -156,7 +156,7 @@ class Cache(object):
         objects = all_connections['data']
         return objects
 
-    def get_form_users(self, form_id, include_users=True, include_connections=True, 
+    def get_form_users(self, form_id, include_users=True, include_connections=True,
         include_owner=True, is_catalog=False, jwt_settings_key=False):
         #Returns all the form usrs... by default includes users and connections
         connections = []
@@ -231,7 +231,7 @@ class Cache(object):
         if response['status_code'] == 200:
             return response['data']
         return False
-   
+
     def get_metadata(self, form_id=False, user_id=False):
         time_started = time.time()
         metadata = {
@@ -371,7 +371,7 @@ class Cache(object):
     def thread_function_dict(self, record, data,  jwt_settings_key):
         #if record not in self.thread_dict.keys():
         data['folios'] = [record]
-        res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, 
+        res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data,
             jwt_settings_key=jwt_settings_key)
         self.thread_dict[record] = res
         #logging.info("Finishing with code"%(record, res))
@@ -393,23 +393,23 @@ class Cache(object):
             data['records'] = record_id
 
         data['form_id'] = form_id
-        
+
         if threading:
             with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
                 if data.get('records', False):
                     records = data.pop('records')
                     for record in records:
                         data['records'] = [record]
-                        executor.map(lambda x: self.thread_function_dict(x, data, 
+                        executor.map(lambda x: self.thread_function_dict(x, data,
                             jwt_settings_key=jwt_settings_key), [record])
                 elif data.get('folios', False):
                     folios = data.pop('folios')
                     for folio in folios:
-                        executor.map(lambda x: self.thread_function_dict(x, data, 
+                        executor.map(lambda x: self.thread_function_dict(x, data,
                             jwt_settings_key=jwt_settings_key), [folio])
             return  self.thread_dict
-        
-        return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, 
+
+        return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data,
             jwt_settings_key=jwt_settings_key)
 
     def thread_function_bulk_patch(self, data, form_id,  jwt_settings_key):
@@ -417,7 +417,7 @@ class Cache(object):
         data['form_id'] = form_id
         #print 'data=', data
 
-        res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, 
+        res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data,
             jwt_settings_key=jwt_settings_key)
         #print 'res=',res
         if data.get('folio'):
@@ -436,7 +436,7 @@ class Cache(object):
         if threading:
             with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
                 for data in records:
-                    executor.map(lambda x: self.thread_function_bulk_patch(x, form_id, 
+                    executor.map(lambda x: self.thread_function_bulk_patch(x, form_id,
                         jwt_settings_key=jwt_settings_key), [data])
             return  self.thread_dict
         return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
@@ -508,6 +508,10 @@ class Cache(object):
 
     def get_pdf_record(self, record_id, template_id=None, upload_data=None, jwt_settings_key=False):
         return self.network.pdf_record(record_id , template_id=template_id, upload_data=upload_data, jwt_settings_key=jwt_settings_key)
+
+    def run_script(self, data, jwt_settings_key=False):
+        return self.network.dispatch(self.api_url.script['run_script'], data=data, jwt_settings_key=jwt_settings_key)
+
 
 ####
 #### Catalogos
@@ -610,7 +614,7 @@ class Cache(object):
     def create_filter(self, catalog_id, filter_name, filter_to_search, jwt_settings_key=False):
         url = self.api_url.catalog['create_filter']['url']
         method = self.api_url.catalog['create_filter']['method']
-        data_for_post = { 
+        data_for_post = {
             "catalog_id": catalog_id,
             "filter": filter_to_search,
             "filter_name": filter_name,
@@ -622,7 +626,7 @@ class Cache(object):
     def delete_filter(self, catalog_id, filter_name, jwt_settings_key=False):
         url = self.api_url.catalog['delete_filter']['url']
         method = self.api_url.catalog['delete_filter']['method']
-        data_for_post = { 
+        data_for_post = {
             "catalog_id": catalog_id,
             "filter_name": filter_name
         }
