@@ -2,8 +2,8 @@
 #!/usr/bin/python
 
 import requests, simplejson, simplejson, time, threading, concurrent.futures
-from bson import json_util
-from urllib.parse import quote
+from bson import json_util, ObjectId
+from urllib import quote_plus
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
@@ -43,7 +43,6 @@ class Network:
         elif not method:
             raise Exception ("No Method found")
         return url, method.upper()
-
 
     def dispatch(self, url_method={}, url='', method='', data={}, params={},
                 use_login=False, use_api_key=False, use_jwt=False, jwt_settings_key=False,
@@ -92,7 +91,6 @@ class Network:
                     encoding=encoding, up_file=up_file, count=count)
         return response
 
-
     def do_get(self, url, params= {}, use_login=False, use_api_key=False,
         use_jwt=False, jwt_settings_key=False):
         response = {'data':{}, 'status_code':''}
@@ -107,8 +105,7 @@ class Network:
             headers = {'Content-type': 'application/json',
                        'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
                           self.settings.config['AUTHORIZATION_TOKEN_VALUE'])}
-        else:
-
+        if use_login:
             use_login = True
             session = requests.Session()
             if self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']):
@@ -154,7 +151,6 @@ class Network:
         JWT = self.settings.config['JWT_KEY']
         if jwt_settings_key:
             JWT = self.settings.config[jwt_settings_key]
-        #print('POSOOOOOOST', jwt_settings_key)
         if use_jwt and not use_api_key:
             #print('use_jwtuse_jwtuse_jwt')
             headers = {'Authorization':'jwt {0}'.format(JWT)}
@@ -167,7 +163,6 @@ class Network:
                           self.settings.config['AUTHORIZATION_TOKEN_VALUE'])}
 
         if use_login:
-            use_login = True
             session = requests.Session()
             if use_login or (self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']) and not use_api_key):
                 if not up_file:
@@ -199,14 +194,19 @@ class Network:
             pass
 
         if r.status_code == 200:
-            r_data = simplejson.loads(r.content)
+            try:
+                r_data = simplejson.loads(r.content)
+            except:
+                response['data'] = r.text
+                return response
+
             if up_file:
                 response['data'] = r_data
             elif r_data.get('success'):
                 if r_data['success']:
                     return response
             else:
-                response['data'] = r_data['objects']
+                response['data'] = r_data.get('objects',r_data)
         return response
 
     def do_patch(self, url, data, use_login=False, use_api_key=False,
@@ -492,7 +492,7 @@ class Network:
                 self.settings.GLOBAL_ERRORS.append(errors_json)
         return res
 
-    def patch_catalog_answers(self, answers):
+    def patch_catalog_answers(self, answers, jwt_settings_key=False):
         if type(answers) == dict:
             answers = [answers,]
         return self.patch_catalog_answers_list(answers, jwt_settings_key=jwt_settings_key)[0][1]

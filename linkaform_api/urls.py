@@ -36,10 +36,12 @@ class Api_url:
     def get_records_url(self):
         return  {
                 'form_answer': {'url': self.dest_url + '/api/infosync/form_answer/', 'method':'GET'},
+                'cdb_upload': {'url': self.dest_url + '/api/infosync/cdb_upload/', 'method':'POST'},
                 'form_answer_patch': {'url': self.dest_url + '/api/infosync/form_answer/', 'method':'PATCH'},
                 'form_answer_patch_multi': {'url': self.dest_url + '/api/infosync/form_answer/update_records/', 'method':'PATCH'},
                 'assigne_user':{'url': self.dest_url + '/api/infosync/form_answer/assign_lead/', 'method':'POST'},
-                'assigne_connection': {'url': self.dest_url + '/api/infosync/form_answer/assign_lead_connection/', 'method':'POST'}
+                'assigne_connection': {'url': self.dest_url + '/api/infosync/form_answer/assign_lead_connection/', 'method':'POST'},
+                'get_record_pdf': {'url': self.dest_url + '/api/infosync/form_answer/pdf/', 'method':'POST'}
                 }
 
 
@@ -48,11 +50,12 @@ class Api_url:
                 'catalog_id_fields': {'url': self.dest_url + '/api/infosync/catalog_model/send_catalog/', 'method':'GET'},
                 'set_catalog_answer': {'url': self.dest_url + '/api/infosync/catalog_answers/', 'method':'POST'},
                 'get_record_by_folio': {'url': self.dest_url + '/api/infosync/catalog/find/', 'method':'POST'},
-                'delete_catalog_record': {'url': self.dest_url + '/api/infosync/catalog/bulk_docs/', 'method': 'POST'},
-                'get_record_by_folio': {'url': self.dest_url + '/api/infosync/catalog/find/', 'method':'POST'},
                 'update_catalog_answer': {'url': self.dest_url + '/api/infosync/catalog_answers/', 'method': 'PATCH'},
-                'delete_catalog_record': {'url': self.dest_url + '/api/infosync/catalog/bulk_docs/', 'method': 'POST'}
-
+                'delete_catalog_record': {'url': self.dest_url + '/api/infosync/catalog/bulk_docs/', 'method': 'POST'},
+                'update_catalog_multi': {'url': self.dest_url + '/api/infosync/catalog_answers/update_catalogs/', 'method': 'PATCH'},
+                'create_filter': {'url': self.dest_url + '/api/infosync/user_properties/create_filter/', 'method': 'POST'},
+                'delete_filter': {'url': self.dest_url + '/api/infosync/catalog//delete_filter/', 'method': 'POST'},
+                'share_catalog': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'}
                 }
 
 
@@ -60,7 +63,7 @@ class Api_url:
         return  {
                 'all_users': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'GET'},
                 'user_by_id': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'GET'},
-                'get_form_users' :{'url': self.dest_url + '/api/infosync/item/{0}/get_users/?limit=0', 'method':'GET'},
+                'get_form_users' :{'url': self.dest_url + '/api/infosync/item/{0}/get_users/?limit=0', 'method':'GET'}
                 }
 
 
@@ -70,6 +73,7 @@ class Api_url:
                 'connection_by_id': {'url': self.dest_url + '/api/infosync/connection/', 'method':'GET'},
                 'form_connections': {'url': self.dest_url + '/api/infosync/connection_record_filter/?form_id=', 'method':'GET'},
                 'user_by_form' : {'url': self.dest_url + '/api/infosync/file_shared/?form_id=&user_id=', 'method':'GET'},
+                'user_connection': {'url': self.dest_url + '/api/infosync/user_connection/load_user/?email=', 'method': 'GET'}
                 }
 
     def get_script(self):
