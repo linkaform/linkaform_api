@@ -8,6 +8,7 @@ import simplejson, time, datetime, concurrent.futures
 #from forms import Form
 from linkaform_api import network
 import pyexcel
+from . import network
 
 class Cache(object):
 

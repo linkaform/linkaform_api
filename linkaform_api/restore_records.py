@@ -112,6 +112,7 @@ def update_groups(record):
             # print('folio=',record['folio'])
             if record['answers'].get(group_id) and record['answers'][group_id]:
                 # print(record['answers'][group_id])
+
                 if isinstance(record['answers'][group_id], dict):
                     print('folio=',record['folio'])
                     cur_col.update(

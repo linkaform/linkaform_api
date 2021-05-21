@@ -2,8 +2,8 @@
 #!/usr/bin/python
 
 import requests, simplejson, simplejson, time, threading, concurrent.futures
-from bson import json_util, ObjectId
-from urllib import quote_plus
+from bson import json_util
+from urllib.parse import quote
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
@@ -415,6 +415,10 @@ class Network:
 
         MONGODB_URI = 'mongodb://{0}:{1}@{2}/{3}'.format(
             quote(user), quote(password), mongo_hosts, param_url)
+<<<<<<< Updated upstream
+=======
+        #print 'MONGODB_URI', MONGODB_URI
+>>>>>>> Stashed changes
         return MONGODB_URI
 
     def get_user_connection(self):
@@ -480,6 +484,7 @@ class Network:
             # este se va a quitar al migrarlo al api
             r = self.dispatch(self.api_url.catalog['set_catalog_answer'], data=answer, jwt_settings_key=jwt_settings_key)
             if r['status_code'] in  (201,200,202,204):
+<<<<<<< Updated upstream
                 print("Answer %s saved."%(index + 1))
                 POST_CORRECTLY += 1
             else:
@@ -487,6 +492,15 @@ class Network:
                 errors_json.append(r)
             res.append((index, r))
             print('Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, index+1))
+=======
+                print( "Answer %s saved."%(index + 1))
+                POST_CORRECTLY += 1
+            else:
+                print( "Answer %s was rejected."%(index + 1))
+                errors_json.append(r)
+            res.append((index, r))
+            print( 'Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, index+1))
+>>>>>>> Stashed changes
         if errors_json:
             if test:
                 self.settings.GLOBAL_ERRORS.append(errors_json)
@@ -504,7 +518,7 @@ class Network:
         errors_json = []
         res = []
         for index, answer in enumerate(answers):
-            '''if answer.has_key('record_id') and answer['record_id']:
+            '''if answer.get('record_id') and answer['record_id']:
                 record_id = answer['record_id']
             else:
                 raise ValueError('The answer must have a record_id')'''
@@ -512,6 +526,7 @@ class Network:
             method = self.api_url.catalog['update_catalog_answer']['method']
             r = self.dispatch(url=url, method=method, data=answer, jwt_settings_key=jwt_settings_key)
             if r['status_code'] in  (201,200,202,204):
+<<<<<<< Updated upstream
                 print("Answer %s saved."%(index + 1))
                 POST_CORRECTLY += 1
             else:
@@ -522,5 +537,17 @@ class Network:
         print('Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, len(answers)))
         if errors_json:
             print('errors_json=', errors_json)
+=======
+                print( "Answer %s saved."%(index + 1))
+                POST_CORRECTLY += 1
+            else:
+                print( "Answer %s was rejected."%(index + 1))
+                #r['id'] = str(record_id)
+                errors_json.append(r)
+            res.append((index, r))
+        print( 'Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, len(answers)))
+        if errors_json:
+            print( 'errors_json=', errors_json)
+>>>>>>> Stashed changes
             self.settings.GLOBAL_ERRORS.append(errors_json)
         return res
