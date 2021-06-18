@@ -157,6 +157,14 @@ class Cache(object):
         objects = all_connections['data']
         return objects
 
+    def get_user_by_email(self, user_email, jwt_settings_key=False):
+        post_json = self.api_url.get_users_url()['user_id_by_email']
+        url = post_json['url'].format(user_email)
+        response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
+        print('response', response)
+        all_users = response.get('objects', [])
+        return all_users
+
     def get_form_users(self, form_id, include_users=True, include_connections=True,
         include_owner=True, is_catalog=False, jwt_settings_key=False):
         #Returns all the form usrs... by default includes users and connections
