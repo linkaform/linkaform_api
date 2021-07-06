@@ -61,7 +61,7 @@ class Api_url:
     def get_users_url(self):
         return  {
                 'all_users': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'GET'},
-                'user_id_by_email': {'url': self.dest_url + '/api/infosync/user/item_users/?name={0}', 'method':'GET'},
+                'user_id_by_email': {'url': self.dest_url + '/api/infosync/user/?email__contains={0}', 'method':'GET'},
                 'user_by_id': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'GET'},
                 'get_form_users' :{'url': self.dest_url + '/api/infosync/item/{0}/get_users/?limit=0', 'method':'GET'}
                 }

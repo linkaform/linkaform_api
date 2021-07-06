@@ -161,7 +161,7 @@ class Cache(object):
         url = post_json['url'].format(user_email)
         response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
         print 'response', response
-        all_users = response.get('objects', [])
+        all_users = response.get('json',{}).get('objects', [])
         return all_users
 
     def get_form_users(self, form_id, include_users=True, include_connections=True,
