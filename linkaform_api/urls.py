@@ -55,7 +55,8 @@ class Api_url:
                 'update_catalog_multi': {'url': self.dest_url + '/api/infosync/catalog_answers/update_catalogs/', 'method': 'PATCH'},
                 'create_filter': {'url': self.dest_url + '/api/infosync/user_properties/create_filter/', 'method': 'POST'},
                 'delete_filter': {'url': self.dest_url + '/api/infosync/catalog//delete_filter/', 'method': 'POST'},
-                'share_catalog': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'}
+                'share_catalog': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'},
+                'update_catalog_model': {'url': self.dest_url + '/api/infosync/catalog_model/{0}/', 'method': 'PATCH'}
                 }
 
 
