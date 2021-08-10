@@ -528,7 +528,6 @@ class Cache(object):
         url = self.api_url.catalog['catalog_id_fields']['url']+str(catalog_id)+'/'
         method = self.api_url.catalog['catalog_id_fields']['method']
         response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
-        print '---- response get_catalog_id_fields=',response
         if response['status_code'] == 200:
             return response['data']
         return False
