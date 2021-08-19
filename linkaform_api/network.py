@@ -477,8 +477,8 @@ class Network:
         POST_CORRECTLY=0
         errors_json = []
         url = self.api_url.catalog['set_catalog_answer']
-        print('*************************** url',url)
-        print('*************************** answers',answers)
+        #print('*************************** url',url)
+        #print('*************************** answers',answers)
         if test:
             answers = [answers[0],answers[1]]
         with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
