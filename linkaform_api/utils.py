@@ -2,7 +2,6 @@
 #!/usr/bin/python
 
 import simplejson, time, datetime, concurrent.futures
-
 #import threading
 #import concurrent.futures
 #from forms import Form
@@ -547,6 +546,10 @@ class Cache(object):
     def post_catalog_answers(self, answers, test=False, jwt_settings_key=False):
         return self.network.post_catalog_answers(answers, jwt_settings_key=jwt_settings_key)
 
+    def post_catalog_answers_list(self, answers, test=False, jwt_settings_key=False ):
+        print('utls post_catalog_answers_list')
+        return self.network.post_catalog_answers_list(answers, jwt_settings_key=jwt_settings_key)
+
     def prepare_response_find(self, response):
         list_data = response.get('json',{}).get('objects',[])
         list_to_response = []
@@ -574,13 +577,13 @@ class Cache(object):
                 return response['content'].get('error')
         return False
 
-    def get_catalog_record_by_folio(self, catalog_id, catalog_folio):
+    def get_catalog_record_by_folio(self, catalog_id, catalog_folio, jwt_settings_key=False):
         mango = {
             'selector':{
                 '$and':[{'_id':{'$eq':catalog_folio}}]
             }
         }
-        return self.search_catalog(catalog_id, mango)
+        return self.search_catalog(catalog_id, mango, jwt_settings_key=jwt_settings_key)
 
 
     def update_catalog_answers(self, data, record_id=None, jwt_settings_key=False):
@@ -588,22 +591,28 @@ class Cache(object):
             data['_id'] = record_id
         return self.network.patch_catalog_answers(data, jwt_settings_key=jwt_settings_key)
 
+    def thread_function_bulk_patch_catalog(self, data, catalog_id,  jwt_settings_key):
+        data['catalog_id'] = catalog_id
+        res = self.network.dispatch(self.api_url.catalog['update_catalog_multi'], data=data,
+            jwt_settings_key=jwt_settings_key)
+        if data.get('_id'):
+            self.thread_dict[data['_id']] = res
+        else:
+            self.thread_dict[data['records']] = res
+
+    def bulk_patch_catalog(self, records, catalog_id, jwt_settings_key=False, threading=False):
+        if threading:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+                for data in records:
+                    executor.map(lambda x: self.thread_function_bulk_patch_catalog(x, catalog_id,
+                        jwt_settings_key=jwt_settings_key), [data])
+            return  self.thread_dict
+        return self.network.dispatch(self.api_url.catalog['update_catalog_multi'], data=data, jwt_settings_key=jwt_settings_key)
 
     def delete_catalog_record(self, catalog_id, id_record, rev, jwt_settings_key=False):
-        url = self.api_url.catalog['delete_catalog_record']['url']
-        method = self.api_url.catalog['delete_catalog_record']['method']
+        url = self.api_url.catalog['delete_catalog_record']
         data_for_post = {"docs":[{"_id":id_record, "_rev":rev, "_deleted":True, "index":0}],"catalog_id":catalog_id}
-        #response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post)
-        #return response
-        data = simplejson.dumps(data_for_post, default=json_util.default, for_json=True)
-        response = {'data':{}, 'status_code':''}
-        JWT = self.settings.config['JWT_KEY']
-        if jwt_settings_key:
-            JWT = self.settings.config[jwt_settings_key]
-        headers = {'Authorization':'jwt {0}'.format(JWT), 'Content-type': 'application/json'}
-        r = requests.post(url,data,headers=headers,verify=True)
-        response['status_code'] = r.status_code
-        response['data'] = r.json()
+        response = self.network.dispatch(url, data=data_for_post, jwt_settings_key=jwt_settings_key)
         return response
 
     def update_catalog_multi_record(self, answers, catalog_id, record_id=[], jwt_settings_key=False):

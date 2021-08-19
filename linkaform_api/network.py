@@ -196,6 +196,11 @@ class Network:
         if r.status_code == 200:
             try:
                 r_data = simplejson.loads(r.content)
+                # Agrego esto porque cuando se ejecuta una eliminacion de registro de catalogo el resultado es algo como:
+                # [{'ok': True, 'id': '05d7caf176a5cdd658cca083829b21a4'}]
+                if type(r_data) == list:
+                    response['data'] = r_data
+                    return response
             except:
                 response['data'] = r.text
                 return response
@@ -277,7 +282,7 @@ class Network:
         return response
 
     def thread_function(self, record, url, jwt_settings_key):
-        res = self.dispatch(self.api_url.form['set_form_answer'], data=record, jwt_settings_key=jwt_settings_key)
+        res = self.dispatch(url, data=record, jwt_settings_key=jwt_settings_key)
         if record.get('folio'):
             res.update({'folio':record['folio']})
         self.thread_result.append(res)
@@ -464,33 +469,34 @@ class Network:
         answers = [answers,]
         POST_CORRECTLY=0
         errors_json = []
-        return self.post_catalog_answers_list(answers, test=False, jwt_settings_key=jwt_settings_key)[0][1]
+        return self.post_catalog_answers_list(answers, test=False, jwt_settings_key=jwt_settings_key)[0]
 
     def post_catalog_answers_list(self, answers, test=False, jwt_settings_key=False):
         if type(answers) == dict:
             answers = [answers,]
         POST_CORRECTLY=0
         errors_json = []
-        res = []
+        url = self.api_url.catalog['set_catalog_answer']
+        print('*************************** url',url)
+        print('*************************** answers',answers)
         if test:
             answers = [answers[0],answers[1]]
-        for index, answer in enumerate(answers):
-            # este original se va a quedar despues de migrar al api
-            #r = self.dispatch(self.api_url.catalog['set_catalog_answer'], data=answer)
-            # este se va a quitar al migrarlo al api
-            r = self.dispatch(self.api_url.catalog['set_catalog_answer'], data=answer, jwt_settings_key=jwt_settings_key)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+            executor.map(lambda x: self.thread_function(x, url, jwt_settings_key=jwt_settings_key), answers)
+        for index, r in enumerate(self.thread_result):
             if r['status_code'] in  (201,200,202,204):
                 print("Answer %s saved."%(index + 1))
                 POST_CORRECTLY += 1
             else:
                 print("Answer %s was rejected."%(index + 1))
                 errors_json.append(r)
-            res.append((index, r))
             print('Se importaron correctamente %s de %s registros'%(POST_CORRECTLY, index+1))
         if errors_json:
             if test:
                 self.settings.GLOBAL_ERRORS.append(errors_json)
-        return res
+        response = self.thread_result
+        self.thread_result = []
+        return response
 
     def patch_catalog_answers(self, answers, jwt_settings_key=False):
         if type(answers) == dict:
