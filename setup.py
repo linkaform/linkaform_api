@@ -14,5 +14,6 @@ setup(name='linkaform_api',
         'pyexcel',
         'simplejson',
         'wget',
+        'facturapi'
     ],
     zip_safe=False)
