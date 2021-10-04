@@ -4,14 +4,9 @@ from datetime import datetime
 import facturapi
 from facturapi import configure
 #from facturapi.resources.invoices import InvoiceItem
+from facturapi.resources.invoices import InvoiceRequest
 from class_invoice_nomina import InvoiceNomina
 from facturapi.types import FileType
-#from facturapi.types.general import ItemPart
-
-# from facturapi.resources.customers import (
-#     CustomerRequest,
-#     CustomerUpdateRequest,
-# )
 
 # Configuracion del API KEY
 configure(api_key='sk_test_aPvVRjg72M6A1zZDVMd3ZYyWrGl830DK')
@@ -51,6 +46,53 @@ class Invoices:
         except KeyError:
             print('could not save file Errores')
         return res_uploaded
+
+    def generate_invoce( self, invoice_request, current_record, record_id, type_text_invoce='Nomina' ):
+        try:
+            invoice = facturapi.Invoice.create(data=invoice_request)
+        except Exception as e:
+            print('ERRORRRRRR==', e)
+            current_record['answers']['eeeee0000000000000000001'] = 'error'
+            current_record['answers']['eeeee0000000000000000002'] = 'Ocurrió un error al querer generar las facturas'
+            self.lkf_api.patch_record(current_record, record_id, jwt_settings_key='USER_JWT_KEY')
+            return False
+
+        #print("invoice=",invoice)
+        # Resource is now created an can be used to access data or perform actions.
+        total = invoice.total
+        id_facturaGenerada = invoice.id
+
+        print('total=',total)
+
+        # Descargar la factura en formato PDF
+        invoice_file = facturapi.Invoice.download(
+            id=id_facturaGenerada, file_type=FileType.pdf
+            )
+        with open( '/tmp/{}_{}.pdf'.format(type_text_invoce, id_facturaGenerada), 'wb' ) as f:
+            f.write(invoice_file)
+
+        pdf_file = self.upload_file_geted( '/tmp/{}_{}.pdf'.format(type_text_invoce, id_facturaGenerada), current_record['form_id'], 'eeeee0000000000000000003', type_file='pdf' )
+
+        # Descargar la factura en formato XML
+        invoice_file_xml = facturapi.Invoice.download(
+            id=id_facturaGenerada, file_type=FileType.xml
+            )
+        with open( '/tmp/{}_{}.xml'.format(type_text_invoce, id_facturaGenerada), 'wb' ) as f:
+            f.write(invoice_file_xml)
+
+        xml_file = self.upload_file_geted( '/tmp/{}_{}.xml'.format(type_text_invoce, id_facturaGenerada), current_record['form_id'], 'eeeee0000000000000000004', type_file='xml' )
+        status_set = 'terminado'
+        comentarios_proceso = ''
+        if pdf_file.get('error') or xml_file.get('error'):
+            status_set = 'error'
+            comentarios_proceso = 'Ocurrió un error al cargar los documentos de la factura'
+        current_record['answers']['eeeee0000000000000000001'] = status_set
+        current_record['answers']['eeeee0000000000000000002'] = comentarios_proceso
+        if not pdf_file.get('error'):
+            current_record['answers'].update( pdf_file )
+        if not xml_file.get('error'):
+            current_record['answers'].update( xml_file )
+        self.lkf_api.patch_record(current_record, record_id, jwt_settings_key='USER_JWT_KEY')
 
     def generar_factura_nomina(self, current_record, record_id, created_at):
 
@@ -253,51 +295,7 @@ class Invoices:
         )
         print(invoice_request)
 
-        try:
-            invoice = facturapi.Invoice.create(data=invoice_request)
-        except Exception as e:
-            print('ERRORRRRRR==', e)
-            current_record['answers']['eeeee0000000000000000001'] = 'error'
-            current_record['answers']['eeeee0000000000000000002'] = 'Ocurrió un error al querer generar las facturas'
-            self.lkf_api.patch_record(current_record, record_id, jwt_settings_key='USER_JWT_KEY')
-            return False
-
-        #print("invoice=",invoice)
-        # Resource is now created an can be used to access data or perform actions.
-        total = invoice.total
-        id_facturaGenerada = invoice.id
-
-        print('total=',total)
-
-        # Descargar la factura en formato PDF
-        invoice_file = facturapi.Invoice.download(
-            id=id_facturaGenerada, file_type=FileType.pdf
-            )
-        with open( '/tmp/Nomina_{}.pdf'.format(id_facturaGenerada), 'wb' ) as f:
-            f.write(invoice_file)
-
-        pdf_file = self.upload_file_geted( '/tmp/Nomina_{}.pdf'.format(id_facturaGenerada), current_record['form_id'], 'eeeee0000000000000000003', type_file='pdf' )
-
-        # Descargar la factura en formato XML
-        invoice_file_xml = facturapi.Invoice.download(
-            id=id_facturaGenerada, file_type=FileType.xml
-            )
-        with open( '/tmp/Nomina_{}.xml'.format(id_facturaGenerada), 'wb' ) as f:
-            f.write(invoice_file_xml)
-
-        xml_file = self.upload_file_geted( '/tmp/Nomina_{}.xml'.format(id_facturaGenerada), current_record['form_id'], 'eeeee0000000000000000004', type_file='xml' )
-        status_set = 'terminado'
-        comentarios_proceso = ''
-        if pdf_file.get('error') or xml_file.get('error'):
-            status_set = 'error'
-            comentarios_proceso = 'Ocurrió un error al cargar los documentos de la factura'
-        current_record['answers']['eeeee0000000000000000001'] = status_set
-        current_record['answers']['eeeee0000000000000000002'] = comentarios_proceso
-        if not pdf_file.get('error'):
-            current_record['answers'].update( pdf_file )
-        if not xml_file.get('error'):
-            current_record['answers'].update( xml_file )
-        self.lkf_api.patch_record(current_record, record_id, jwt_settings_key='USER_JWT_KEY')
+        self.generate_invoce( invoice_request, current_record, record_id )
 
     """
     # Regresa el contenido del registro en MongoDB
@@ -312,3 +310,107 @@ class Invoices:
         select_columns = {'folio':1,'user_id':1,'form_id':1,'answers':1,'_id':1,'connection_id':1,'created_at':1,'other_versions':1,'timezone':1}
         record_found = self.cr.find(query, select_columns)
         return record_found.next()
+
+    def generar_factura_trabajo(self, current_record, record_id, created_at):
+        # Obtengo los campos de tipo catálogo para ver sus ids en la forma
+        form_fields = self.lkf_api.get_form_id_fields(current_record['form_id'], jwt_settings_key='USER_JWT_KEY')
+        fields = form_fields[0]['fields']
+        fields_catalog = [ f for f in fields if f['field_type'] == 'catalog' ]
+
+        field_id_catalog_empresas = None
+        field_id_catalog_taxes = None
+        field_id_catalog_conceptos = None
+        field_id_catalog_forma_pago = None
+        for fc in fields_catalog:
+            if 'ddee00000000000000000001' in fc.get('catalog', {}).get('view_fields', []):
+                field_id_catalog_empresas = fc.get('field_id')
+            if 'ddaa00000000000000000001' in fc.get('catalog', {}).get('view_fields', []):
+                field_id_catalog_taxes = fc.get('field_id')
+            if 'ddff00000000000000000001' in fc.get('catalog', {}).get('view_fields', []):
+                field_id_catalog_conceptos = fc.get('field_id')
+            if 'a00000000000000000000002' in fc.get('catalog', {}).get('view_fields', []):
+                field_id_catalog_forma_pago = fc.get('field_id')
+
+        if not all( [field_id_catalog_empresas] ):
+            current_record['answers']['eeeee0000000000000000001'] = 'error'
+            current_record['answers']['eeeee0000000000000000002'] = 'La forma no tiene configurada los catálogos necesarios, favor de revisar'
+            self.lkf_api.patch_record(current_record, record_id, jwt_settings_key='USER_JWT_KEY')
+            return False
+
+        a = current_record.get('answers', {})
+        all_info_empresa = a.get(field_id_catalog_empresas, {})
+
+        dict_product = dict(
+            # Si se requiere que el atributo "price" sea el precio unitario, se debe enviar el parámetro "tax_included" con el valor "False"
+            # Si es True se considera que el precio lleva el IVA incluido
+            tax_included= False
+        )
+
+        ########################################################
+        # Impuestos es opcional pero si no trae info se entiende que es exento
+        ########################################################
+        impuestos = a.get('aaaaa0000000000000000002', [])
+        list_impuestos = []
+        for i in impuestos:
+            is_retencion = self.get_val_from_readonly( i.get(field_id_catalog_taxes, {}), 'ddaa00000000000000000004' ), # ¿Es retencion?
+            bool_retencion = True if is_retencion or is_retencion != 'No' else False
+            # taxes   array   Lista de impuestos que deberán aplicarse a este producto. Si la lista está vacía, se entiende que el producto está excento de impuestos.
+            # taxes[].rate    decimal Tasa del impuesto.
+            # taxes[].type    string  Tipo de impuesto. Puede tener los valores "IVA", "ISR" o "IEPS".
+            # taxes[].ieps_mode   string  Si el tipo de impuesto es "IEPS", indica la manera de cobrar el impuesto, y puede tener los valores “sum_before_taxes” o “break_down”.
+            # taxes[].factor  string  Tipo factor. Puede tener los valores "Tasa", "Cuota" o "Exento".
+            # taxes[].withholding boolean true: el impuesto es una retención. false: el impuesto es un traslado (impuesto normal).
+            dict_i = {
+                "rate": self.get_val_from_readonly( i.get(field_id_catalog_taxes, {}), 'ddaa00000000000000000002' ), # Porcentaje
+                "type": self.get_val_from_readonly( i.get(field_id_catalog_taxes, {}), 'ddaa00000000000000000003' ), # Tipo
+                "withholding": bool_retencion,
+                "factor": self.get_val_from_readonly( i.get(field_id_catalog_taxes, {}), 'ddaa00000000000000000005' ), # Factor
+            }
+            list_impuestos.append(dict_i)
+
+        ########################################################
+        # Conceptos de los productos que se facturarán
+        ########################################################
+        conceptos = a.get('aaaaa0000000000000000001', [])
+        list_conceptos = []
+        pos_c = 0
+        for c in conceptos:
+            pos_c += 1
+            dict_c = dict(
+                description = c.get(field_id_catalog_conceptos, {}).get('ddff00000000000000000001', ''), # Descripcion
+                price = self.get_val_from_readonly( i.get(field_id_catalog_conceptos, {}), 'ddff00000000000000000002' ), # Precio
+                product_key= '{}{}'.format( current_record['folio'].replace('-', ''), pos_c ),
+            )
+            if list_impuestos:
+                dict_c.update({
+                    'taxes': list_impuestos
+                })
+            list_conceptos.append( dict(
+                product= dict_c,
+                quantity= c.get('aaaaa00000000000000001a2', 0),
+                discount= c.get('aaaaa00000000000000001a3', 0)
+            ) )
+        
+        ######################################################
+        # Código de la Forma de pago
+        ######################################################
+        codigo_forma_pago = self.get_val_from_readonly( a.get(field_id_catalog_forma_pago, {}), 'a00000000000000000000001' )
+        if not codigo_forma_pago:
+            codigo_forma_pago = None
+
+        invoice_request = InvoiceRequest(
+            # Puedo usar el id del cliente si está creado
+            # customer=customer.id,
+            # O también puedo pasar la información del cliente si no existe
+            customer = {
+                "legal_name": all_info_empresa.get('ddee00000000000000000001'), # Nombre de la Empresa
+                "email": self.get_val_from_readonly( all_info_empresa, 'ddee00000000000000000002' ), # email
+                "tax_id": self.get_val_from_readonly( all_info_empresa, 'ddee00000000000000000003' ) # RFC
+            },
+            
+            items=list_conceptos,
+            payment_form=codigo_forma_pago,
+        )
+        print(invoice_request)
+        #invoice = facturapi.Invoice.create(data=invoice_request)
+        self.generate_invoce( invoice_request, current_record, record_id )
