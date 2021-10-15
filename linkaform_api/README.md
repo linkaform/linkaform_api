@@ -27,10 +27,14 @@ oo.protocol = 'https'
 
 partner_ids = oo.getMethod(args=[[['is_company', '=', True]]])
 partners = oo.getMethod(metodo='read',args=[partner_ids], args2={'fields': ['name', 'country_id', 'email']})
-partners = oo.getMethod(metodo='search_read',args=[[['is_company', '=', True]]], args2={'fields': ['name', 'country_id', 'email']})
+
 prod_fields =['code', 'name', 'price', 'barcode', 'type', 'description','description_sale','uom_id', 'default_code', 'categ_id','uom_name','list_price','route_ids','display_name']
 products = oo.getMethod(model='product.product',metodo='search_read', args2={'fields':prod_fields })
 
 ```
+
+partner_fields =['_last_updated', 'name', 'vat', 'type', 'street', 'stree_name','stree_number','stree_number_2','stree2', 'city', 'state_id','zip','country_id','phone',
+'mobile','email','']
+partners = oo.getMethod(metodo='search_read',args=[[['is_company', '=', True],['is_client', '=', True]]], args2={'fields':partner_fields})
 
 Documentacion en https://www.odoo.com/documentation/13.0/es/developer/misc/api/odoo.html
