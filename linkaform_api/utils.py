@@ -2,7 +2,6 @@
 #!/usr/bin/python
 
 import simplejson, time, datetime, concurrent.futures
-
 #import threading
 #import concurrent.futures
 #from forms import Form
@@ -161,7 +160,12 @@ class Cache(object):
         post_json = self.api_url.get_users_url()['user_id_by_email']
         url = post_json['url'].format(user_email)
         response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
+<<<<<<< HEAD
         all_users = response.get('json',{}).get('objects', [])
+=======
+        print('response', response)
+        all_users = response.get('objects', [])
+>>>>>>> 3ac663e88fad592cf420647da2ff967d2ba63f0c
         return all_users
 
     def get_form_users(self, form_id, include_users=True, include_connections=True,
@@ -519,7 +523,6 @@ class Cache(object):
     def run_script(self, data, jwt_settings_key=False):
         return self.network.dispatch(self.api_url.script['run_script'], data=data, jwt_settings_key=jwt_settings_key)
 
-
 ####
 #### Catalogos
 ####
@@ -546,6 +549,10 @@ class Cache(object):
 
     def post_catalog_answers(self, answers, test=False, jwt_settings_key=False):
         return self.network.post_catalog_answers(answers, jwt_settings_key=jwt_settings_key)
+
+    def post_catalog_answers_list(self, answers, test=False, jwt_settings_key=False ):
+        print('utls post_catalog_answers_list')
+        return self.network.post_catalog_answers_list(answers, jwt_settings_key=jwt_settings_key)
 
     def prepare_response_find(self, response):
         list_data = response.get('json',{}).get('objects',[])
@@ -574,14 +581,13 @@ class Cache(object):
                 return response['content'].get('error')
         return False
 
-    def get_catalog_record_by_folio(self, catalog_id, catalog_folio):
+    def get_catalog_record_by_folio(self, catalog_id, catalog_folio, jwt_settings_key=False):
         mango = {
-                'selector':{
-                    '$and':[{'_id':{'$eq':catalog_folio}}
-                    ]
-                    }
-                }
-        return self.search_catalog(catalog_id, mango_query)
+            'selector':{
+                '$and':[{'_id':{'$eq':catalog_folio}}]
+            }
+        }
+        return self.search_catalog(catalog_id, mango, jwt_settings_key=jwt_settings_key)
 
 
     def update_catalog_answers(self, data, record_id=None, jwt_settings_key=False):
@@ -589,22 +595,28 @@ class Cache(object):
             data['_id'] = record_id
         return self.network.patch_catalog_answers(data, jwt_settings_key=jwt_settings_key)
 
+    def thread_function_bulk_patch_catalog(self, data, catalog_id,  jwt_settings_key):
+        data['catalog_id'] = catalog_id
+        res = self.network.dispatch(self.api_url.catalog['update_catalog_multi'], data=data,
+            jwt_settings_key=jwt_settings_key)
+        if data.get('_id'):
+            self.thread_dict[data['_id']] = res
+        else:
+            self.thread_dict[data['records']] = res
+
+    def bulk_patch_catalog(self, records, catalog_id, jwt_settings_key=False, threading=False):
+        if threading:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+                for data in records:
+                    executor.map(lambda x: self.thread_function_bulk_patch_catalog(x, catalog_id,
+                        jwt_settings_key=jwt_settings_key), [data])
+            return  self.thread_dict
+        return self.network.dispatch(self.api_url.catalog['update_catalog_multi'], data=data, jwt_settings_key=jwt_settings_key)
 
     def delete_catalog_record(self, catalog_id, id_record, rev, jwt_settings_key=False):
-        url = self.api_url.catalog['delete_catalog_record']['url']
-        method = self.api_url.catalog['delete_catalog_record']['method']
+        url = self.api_url.catalog['delete_catalog_record']
         data_for_post = {"docs":[{"_id":id_record, "_rev":rev, "_deleted":True, "index":0}],"catalog_id":catalog_id}
-        #response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post)
-        #return response
-        data = simplejson.dumps(data_for_post, default=json_util.default, for_json=True)
-        response = {'data':{}, 'status_code':''}
-        JWT = self.settings.config['JWT_KEY']
-        if jwt_settings_key:
-            JWT = self.settings.config[jwt_settings_key]
-        headers = {'Authorization':'jwt {0}'.format(JWT), 'Content-type': 'application/json'}
-        r = requests.post(url,data,headers=headers,verify=True)
-        response['status_code'] = r.status_code
-        response['data'] = r.json()
+        response = self.network.dispatch(url, data=data_for_post, jwt_settings_key=jwt_settings_key)
         return response
 
     def update_catalog_multi_record(self, answers, catalog_id, record_id=[], jwt_settings_key=False):
@@ -660,153 +672,10 @@ class Cache(object):
         r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
         return r
 
-
-
-    def get_pdf_record(self, record_id, template_id=None, upload_data=None, jwt_settings_key=False):
-        return self.network.pdf_record(record_id , template_id=template_id, upload_data=upload_data, jwt_settings_key=jwt_settings_key)
-
-    def run_script(self, data, jwt_settings_key=False):
-        return self.network.dispatch(self.api_url.script['run_script'], data=data, jwt_settings_key=jwt_settings_key)
-
-
-####
-#### Catalogos
-####
-
-    def get_catalog_id_fields(self, catalog_id, jwt_settings_key=False):
-        url = self.api_url.catalog['catalog_id_fields']['url']+str(catalog_id)+'/'
-        method = self.api_url.catalog['catalog_id_fields']['method']
-        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
-        if response['status_code'] == 200:
-            return response['data']
-        return False
-
-    def get_catalog_metadata(self, catalog_id=False):
-        time_started = time.time()
-        metadata = {
-        "catalog_id": catalog_id,
-        "geolocation": [],
-        "start_timestamp" : time.time(),
-        "end_timestamp" : time.time()
-        }
-        if not catalog_id:
-            metadata.pop('catalog_id')
-        return metadata
-
-    def post_catalog_answers(self, answers, test=False, jwt_settings_key=False):
-        return self.network.post_catalog_answers(answers, jwt_settings_key=jwt_settings_key)
-
-    def prepare_response_find(self, response):
-        list_data = response.get('json',{}).get('objects',[])
-        list_to_response = []
-        for d in list_data:
-            answers_data = d.get('answers',{})
-            answers_data.update({'_id':d.get('_id',''), '_rev':d.get('_rev','')})
-            list_to_response.append(answers_data)
-        return list_to_response
-
-    def search_catalog(self, catalog_id, mango_query, jwt_settings_key=False):
-        url = self.api_url.catalog['get_record_by_folio']['url']
-        method = self.api_url.catalog['get_record_by_folio']['method']
-        data_for_post = {
-            'catalog_id':catalog_id,
-            'mango':mango_query
-            }
-        response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post, jwt_settings_key=jwt_settings_key)
-
-        if response['status_code'] == 200:
-            return self.prepare_response_find(response)
-        if response['status_code'] == 440:
-            if response.get('json'):
-                return response['json'].get('error')
-            if response.get('content'):
-                return response['content'].get('error')
-        return False
-
-    def get_catalog_record_by_folio(self, catalog_id, catalog_folio):
-        mango = {
-                'selector':{
-                    '$and':[{'_id':{'$eq':catalog_folio}}
-                    ]
-                    }
-                }
-        return self.search_catalog(catalog_id, mango)
-
-
-    def update_catalog_answers(self, data, record_id=None, jwt_settings_key=False):
-        if record_id:
-            data['_id'] = record_id
-        return self.network.patch_catalog_answers(data, jwt_settings_key=jwt_settings_key)
-
-
-    def delete_catalog_record(self, catalog_id, id_record, rev, jwt_settings_key=False):
-        url = self.api_url.catalog['delete_catalog_record']['url']
-        method = self.api_url.catalog['delete_catalog_record']['method']
-        data_for_post = {"docs":[{"_id":id_record, "_rev":rev, "_deleted":True, "index":0}],"catalog_id":catalog_id}
-        #response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post)
-        #return response
-        data = simplejson.dumps(data_for_post, default=json_util.default, for_json=True)
-        response = {'data':{}, 'status_code':''}
-        JWT = self.settings.config['JWT_KEY']
-        if jwt_settings_key:
-            JWT = self.settings.config[jwt_settings_key]
-        headers = {'Authorization':'jwt {0}'.format(JWT), 'Content-type': 'application/json'}
-        r = requests.post(url,data,headers=headers,verify=True)
-        response['status_code'] = r.status_code
-        response['data'] = r.json()
-        return response
-
-    def update_catalog_multi_record(self, answers, catalog_id, record_id=[], jwt_settings_key=False):
-        if not answers or not record_id:
-            print('update_catalog_multi_record >> no obtubo answers o record_id')
-            return {}
-        data = {
-            'answers': answers,
-            'catalog_id': catalog_id,
-            'objects': record_id
-        }
-        return self.network.dispatch(self.api_url.catalog['update_catalog_multi'], data=data, jwt_settings_key=jwt_settings_key)
-
-    def create_filter(self, catalog_id, filter_name, filter_to_search, jwt_settings_key=False):
-        url = self.api_url.catalog['create_filter']['url']
-        method = self.api_url.catalog['create_filter']['method']
-        data_for_post = {
-            "catalog_id": catalog_id,
-            "filter": filter_to_search,
-            "filter_name": filter_name,
-            "pageSize": 20
-        }
-        response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post, jwt_settings_key=jwt_settings_key)
-        return response
-
-    def delete_filter(self, catalog_id, filter_name, jwt_settings_key=False):
-        url = self.api_url.catalog['delete_filter']['url']
-        method = self.api_url.catalog['delete_filter']['method']
-        data_for_post = {
-            "catalog_id": catalog_id,
-            "filter_name": filter_name
-        }
-        response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post, jwt_settings_key=jwt_settings_key)
-        return response
-
-    def get_user_connection(self, email_user, jwt_settings_key=False):
-        #TODO UPDATE SELF.ITESM
-        #Returns all the connections
-        connections = []
-        post_json = self.api_url.get_connections_url()['user_connection']
-        post_json['url'] = post_json['url'] + str(email_user)
-        user_connection = self.network.dispatch(post_json, jwt_settings_key=jwt_settings_key)
-        objects = user_connection['data']
-        return objects
-
-    def share_catalog(self, data_to_share, unshare=False, jwt_settings_key=False):
-        url = self.api_url.catalog['share_catalog']['url']
-        method = self.api_url.catalog['share_catalog']['method']
-        if unshare:
-            data = { 'objects': [], 'deleted_objects': data_to_share }
-        else:
-            data = { 'objects': [ data_to_share, ] }
-        r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+    def update_catalog_model(self, catalog_id, catalog_model, jwt_settings_key=False):
+        url = self.api_url.catalog['update_catalog_model']['url'].format(catalog_id)
+        method = self.api_url.catalog['update_catalog_model']['method']
+        r = self.network.dispatch(url=url, method=method, data=catalog_model, jwt_settings_key=jwt_settings_key)
         return r
 
 def warning(*objs):
