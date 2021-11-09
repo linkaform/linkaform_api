@@ -22,6 +22,15 @@ class Cache(object):
         self.thread_dict = {}
 
 
+    def delete_inbox_records(self, delete_records, jwt_settings_key=False):
+        #  delete_records {user_id:[record_id,]}
+        url_method = self.api_url.record['delete_inbox']
+        data = {'delete_records': delete_records}
+        response = self.network.dispatch(url_method=url_method, data=data, jwt_settings_key=jwt_settings_key)
+        if response['status_code'] == 200:
+            return response['data']
+        return response
+
     def assigne_user_records(self, user_id, record_id_list, send_email=False,
         send_push_notification=False, previos_user_id=False, jwt_settings_key=False):
         url_method = self.api_url.record['assigne_user']
@@ -163,12 +172,9 @@ class Cache(object):
         post_json = self.api_url.get_users_url()['user_id_by_email']
         url = post_json['url'].format(user_email)
         response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
-<<<<<<< HEAD
-        all_users = response.get('json',{}).get('objects', [])
-=======
-        print('response', response)
         all_users = response.get('objects', [])
->>>>>>> 3ac663e88fad592cf420647da2ff967d2ba63f0c
+        if not all_users:
+            all_users = response.get('json',{}).get('objects', [])
         return all_users
 
     def get_form_users(self, form_id, include_users=True, include_connections=True,
