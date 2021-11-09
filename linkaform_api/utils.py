@@ -21,12 +21,15 @@ class Cache(object):
         self.network = network.Network(self.settings)
         self.thread_dict = {}
 
+
     def assigne_user_records(self, user_id, record_id_list, send_email=False,
-        send_push_notification=False, jwt_settings_key=False):
+        send_push_notification=False, previos_user_id=False, jwt_settings_key=False):
         url_method = self.api_url.record['assigne_user']
         data = {'user_id': user_id, 'records': record_id_list,
                   'send_push_notification': send_push_notification,
                   'send_mail': send_email}
+        if previos_user_id:
+            data.update({'prev_user_id':previos_user_id})
         response = self.network.dispatch(url_method=url_method, data=data, jwt_settings_key=jwt_settings_key)
         if response['status_code'] == 200:
             return response['data']
