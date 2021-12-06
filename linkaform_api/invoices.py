@@ -29,7 +29,7 @@ class Invoices:
         diff_dates = df2 - df1
         return diff_dates.days
 
-    def upload_file_geted( self, path_file, form_id, file_field_id, type_file='' ):
+    def upload_file_geted( self, path_file, form_id, file_field_id, type_file='', type_text_invoce='Nomina' ):
         nomina_file = open( path_file, 'rb' )
         nomina_file_dir = {'File': nomina_file}
         try:
@@ -42,7 +42,7 @@ class Invoices:
         nomina_file.close()
         try:
             file_url = upload_url['data']['file']
-            res_uploaded = {file_field_id: {'file_name':'Factura de nomina.{}'.format(type_file), 'file_url':file_url}}
+            res_uploaded = {file_field_id: {'file_name':'Factura de {}.{}'.format(type_text_invoce, type_file), 'file_url':file_url}}
         except KeyError:
             print('could not save file Errores')
         return res_uploaded
@@ -71,7 +71,7 @@ class Invoices:
         with open( '/tmp/{}_{}.pdf'.format(type_text_invoce, id_facturaGenerada), 'wb' ) as f:
             f.write(invoice_file)
 
-        pdf_file = self.upload_file_geted( '/tmp/{}_{}.pdf'.format(type_text_invoce, id_facturaGenerada), current_record['form_id'], 'eeeee0000000000000000003', type_file='pdf' )
+        pdf_file = self.upload_file_geted( '/tmp/{}_{}.pdf'.format(type_text_invoce, id_facturaGenerada), current_record['form_id'], 'eeeee0000000000000000003', type_file='pdf', type_text_invoce=type_text_invoce )
 
         # Descargar la factura en formato XML
         invoice_file_xml = facturapi.Invoice.download(
@@ -80,7 +80,7 @@ class Invoices:
         with open( '/tmp/{}_{}.xml'.format(type_text_invoce, id_facturaGenerada), 'wb' ) as f:
             f.write(invoice_file_xml)
 
-        xml_file = self.upload_file_geted( '/tmp/{}_{}.xml'.format(type_text_invoce, id_facturaGenerada), current_record['form_id'], 'eeeee0000000000000000004', type_file='xml' )
+        xml_file = self.upload_file_geted( '/tmp/{}_{}.xml'.format(type_text_invoce, id_facturaGenerada), current_record['form_id'], 'eeeee0000000000000000004', type_file='xml', type_text_invoce=type_text_invoce )
         status_set = 'terminado'
         comentarios_proceso = ''
         if pdf_file.get('error') or xml_file.get('error'):
@@ -363,9 +363,13 @@ class Invoices:
             dict_i = {
                 "rate": self.get_val_from_readonly( i.get(field_id_catalog_taxes, {}), 'ddaa00000000000000000002' ), # Porcentaje
                 "type": self.get_val_from_readonly( i.get(field_id_catalog_taxes, {}), 'ddaa00000000000000000003' ), # Tipo
-                "withholding": bool_retencion,
-                "factor": self.get_val_from_readonly( i.get(field_id_catalog_taxes, {}), 'ddaa00000000000000000005' ), # Factor
+                "withholding": bool_retencion
             }
+            factor = self.get_val_from_readonly( i.get(field_id_catalog_taxes, {}), 'ddaa00000000000000000005' ) # Factor
+            if factor:
+                dict_i.update({
+                    "factor": factor
+                    })
             list_impuestos.append(dict_i)
 
         ########################################################
@@ -378,8 +382,8 @@ class Invoices:
             pos_c += 1
             dict_c = dict(
                 description = c.get(field_id_catalog_conceptos, {}).get('ddff00000000000000000001', ''), # Descripcion
-                price = self.get_val_from_readonly( i.get(field_id_catalog_conceptos, {}), 'ddff00000000000000000002' ), # Precio
-                product_key= '{}{}'.format( current_record['folio'].replace('-', ''), pos_c ),
+                price = self.get_val_from_readonly( c.get(field_id_catalog_conceptos, {}), 'ddff00000000000000000002' ), # Precio
+                product_key= '80111608' # Clave del SAT para "Desarrolladores temporales de software de tecnologías de la información"
             )
             if list_impuestos:
                 dict_c.update({
@@ -413,4 +417,4 @@ class Invoices:
         )
         print(invoice_request)
         #invoice = facturapi.Invoice.create(data=invoice_request)
-        self.generate_invoce( invoice_request, current_record, record_id )
+        self.generate_invoce( invoice_request, current_record, record_id, type_text_invoce='Ingreso' )
