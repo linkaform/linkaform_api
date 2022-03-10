@@ -30,6 +30,7 @@ class Api_url:
             'set_form_answer': {'url': self.dest_url + '/api/infosync/form_answer/', 'method':'POST'},
             'upload_file': {'url': self.dest_url + '/api/infosync/cloud_upload/', 'method':'POST'},
             'get_form_fields':  {'url': self.dest_url + '/api/infosync/get_form_fields/', 'method':'GET'},
+            'share_form': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'},
             }
 
 
@@ -66,6 +67,7 @@ class Api_url:
                 'all_users': {'url': self.dest_url + '/api/infosync/user_admin/?limit=0', 'method':'GET'},
                 'user_id_by_email': {'url': self.dest_url + '/api/infosync/user/?email__contains={0}', 'method':'GET'},
                 'user_by_id': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'GET'},
+                'create_user': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'POST'},
                 'get_form_users' :{'url': self.dest_url + '/api/infosync/item/{0}/get_users/?limit=0', 'method':'GET'}
                 }
 

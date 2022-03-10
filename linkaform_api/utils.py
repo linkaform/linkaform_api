@@ -229,6 +229,18 @@ class Cache(object):
         objects = user['data']
         return objects
 
+    def create_user(self, data, jwt_settings_key=False):
+        #TODO UPDATE SELF.ITESM
+        #Returns all the connections
+        # {"first_name":"new","last_name":null,
+        # "username":null,"email":"new@new.com",
+        # "password":"123456","password2":"123456","position":"111","phone":1,"permissions":["add_form"]}
+        url = self.api_url.users['create_user']['url']
+        method = self.api_url.users['create_user']['method']
+        print('methodmethod', method)
+        user = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+        return user
+
     def get_from_fields(self, form_id, jwt_settings_key=False):
         field = []
         url = self.api_url.form['get_form_fields']['url'] + str(form_id) + '/'
@@ -670,6 +682,16 @@ class Cache(object):
         user_connection = self.network.dispatch(post_json, jwt_settings_key=jwt_settings_key)
         objects = user_connection['data']
         return objects
+
+    def share_form(self, data_to_share, unshare=False, jwt_settings_key=False):
+        url = self.api_url.form['share_form']['url']
+        method = self.api_url.form['share_form']['method']
+        if unshare:
+            data = { 'objects': [], 'deleted_objects': data_to_share }
+        else:
+            data = { 'objects': [ data_to_share, ] }
+        r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+        return r
 
     def share_catalog(self, data_to_share, unshare=False, jwt_settings_key=False):
         url = self.api_url.catalog['share_catalog']['url']
