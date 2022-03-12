@@ -227,11 +227,6 @@ class LoadFile:
             text = text.replace('\xc2',replace_with)
             if remove_spaces:
                 text = text.strip()
-        if type(text) == unicode:
-            text = text.replace(u'\xa0', replace_with)
-            text = text.replace(u'\xc2', replace_with)
-            if remove_spaces:
-                text = text.strip()
         return text
 
 
