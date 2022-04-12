@@ -202,6 +202,11 @@ class Network:
         if r.status_code == 200:
             try:
                 r_data = simplejson.loads(r.content)
+                # Agrego esto porque cuando se ejecuta una eliminacion de registro de catalogo el resultado es algo como:
+                # [{'ok': True, 'id': '05d7caf176a5cdd658cca083829b21a4'}]
+                if type(r_data) == list:
+                    response['data'] = r_data
+                    return response
             except:
                 response['data'] = r.text
                 return response
