@@ -606,21 +606,25 @@ class Cache(object):
 
 
     def delete_catalog_record(self, catalog_id, id_record, rev, jwt_settings_key=False):
-        url = self.api_url.catalog['delete_catalog_record']['url']
-        method = self.api_url.catalog['delete_catalog_record']['method']
+        url = self.api_url.catalog['delete_catalog_record']
         data_for_post = {"docs":[{"_id":id_record, "_rev":rev, "_deleted":True, "index":0}],"catalog_id":catalog_id}
-        #response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post)
-        #return response
-        data = simplejson.dumps(data_for_post, default=json_util.default, for_json=True)
-        response = {'data':{}, 'status_code':''}
-        JWT = self.settings.config['JWT_KEY']
-        if jwt_settings_key:
-            JWT = self.settings.config[jwt_settings_key]
-        headers = {'Authorization':'jwt {0}'.format(JWT), 'Content-type': 'application/json'}
-        r = requests.post(url,data,headers=headers,verify=True)
-        response['status_code'] = r.status_code
-        response['data'] = r.json()
+        response = self.network.dispatch(url, data=data_for_post, jwt_settings_key=jwt_settings_key)
         return response
+        # url = self.api_url.catalog['delete_catalog_record']['url']
+        # method = self.api_url.catalog['delete_catalog_record']['method']
+        # data_for_post = {"docs":[{"_id":id_record, "_rev":rev, "_deleted":True, "index":0}],"catalog_id":catalog_id}
+        # #response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post)
+        # #return response
+        # data = simplejson.dumps(data_for_post, default=json_util.default, for_json=True)
+        # response = {'data':{}, 'status_code':''}
+        # JWT = self.settings.config['JWT_KEY']
+        # if jwt_settings_key:
+        #     JWT = self.settings.config[jwt_settings_key]
+        # headers = {'Authorization':'jwt {0}'.format(JWT), 'Content-type': 'application/json'}
+        # r = requests.post(url,data,headers=headers,verify=True)
+        # response['status_code'] = r.status_code
+        # response['data'] = r.json()
+        # return response
 
     def update_catalog_multi_record(self, answers, catalog_id, record_id=[], jwt_settings_key=False):
         if not answers or not record_id:
