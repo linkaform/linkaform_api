@@ -276,31 +276,39 @@ class Cache(object):
                 last_find = index
         return (count, org_value)
 
-    def make_excel_file(self, header, records, form_id, file_field_id, upload_name=None, jwt_settings_key='JWT_KEY'):
-        records.insert(0,header)
+    def make_excel_file(self, header, records, form_id, file_field_id, upload_name=None, jwt_settings_key='JWT_KEY', is_tmp=False):
+        records.insert(0, header)
         #rows = make_array(orders)
-        date = time.strftime("%Y_%m_%d_%H_%M_%S")
+        date = time.strftime('%Y_%m_%d_%H_%M_%S')
         if not upload_name:
-            upload_name = "file_" + date
-        file_name = "/tmp/output_%s.xlsx"%(date)
+            upload_name = 'file_' + date
+        file_name = '/tmp/output_{}.xlsx'.format(date)
+
         pyexcel.save_as(array=records, dest_file_name=file_name)
         #os_file_name = self.make_excel_file(record_errors)
         csv_file = open(file_name,'rb')
         csv_file_dir = {'File': csv_file}
-        #try:
-        if True:
+
+        if is_tmp:
+            upload_data = {'file_name': file_name}
+            upload_url = self.post_upload_tmp(data=upload_data, up_file=csv_file_dir, jwt_settings_key=jwt_settings_key)
+            try:
+                file_url = upload_url['json'][0]['file_url']
+                data = {'file_url': file_url}
+            except KeyError:
+                print 'could not save file Errores'
+        else:
             upload_data = {'form_id': form_id, 'field_id': file_field_id}
-            upload_url = self.post_upload_file(data=upload_data, up_file=csv_file_dir,  jwt_settings_key=jwt_settings_key)
-        #except:
-        #    return "No se pudo generar el archivo de error "
+            upload_url = self.post_upload_file(data=upload_data, up_file=csv_file_dir, jwt_settings_key=jwt_settings_key)
+            try:
+                file_url = upload_url['data']['file']
+                data = {file_field_id: {'file_name':'{}.xlsx'.format(upload_name), 'file_url':file_url}}
+            except KeyError:
+                print 'could not save file Errores'
+
         csv_file.close()
-        try:
-            file_url = upload_url['data']['file']
-            excel_file = {file_field_id: {'file_name':'%s.xlsx'%upload_name,
-                                                'file_url':file_url}}
-        except KeyError:
-            print 'could not save file Errores'
-        return excel_file
+
+        return data
 
     def make_infosync_select_json(self, answer, element, best_effort=False):
         if type(answer) != str:
@@ -454,8 +462,12 @@ class Cache(object):
     def post_upload_file(self, data, up_file, jwt_settings_key=False):
         #data:
         #up_file:
-        upload_url = self.network.dispatch(self.api_url.form['upload_file'], data=data, up_file=up_file, jwt_settings_key=jwt_settings_key)
-        return upload_url
+        return self.network.dispatch(self.api_url.form['upload_file'], data=data, up_file=up_file, jwt_settings_key=jwt_settings_key)
+
+    def post_upload_tmp(self, data, up_file, jwt_settings_key=False):
+        #data:
+        #up_file:
+        return self.network.dispatch(self.api_url.form['upload_tmp'], data=data, up_file=up_file, jwt_settings_key=jwt_settings_key)
 
     def cdb_upload(self, data, jwt_settings_key=False):
         #data:
