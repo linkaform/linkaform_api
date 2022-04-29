@@ -413,6 +413,7 @@ class Cache(object):
         data['form_id'] = form_id
 
         if threading:
+            self.thread_dict = {}
             with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
                 if data.get('records', False):
                     records = data.pop('records')
