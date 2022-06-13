@@ -85,6 +85,23 @@ class Cache(object):
             self.items[item_type][item_id] = self.get_item_id(item_type, item_id)
         return self.items[item_type][item_id]
 
+    def get_last_version(self, last_version_uri, answers_only=True, jwt_settings_key=False):
+        if type(last_version_uri) == dict:
+            uri = last_version_uri.get('uri')
+        else:
+            uri = last_version_uri
+        print('self.dest_url  ', self.api_url.dest_url )
+        url = self.api_url.dest_url +  uri
+        method = self.api_url.form['version']['method']
+
+        response = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+
+        if response['status_code'] == 200:
+            if answers_only:
+                return response['data'].get('answers')
+            return response['data']
+        return False
+
     def get_data(self, item_type, item_id, refresh=False):
         if not self.items_data.get(item_type):
             self.items_data[item_type] = {}
@@ -164,7 +181,7 @@ class Cache(object):
         #TODO UPDATE SELF.ITESM
         #Returns all the connections
         connections = []
-        all_connections = self.network.dispatch(self.api_url['connecions']['all_connections'], jwt_settings_key=jwt_settings_key)
+        all_connections = self.network.dispatch(self.api_url.connections['all_connections'], jwt_settings_key=jwt_settings_key)
         objects = all_connections['data']
         return objects
 
@@ -591,6 +608,7 @@ class Cache(object):
             'catalog_id':catalog_id,
             'mango':mango_query
             }
+
         response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post, jwt_settings_key=jwt_settings_key)
 
         if response['status_code'] == 200:

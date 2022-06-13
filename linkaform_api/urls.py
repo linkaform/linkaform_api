@@ -12,7 +12,7 @@ class Api_url:
         self.record = self.get_records_url()
         self.catalog = self.get_catalog_url()
         self.users = self.get_users_url()
-        self.connecions = self.get_connections_url()
+        self.connections = self.get_connections_url()
         self.script = self.get_script()
 
 
@@ -25,6 +25,7 @@ class Api_url:
     def get_forms_url(self):
         return {
             'form_answer': {'url': self.dest_url + '/api/infosync/form_answer/', 'method':'GET'},
+            'version': {'url': self.dest_url + '/api/infosync/version/', 'method':'GET'},
             'all_forms':  {'url': self.dest_url + '/api/infosync/item/', 'method':'GET'},
             'get_form_id_fields':  {'url': self.dest_url + '/api/infosync/get_form/?form_id=', 'method':'GET'},
             'set_form_answer': {'url': self.dest_url + '/api/infosync/form_answer/', 'method':'POST'},
