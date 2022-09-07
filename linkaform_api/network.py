@@ -4,6 +4,7 @@
 import requests, simplejson, simplejson, time, threading, concurrent.futures
 from bson import json_util
 from urllib.parse import quote
+import psycopg2
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
@@ -53,16 +54,12 @@ class Network:
         #method is the method to use
         #use_login -Optinal- forces the dispatch to be made by login method, if not will use  the config method
         #use_api_key -Optinal- forces the dispatch to be made by api_key method, if not will use  the config method
-        #print('in do dispatch')
         #print('url_method', url_method)
         url, method = self.get_url_method(url_method, url=url, method=method)
         response = False
         #print('DISPATCH')
-        #print('data=', data)
         if type(data) in (dict,str) and not up_file:
                 data = simplejson.dumps(data, default=json_util.default, for_json=True)
-        #print('url=', url)
-        #print('method', method)
         #print('jwt_settings_key',jwt_settings_key)
         use_jwt = self.settings.config['USE_JWT']
         if method == 'GET':
@@ -442,7 +439,7 @@ class Network:
         else:
             mongo_uri = self.get_mongo_uri(db_name)
             connection['client'] = MongoClient(mongo_uri)
-
+        connection['authsource'] ='admin'
         connection['db'] = connection['client'][db_name]
         return connection
 
@@ -460,6 +457,28 @@ class Network:
     def get_infsoync_collections(self, collection='form_answer', create=False):
         database = get_infosync_connection()
         return Collection(database['db'], collection, create)
+
+    def postgres_cr(self):
+        db_name = self.settings.config.get('PG_NAME')
+        db_password = self.settings.config.get('PG_PASSWORD')
+        db_user = self.settings.config.get('PG_USER')
+        db_host = self.settings.config.get('PG_HOST')
+        db_port = self.settings.config.get('PG_PORT')
+        try:
+            conn = psycopg2.connect(
+                dbname=db_name,
+                user=db_user,
+                password=db_password,
+                port=db_port,
+                host=db_host)
+        except Exception as e:
+            print("I am unable to connect to the database")
+            print(e)
+            sys.exit()
+        return conn.cursor()
+
+
+
 
 ####
 #### Catalogos
