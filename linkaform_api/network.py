@@ -368,7 +368,7 @@ class Network:
             finally:
                 counter = counter +1
 
-    def pdf_record(self, record_id, template_id=None, upload_data=None, jwt_settings_key=False):
+    def pdf_record(self, record_id, template_id=None, upload_data=None, send_url=False, jwt_settings_key=False):
         url = self.api_url.record['get_record_pdf']['url']
         method = self.api_url.record['get_record_pdf']['method']
         body = {
@@ -376,6 +376,10 @@ class Network:
             'filter_id':None,
             'template':template_id,
         }
+        if send_url:
+            body.update({
+                'send_url': send_url
+            })
         response = self.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
         if upload_data:
             try:

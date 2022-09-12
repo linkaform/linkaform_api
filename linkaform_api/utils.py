@@ -324,30 +324,39 @@ class Cache(object):
                 last_find = index
         return (count, org_value)
 
-    def make_excel_file(self, header, records, form_id, file_field_id, upload_name=None, jwt_settings_key='JWT_KEY'):
-        records.insert(0,header)
+    def make_excel_file(self, header, records, form_id, file_field_id, upload_name=None, jwt_settings_key='JWT_KEY', is_tmp=False):
+        records.insert(0, header)
         #rows = make_array(orders)
-        date = time.strftime("%Y_%m_%d_%H_%M_%S")
+        date = time.strftime('%Y_%m_%d_%H_%M_%S')
         if not upload_name:
-            upload_name = "file_" + date
-        file_name = "/tmp/output_%s.xlsx"%(date)
+            upload_name = 'file_' + date
+        file_name = '/tmp/output_{}.xlsx'.format(date)
+
         pyexcel.save_as(array=records, dest_file_name=file_name)
         #os_file_name = self.make_excel_file(record_errors)
         csv_file = open(file_name,'rb')
         csv_file_dir = {'File': csv_file}
-        try:
+
+        if is_tmp:
+            upload_data = {'file_name': file_name}
+            upload_url = self.post_upload_tmp(data=upload_data, up_file=csv_file_dir, jwt_settings_key=jwt_settings_key)
+            try:
+                file_url = upload_url['json'][0]['file_url']
+                data = {'file_url': file_url}
+            except KeyError:
+                print('could not save file Errores')
+        else:
             upload_data = {'form_id': form_id, 'field_id': file_field_id}
-            upload_url = self.post_upload_file(data=upload_data, up_file=csv_file_dir,  jwt_settings_key=jwt_settings_key)
-        except:
-           return "No se pudo generar el archivo de error "
+            upload_url = self.post_upload_file(data=upload_data, up_file=csv_file_dir, jwt_settings_key=jwt_settings_key)
+            try:
+                file_url = upload_url['data']['file']
+                data = {file_field_id: {'file_name':'{}.xlsx'.format(upload_name), 'file_url':file_url}}
+            except KeyError:
+                print('could not save file Errores')
+
         csv_file.close()
-        try:
-            file_url = upload_url['data']['file']
-            excel_file = {file_field_id: {'file_name':'%s.xlsx'%upload_name,
-                                                'file_url':file_url}}
-        except KeyError:
-            print('could not save file Errores')
-        return excel_file
+
+        return data
 
     def make_infosync_select_json(self, answer, element, best_effort=False):
         if type(answer) != str:
@@ -452,6 +461,7 @@ class Cache(object):
         data['form_id'] = form_id
 
         if threading:
+            self.thread_dict = {}
             with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
                 if data.get('records', False):
                     records = data.pop('records')
@@ -501,8 +511,12 @@ class Cache(object):
     def post_upload_file(self, data, up_file, jwt_settings_key=False):
         #data:
         #up_file:
-        upload_url = self.network.dispatch(self.api_url.form['upload_file'], data=data, up_file=up_file, jwt_settings_key=jwt_settings_key)
-        return upload_url
+        return self.network.dispatch(self.api_url.form['upload_file'], data=data, up_file=up_file, jwt_settings_key=jwt_settings_key)
+
+    def post_upload_tmp(self, data, up_file, jwt_settings_key=False):
+        #data:
+        #up_file:
+        return self.network.dispatch(self.api_url.form['upload_tmp'], data=data, up_file=up_file, jwt_settings_key=jwt_settings_key)
 
     def cdb_upload(self, data, jwt_settings_key=False):
         #data:
@@ -562,8 +576,14 @@ class Cache(object):
             jwt = self.network.login(session, user, password, get_jwt=get_jwt)
         return jwt
 
+<<<<<<< HEAD
     def get_pdf_record(self, record_id, template_id=None, upload_data=None, jwt_settings_key=False):
         return self.network.pdf_record(record_id , template_id=template_id, upload_data=upload_data, jwt_settings_key=jwt_settings_key)
+=======
+
+    def get_pdf_record(self, record_id, template_id=None, upload_data=None, send_url=False, jwt_settings_key=False):
+        return self.network.pdf_record(record_id , template_id=template_id, upload_data=upload_data, send_url=send_url, jwt_settings_key=jwt_settings_key)
+>>>>>>> bb15baf63c6791bf4e5bdf5911bc256aab5bf4ad
 
 
     def run_script(self, data, jwt_settings_key=False):
@@ -665,6 +685,21 @@ class Cache(object):
         data_for_post = {"docs":[{"_id":id_record, "_rev":rev, "_deleted":True, "index":0}],"catalog_id":catalog_id}
         response = self.network.dispatch(url, data=data_for_post, jwt_settings_key=jwt_settings_key)
         return response
+        # url = self.api_url.catalog['delete_catalog_record']['url']
+        # method = self.api_url.catalog['delete_catalog_record']['method']
+        # data_for_post = {"docs":[{"_id":id_record, "_rev":rev, "_deleted":True, "index":0}],"catalog_id":catalog_id}
+        # #response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post)
+        # #return response
+        # data = simplejson.dumps(data_for_post, default=json_util.default, for_json=True)
+        # response = {'data':{}, 'status_code':''}
+        # JWT = self.settings.config['JWT_KEY']
+        # if jwt_settings_key:
+        #     JWT = self.settings.config[jwt_settings_key]
+        # headers = {'Authorization':'jwt {0}'.format(JWT), 'Content-type': 'application/json'}
+        # r = requests.post(url,data,headers=headers,verify=True)
+        # response['status_code'] = r.status_code
+        # response['data'] = r.json()
+        # return response
 
     def update_catalog_multi_record(self, answers, catalog_id, record_id=[], jwt_settings_key=False):
         if not answers or not record_id:
