@@ -27,13 +27,13 @@ class Api_url:
             'form_answer': {'url': self.dest_url + '/api/infosync/form_answer/', 'method':'GET'},
             'version': {'url': self.dest_url + '/api/infosync/version/', 'method':'GET'},
             'all_forms':  {'url': self.dest_url + '/api/infosync/item/', 'method':'GET'},
+            'get_folder_forms':  {'url': self.dest_url + '/api/infosync/item/?parent=', 'method':'GET'},
             'get_form_id_fields':  {'url': self.dest_url + '/api/infosync/get_form/?form_id=', 'method':'GET'},
             'set_form_answer': {'url': self.dest_url + '/api/infosync/form_answer/', 'method':'POST'},
             'upload_file': {'url': self.dest_url + '/api/infosync/cloud_upload/', 'method':'POST'},
             'get_form_fields':  {'url': self.dest_url + '/api/infosync/get_form_fields/', 'method':'GET'},
             'share_form': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'},
             }
-
 
     def get_records_url(self):
         return  {

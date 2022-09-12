@@ -148,6 +148,14 @@ class Cache(object):
             return response['data']
         return False
 
+    def get_folder_forms(self, folder_id, jwt_settings_key=False):
+        url = self.api_url.form['get_folder_forms']['url']+str(form_id)
+        method = self.api_url.form['get_folder_forms']['method']
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
+        if response['status_code'] == 200:
+            return response['data']
+        return False
+
     def get_all_items(self, item_type, jwt_settings_key=False):
         if item_type =='form':
             return self.get_all_forms()

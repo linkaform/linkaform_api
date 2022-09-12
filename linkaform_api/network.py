@@ -1,7 +1,7 @@
 # coding: utf-8
 #!/usr/bin/python
 
-import requests, simplejson, simplejson, time, threading, concurrent.futures
+import requests, sys, simplejson, simplejson, time, threading, concurrent.futures
 from bson import json_util
 from urllib.parse import quote
 import psycopg2
