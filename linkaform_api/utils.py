@@ -576,14 +576,9 @@ class Cache(object):
             jwt = self.network.login(session, user, password, get_jwt=get_jwt)
         return jwt
 
-<<<<<<< HEAD
-    def get_pdf_record(self, record_id, template_id=None, upload_data=None, jwt_settings_key=False):
-        return self.network.pdf_record(record_id , template_id=template_id, upload_data=upload_data, jwt_settings_key=jwt_settings_key)
-=======
 
     def get_pdf_record(self, record_id, template_id=None, upload_data=None, send_url=False, jwt_settings_key=False):
         return self.network.pdf_record(record_id , template_id=template_id, upload_data=upload_data, send_url=send_url, jwt_settings_key=jwt_settings_key)
->>>>>>> bb15baf63c6791bf4e5bdf5911bc256aab5bf4ad
 
 
     def run_script(self, data, jwt_settings_key=False):
