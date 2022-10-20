@@ -2,10 +2,13 @@
 #!/usr/bin/python
 
 import simplejson, time, datetime, concurrent.futures
-#import threading
+import threading
+from math import ceil
 #import concurrent.futures
 #from forms import Form
 from linkaform_api import network
+from linkaform_api  import couch_util
+
 import pyexcel
 from . import network
 
@@ -19,8 +22,8 @@ class Cache(object):
         from .urls import Api_url
         self.api_url = Api_url(settings)
         self.network = network.Network(self.settings)
+        self.couch = couch_util.Couch_utils(self.settings)
         self.thread_dict = {}
-
 
     def delete_inbox_records(self, delete_records, jwt_settings_key=False):
         #  delete_records {user_id:[record_id,]}
@@ -576,10 +579,8 @@ class Cache(object):
             jwt = self.network.login(session, user, password, get_jwt=get_jwt)
         return jwt
 
-
     def get_pdf_record(self, record_id, template_id=None, upload_data=None, send_url=False, jwt_settings_key=False):
         return self.network.pdf_record(record_id , template_id=template_id, upload_data=upload_data, send_url=send_url, jwt_settings_key=jwt_settings_key)
-
 
     def run_script(self, data, jwt_settings_key=False):
         return self.network.dispatch(self.api_url.script['run_script'], data=data, jwt_settings_key=jwt_settings_key)
@@ -650,7 +651,6 @@ class Cache(object):
             }
         }
         return self.search_catalog(catalog_id, mango, jwt_settings_key=jwt_settings_key)
-
 
     def update_catalog_answers(self, data, record_id=None, jwt_settings_key=False):
         if record_id:
@@ -764,6 +764,123 @@ class Cache(object):
         method = self.api_url.catalog['update_catalog_model']['method']
         r = self.network.dispatch(url=url, method=method, data=catalog_model, jwt_settings_key=jwt_settings_key)
         return r
+
+    def find_record(self, db_cr, rec_id):
+        mango_query = {
+              "selector": {
+                "_id":rec_id
+              },
+               "limit": 1
+          }
+        result = db_cr.find(mango_query)
+        res = [x for x in result]
+        return res
+
+    def get_records(self, catalog_db, rec_ids, batch_size):
+        mango_query = {
+            "selector": {
+                "_id": {
+                    "$in": rec_ids
+                    }
+                },
+            "limit":batch_size+1
+            }
+        result = catalog_db.find(mango_query)
+        res = [x for x in result]
+        return res
+
+    def get_last_seq(self, db_cr, catalog_from):
+        mango_query = {
+            "selector": {
+                "_id": "last_seq_{}".format(catalog_from)
+                },
+            "limit":1
+        }
+        result = db_cr.find(mango_query)
+        res = [x for x in result]
+        return res
+
+    def record_etl(self, db_cr, catalog_map, record):
+        rec_id = record.pop('_id')
+        rec = self.find_record(db_cr, rec_id)
+        ans = {}
+        rec_rev = False
+        if rec:
+            rec_rev = rec[0].pop('_rev')
+            ans = rec[0].get('answers',{})
+        new_rec = {
+            'answers':ans,
+            '_id':rec_id,
+            # '_rev':record.pop('_rev'),
+        }
+        if rec_rev:
+            new_rec.update({'_rev':rec_rev})
+        record.pop('_rev')
+        answers = record.pop('answers')
+        if answers:
+            for key, value in catalog_map.items():
+                if answers.get(key):
+                    new_rec['answers'][value] = answers.pop(key)
+        new_rec.update(record)
+        return new_rec
+
+    def update_records(self, db_cr_to, records, catalog_map):
+        update_docs = []
+        for idx, rec in enumerate(records):
+            new_rec = self.record_etl(db_cr_to, catalog_map, rec)
+            r = db_cr_to.save(new_rec)
+        return True
+
+    def sync_catalogs(self, catalog_from_id, catlog_to_id, query, catalog_map):
+        cdb_obj = couch_util.Couch_utils(self.settings)
+        cdb = cdb_obj.cdb
+        catalog_from = "catalog_records_{}".format(catalog_from_id)
+        catalog_to = "catalog_records_{}".format(catlog_to_id)
+        db_cr = cdb[catalog_from]
+        # db_cr = cdb[catalog_from]
+        db_cr_to = cdb[catalog_to]
+        # db_cr_to = cdb[catalog_to]
+        last_seq = self.get_last_seq(db_cr_to, catalog_from_id)
+        if last_seq:
+            last_seq = last_seq[0].get('last_seq')
+        else:
+            last_seq = None
+        change = db_cr.changes(since=last_seq)
+        results = change['results']
+        last_seq = change['last_seq']
+        change_id = [ rec.get('id') for rec in results if rec.get('id')[0] != '_' ]
+        change_id = change_id[0:200]
+        total_rec = len(change_id)
+        batch_size = 400
+        records_bach = []
+        threads = []
+        for x in range(int(ceil(total_rec/float(batch_size)))):
+            form_id = x * batch_size
+            to_id = (x+1) * batch_size
+            batch_rec = change_id[form_id:to_id]
+            recs = self.get_records(db_cr, batch_rec, batch_size)
+            threads.append(threading.Thread(
+                target = self.update_records,
+                args = (db_cr_to, recs, catalog_map)
+            ))
+
+        for thread in threads:
+            thread.start()
+
+        for thread in threads:
+            thread.join()
+
+        last_seq_id = 'last_seq_{}'.format(catalog_from_id)
+        last_seq_rec = self.find_record(db_cr_to, last_seq_id)
+        update_seq = {
+            '_id': last_seq_id,
+            'last_seq':last_seq
+        }
+        if last_seq_rec:
+            update_seq.update({'_rev':last_seq_rec[0]['_rev']})
+        r = db_cr_to.save(update_seq)
+        return True
+
 
 def warning(*objs):
     '''
