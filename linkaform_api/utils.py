@@ -3,6 +3,7 @@
 
 import simplejson, time, datetime, concurrent.futures
 import threading
+import wget, bson
 from math import ceil
 #import concurrent.futures
 #from forms import Form
@@ -880,6 +881,18 @@ class Cache(object):
             update_seq.update({'_rev':last_seq_rec[0]['_rev']})
         r = db_cr_to.save(update_seq)
         return True
+
+    def read_current_record_from_txt(self, file_url):
+        name_downloded = self.download_pdf( file_url, is_txt=True )
+        f = open( "/tmp/{}".format( name_downloded ) )
+        return simplejson.loads( f.read() )
+
+    def download_pdf(self, file_url, is_txt=False):
+        oc_name = 'oc_{}.pdf'.format(str(bson.ObjectId()))
+        if is_txt:
+            oc_name = 'file_{}.txt'.format(str(bson.ObjectId()))
+        wget.download(file_url, '/tmp/{}'.format(oc_name))
+        return oc_name
 
 
 def warning(*objs):

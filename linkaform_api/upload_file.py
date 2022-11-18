@@ -10,7 +10,8 @@
 #####
 import wget
 import pyexcel
-import datetime, time, re
+import time, re
+from datetime import datetime
 from sys import argv
 import simplejson
 
@@ -269,6 +270,50 @@ class LoadFile:
         print('if running from console you shoud send the settings json a second argument')
         print('running from console example')
         print(''''python upload_excel_file.py '{"file_name":"/tmp/personal.xlsx", "form_id":"1234", "equivalcens_map":{"foo":"bar"}} '{"USERNAME": "mike"}' ''')
+
+
+
+
+
+
+
+
+
+
+    def make_excel_file( self, rows, content_sheets={} ):
+        #rows = make_array(orders)
+        date = datetime.now().strftime("%Y_%m_%d_%H_%M_%S_%f")
+        file_name = "/tmp/output_%s.xlsx"%(date)
+        if content_sheets:
+            my_excel = pyexcel.get_book(bookdict=content_sheets)
+            my_excel.save_as(file_name)
+        else:
+            pyexcel.save_as(array=rows, dest_file_name=file_name)
+        return file_name
+
+    def make_excel_and_upload_lkf(self, header, record_errors, form_id, file_field_id='f1074100a010000000000003', content_sheets={}, new_name='', jwt_settings_key=False):
+        record_errors.insert(0,header)
+        archivo_file_name = self.make_excel_file(record_errors, content_sheets=content_sheets)
+        csv_file = open(archivo_file_name,'rb')
+        csv_file_dir = {'File': csv_file}
+        try:
+            upload_data = {'form_id': form_id, 'field_id': file_field_id}
+            upload_url = self.lkf_api.post_upload_file(data=upload_data, up_file=csv_file_dir,  jwt_settings_key=jwt_settings_key)
+            print ("**** upload_url:",upload_url)
+        except:
+            return "No se pudo generar el archivo de error "
+
+        csv_file.close()
+        try:
+            file_url = upload_url['data']['file']
+            error_file = {file_field_id: {'file_name': upload_url['data']['file_name'],
+                                                'file_url':file_url}}
+        except KeyError:
+            print ('could not save file Errores')
+            return 'No se pudo guardar el archivo, favor de reprocesar'
+        if new_name:
+            error_file[ file_field_id ].update({ 'file_name': new_name })
+        return error_file
 
 
 if __name__ == "__main__":
