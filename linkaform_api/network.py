@@ -96,7 +96,7 @@ class Network:
             JWT = self.settings.config[jwt_settings_key]
         if use_jwt and not use_api_key:
             headers = {'Content-type': 'application/json',
-                       'Authorization':'jwt {0}'.format(JWT)}
+                       'Authorization':'Bearer {0}'.format(JWT)}
 
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
             headers = {'Content-type': 'application/json',
@@ -150,7 +150,7 @@ class Network:
             JWT = self.settings.config[jwt_settings_key]
         if use_jwt and not use_api_key:
             #print('use_jwtuse_jwtuse_jwt')
-            headers = {'Authorization':'jwt {0}'.format(JWT)}
+            headers = {'Authorization':'Bearer {0}'.format(JWT)}
             if not up_file:
                 headers['Content-type'] = 'application/json'
 
@@ -221,7 +221,7 @@ class Network:
             JWT = self.settings.config[jwt_settings_key]
         if use_jwt and not use_api_key:
             headers = {'Content-type': 'application/json',
-                       'Authorization':'jwt {0}'.format(JWT)}
+                       'Authorization':'Bearer {0}'.format(JWT)}
 
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
             headers = {'Content-type': 'application/json',

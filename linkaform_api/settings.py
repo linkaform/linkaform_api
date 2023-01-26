@@ -29,6 +29,11 @@ config = {
     'MONGODB_MAX_POOL_SIZE': 1000,
     'PROTOCOL' : 'https', #http or https
     'HOST' : 'qa.linkaform.com',
+    'HOST_BOB' : 'bob.linkaform.com',
+    'AIRFLOW_PROTOCOL' : 'http', #http or https
+    'AIRFLOW_PORT' : 5000, #http or https
+    #'AIRFLOW_HOST' : 'af.linkaform.com',
+    'AIRFLOW_HOST' : 'airflow.linkaform.com',
     'USER_ID' : '',
     'ACCOUNT_ID': '',
     'KEYS_POSITION' : {},
