@@ -2,11 +2,11 @@
 #!/usr/bin/python
 
 
-from .urls import api_url
-import network
+# from .urls import api_url
+# import network
 #from utils import Cache
-import utils
-import settings
+# import utils
+from linkaform_api import settings
 
 
 class Catalog(object):

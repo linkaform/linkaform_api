@@ -13,12 +13,13 @@
 #
 # from re import findall
 
-from .urls import api_url
-import network
+# from .urls import api_url
+# import network
 #from utils import Cache
-import utils
-import settings
-from catalog import Catalog
+# import utils
+
+from linkaform_api import settings
+from .catalog import Catalog
 
 class FieldType:
     GROUP_FIELD = 1

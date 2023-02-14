@@ -233,3 +233,22 @@ class Couch_utils(object):
 
     def delete(self, rec_id):
       self.cr.delete(rec_id)
+
+    def set_index(self, db_name, fields, name, partitioned=False):
+        url = "{}/{}/_index".format(self.host, db_name)
+        headers = {'Content-type': 'application/json'}
+        params ={
+                "index": {
+                    "fields": fields,
+                        },
+                "name" : name,
+                "type" : "json"
+                #"partial_filter_selector": {}
+                #https://docs.couchdb.org/en/stable/api/database/find.html#api-db-find-index
+                }
+        if partitioned:
+            params.update({"partitioned":True})
+        r = requests.post(url, json=params, headers=headers)
+        res = r.json()
+        res['status_code'] = r.status_code
+        return res
