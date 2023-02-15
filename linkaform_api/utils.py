@@ -216,6 +216,8 @@ class Cache(object):
         if is_catalog:
             return response
         all_form_users = response.get('data', [])
+        if type(all_form_users) == dict:
+            all_form_users = [all_form_users,]
         if not include_connections:
             [all_form_users.pop(pos) for pos, user in enumerate(all_form_users) if user['is_connection']]
         if not include_users:
@@ -223,6 +225,17 @@ class Cache(object):
         if include_owner:
             all_form_users.append(response.get('json',{}).get('owner', {}))
         return all_form_users
+
+    def get_group_users(self, group_id, user_type='users', jwt_settings_key=False):
+        #Returns all users of a group
+        #user_type 'users', 'admin_users','supervisor_users'
+        post_json = self.api_url.get_groups_url()['get_group_users']
+        url = post_json['url'].format(group_id)
+        response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
+        if user_type in ('users', 'admin_users','supervisor_users'):
+            return response.get('data', {}).get(user_type,[])
+        else:
+            return response.get('data', {})
 
     def get_form_connections(self, form_id, jwt_settings_key=False):
         #TODO UPDATE SELF.ITESM
@@ -894,6 +907,14 @@ class Cache(object):
         wget.download(file_url, '/tmp/{}'.format(oc_name))
         return oc_name
 
+    def subscribe_event_body(self, body, jwt_settings_key=False):
+        #Returns all users of a group
+        #user_type 'users', 'admin_users','supervisor_users'
+        post_json = self.api_url.get_airflow()['subscribe']
+        url = post_json['url']
+        print('url', url)
+        response = self.network.dispatch(url=url, method=post_json['method'], data=body, jwt_settings_key=jwt_settings_key)
+        return response
 
 def warning(*objs):
     '''

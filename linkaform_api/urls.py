@@ -7,13 +7,19 @@ class Api_url:
     def __init__(self, settings):
         self.urls = {}
         self.dest_url = settings.config['PROTOCOL'] + '://' + settings.config['HOST']
+        self.bob_url = settings.config['PROTOCOL'] + '://' + settings.config['HOST']
+        self.airflow_dest_url = settings.config['AIRFLOW_PROTOCOL'] + '://' + settings.config['AIRFLOW_HOST']
+        if settings.config['AIRFLOW_PORT']:
+            self.airflow_dest_url += ':{}'.format(settings.config['AIRFLOW_PORT'])
         self.globals = self.get_global_url()
         self.form = self.get_forms_url()
         self.record = self.get_records_url()
         self.catalog = self.get_catalog_url()
         self.users = self.get_users_url()
+        self.groups = self.get_groups_url()
         self.connections = self.get_connections_url()
         self.script = self.get_script()
+        self.airflow = self.get_airflow()
 
 
     def get_global_url(self):
@@ -48,7 +54,6 @@ class Api_url:
                 'get_record_pdf': {'url': self.dest_url + '/api/infosync/form_answer/pdf/', 'method':'POST'}
                 }
 
-
     def get_catalog_url(self):
         return  {
                 'catalog_id_fields': {'url': self.dest_url + '/api/infosync/catalog_model/send_catalog/', 'method':'GET'},
@@ -63,7 +68,6 @@ class Api_url:
                 'update_catalog_model': {'url': self.dest_url + '/api/infosync/catalog_model/{0}/', 'method': 'PATCH'}
                 }
 
-
     def get_users_url(self):
         return  {
                 'all_users': {'url': self.dest_url + '/api/infosync/user_admin/?limit=0', 'method':'GET'},
@@ -73,6 +77,10 @@ class Api_url:
                 'get_form_users' :{'url': self.dest_url + '/api/infosync/item/{0}/get_users/?limit=0', 'method':'GET'}
                 }
 
+    def get_groups_url(self):
+        return  {
+                'get_group_users': {'url': self.dest_url + '/api/infosync/group/{}/', 'method':'GET'},
+                }
 
     def get_connections_url(self):
         return  {
@@ -86,4 +94,9 @@ class Api_url:
     def get_script(self):
         return  {
                 'run_script': {'url': self.dest_url + '/api/infosync/scripts/run/', 'method':'POST'},
+                }
+
+    def get_airflow(self):
+        return  {
+                'subscribe': {'url': self.airflow_dest_url + '/subscribe/script', 'method':'POST'},
                 }
