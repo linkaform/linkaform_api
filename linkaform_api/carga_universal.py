@@ -442,6 +442,7 @@ class CargaUniversal:
             answer_file = current_record['answers'][self.field_id_xls]
 
             file_url = answer_file[0]['file_url'] if type(answer_file) == list else answer_file['file_url']
+            print('********************** file_url=',file_url)
             header, records = self.upfile.read_file(file_url=file_url)
             """
             Obtengo la información de la forma seleccionada del catálogo
