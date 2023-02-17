@@ -54,7 +54,6 @@ class Network:
         #method is the method to use
         #use_login -Optinal- forces the dispatch to be made by login method, if not will use  the config method
         #use_api_key -Optinal- forces the dispatch to be made by api_key method, if not will use  the config method
-        #print('url_method', url_method)
         url, method = self.get_url_method(url_method, url=url, method=method)
         response = False
         #print('DISPATCH')
