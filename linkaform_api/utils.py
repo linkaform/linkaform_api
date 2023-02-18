@@ -5,6 +5,7 @@ import simplejson, time, datetime, concurrent.futures
 import threading
 import wget, bson
 from math import ceil
+from copy import deepcopy
 #import concurrent.futures
 #from forms import Form
 from linkaform_api import network
@@ -205,6 +206,24 @@ class Cache(object):
         if not all_users:
             all_users = response.get('json',{}).get('objects', [])
         return all_users
+
+    def get_updated_users(self, date_epoc, jwt_settings_key=False):
+        post_json = self.api_url.get_users_url()['updated_users']
+        url = post_json['url'].format(date_epoc)
+        response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
+        all_users = response.get('objects', [])
+        if not all_users:
+            all_users = response.get('json',{}).get('objects', [])
+        return all_users
+
+    def get_updated_groups(self, date_epoc, jwt_settings_key=False):
+        post_json = self.api_url.get_groups_url()['updated_groups']
+        url = post_json['url'].format(date_epoc)
+        response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
+        all_groups = response.get('objects', [])
+        if not all_groups:
+            all_groups = response.get('json',{}).get('objects', [])
+        return all_groups
 
     def get_form_users(self, form_id, include_users=True, include_connections=True,
         include_owner=True, is_catalog=False, jwt_settings_key=False):
@@ -627,7 +646,6 @@ class Cache(object):
         return self.network.post_catalog_answers(answers, jwt_settings_key=jwt_settings_key)
 
     def post_catalog_answers_list(self, answers, test=False, jwt_settings_key=False ):
-        print('utls post_catalog_answers_list')
         return self.network.post_catalog_answers_list(answers, jwt_settings_key=jwt_settings_key)
 
     def prepare_response_find(self, response):
@@ -635,7 +653,12 @@ class Cache(object):
         list_to_response = []
         for d in list_data:
             answers_data = d.get('answers',{})
-            answers_data.update({'_id':d.get('_id',''), '_rev':d.get('_rev','')})
+            answers_data.update(
+                {'_id':d.get('_id',''),
+                '_rev':d.get('_rev',''),
+                'created_at':d.get('created_at',''),
+                'updated_at':d.get('updated_at',''),
+                })
             list_to_response.append(answers_data)
         return list_to_response
 
@@ -648,7 +671,6 @@ class Cache(object):
             }
 
         response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post, jwt_settings_key=jwt_settings_key)
-
         if response['status_code'] == 200:
             return self.prepare_response_find(response)
         if response['status_code'] == 440:
@@ -673,7 +695,9 @@ class Cache(object):
 
     def thread_function_bulk_patch_catalog(self, data, catalog_id,  jwt_settings_key):
         data['catalog_id'] = catalog_id
-        res = self.network.dispatch(self.api_url.catalog['update_catalog_multi'], data=data,
+        post_json = deepcopy(self.api_url.catalog['update_catalog_multi'])
+        post_json['url'] = post_json['url'].format(data['record_id'])
+        res = self.network.dispatch(post_json, data=data,
             jwt_settings_key=jwt_settings_key)
         if data.get('_id'):
             self.thread_dict[data['_id']] = res
@@ -687,7 +711,13 @@ class Cache(object):
                     executor.map(lambda x: self.thread_function_bulk_patch_catalog(x, catalog_id,
                         jwt_settings_key=jwt_settings_key), [data])
             return  self.thread_dict
-        return self.network.dispatch(self.api_url.catalog['update_catalog_multi'], data=data, jwt_settings_key=jwt_settings_key)
+        post_json = self.api_url.catalog['update_catalog_multi']
+        post_json['url'] = post_json['url'].format(data['record_id'])
+        res = []
+        for data in records:
+            res.append(self.network.dispatch(post_json, data=data, jwt_settings_key=jwt_settings_key))
+        return res
+
 
     def delete_catalog_record(self, catalog_id, id_record, rev, jwt_settings_key=False):
         url = self.api_url.catalog['delete_catalog_record']
@@ -912,7 +942,6 @@ class Cache(object):
         #user_type 'users', 'admin_users','supervisor_users'
         post_json = self.api_url.get_airflow()['subscribe']
         url = post_json['url']
-        print('url', url)
         response = self.network.dispatch(url=url, method=post_json['method'], data=body, jwt_settings_key=jwt_settings_key)
         return response
 
