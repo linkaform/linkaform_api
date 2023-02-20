@@ -15,7 +15,6 @@ class Couch_utils(object):
                 settings.config['COUCH_HOST'],
                 settings.config['COUCH_PORT'])
             self.cdb = Server(couch_pord_url)
-            self.cdb_dest = Server(couch_dev_url)
             self.url_prod = "{}://{}:{}/".format(
                 settings.config['COUCH_PROTOCOL'],
                 settings.config['COUCH_HOST'],
