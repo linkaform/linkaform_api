@@ -27,7 +27,6 @@ class Couch_utils(object):
                 settings.config['COUCH_PASSWORD'],
                 settings.config['COUCH_HOST'],
                 )
-            print('sqi aqui esta self host', self.host)
         elif settings.config['COUCH_ENV'] == 'dev':
             couch_dev_url = "{}://{}:{}@{}:{}".format(
                 settings.config['COUCH_DEV_PROTOCOL'],
