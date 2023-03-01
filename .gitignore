@@ -1,5 +1,5 @@
 # Compiled python modules.
 *.pyc
-
+*.tag.gz
 # Python egg metadata, regenerated from source files by setuptools.
 /*.egg-info

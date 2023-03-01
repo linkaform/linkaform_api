@@ -8,6 +8,7 @@ class Couch_utils(object):
 
     def __init__(self, settings={}):
         if settings.config['COUCH_ENV'] == 'prod':
+            print('-----------------')
             couch_pord_url = "{}://{}:{}@{}:{}".format(
                 settings.config['COUCH_PROTOCOL'],
                 settings.config['COUCH_USER'],
@@ -15,14 +16,13 @@ class Couch_utils(object):
                 settings.config['COUCH_HOST'],
                 settings.config['COUCH_PORT'])
             self.cdb = Server(couch_pord_url)
-            self.cdb_dest = Server(couch_dev_url)
             self.url_prod = "{}://{}:{}/".format(
                 settings.config['COUCH_PROTOCOL'],
                 settings.config['COUCH_HOST'],
                 settings.config['COUCH_PORT']
                 )
             self.host = "{}://{}:{}@{}".format(
-            settings.config['COUCH_PROTOCOL'],
+                settings.config['COUCH_PROTOCOL'],
                 settings.config['COUCH_USER'],
                 settings.config['COUCH_PASSWORD'],
                 settings.config['COUCH_HOST'],
@@ -248,6 +248,7 @@ class Couch_utils(object):
 
     def set_index(self, db_name, fields, name, partitioned=False):
         url = "{}/{}/_index".format(self.host, db_name)
+        print('self fono', self.host)
         headers = {'Content-type': 'application/json'}
         params ={
                 "index": {
