@@ -627,6 +627,8 @@ class CargaUniversal:
             subgrupo_errors = []
             dict_records_to_multi = {'create': [], 'update': []}
             dict_records_copy = {'create': [], 'update': {}}
+            list_cols_for_upload = list( pos_field_dict.keys() )
+            print('list_cols_for_upload =',list_cols_for_upload)
             for p, record in enumerate(records):
                 print("=========================================== >> Procesando renglon:",p)
                 if p in subgrupo_errors:
@@ -634,7 +636,7 @@ class CargaUniversal:
                     continue
                 # Recorro la lista de campos de tipo documento para determinar si el contenido en esa posición está dentro del zip de carga
                 no_en_zip = [record[i] for i in file_records if record[i] and record[i] not in files_dir]
-                new_record = [record[i] for i in not_groups if record[i]]
+                new_record = [record[i] for i in not_groups if record[i] and i in list_cols_for_upload]
                 if new_record and p != 0:
                     if metadata.get('answers',{}):
                         proceso = self.crea_actualiza_record(metadata, existing_records, error_records, records, sets_in_row, dict_records_to_multi, dict_records_copy, ids_fields_no_update)
