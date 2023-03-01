@@ -7,7 +7,7 @@
 # Script to upload documents to Forms
 #####
 import simplejson
-import re, os, zipfile, wget, random, shutil, datetime, types
+import re, os, zipfile, wget, random, shutil, datetime
 from linkaform_api import settings, network, utils, upload_file
 
 #fields_no_update = ['post_status', 'next_cut_week', 'cut_week', 'cycle_group', 'ready_year_week']
@@ -46,9 +46,9 @@ class CargaUniversal:
 
     def list_to_str(self, list_to_proccess):
         str_return = ''
-        for i, value in enumerate(list_to_proccess):
-            if isinstance(value, types.UnicodeType):
-                list_to_proccess[i] = value.decode('utf-8')
+        # for i, value in enumerate(list_to_proccess):
+        #     if isinstance(value, types.UnicodeType):
+        #         list_to_proccess[i] = value.decode('utf-8')
         str_return += ', '.join([a for a in list_to_proccess if a])
         return str_return
 
@@ -62,16 +62,16 @@ class CargaUniversal:
                 info_json = response['json'][msg_fin]
                 msgs = info_json.get('msg', [])
                 if msgs:
-                    msg_err = str(msgs[0]).decode('utf-8')
-                    label_err = info_json.get('label').decode('utf-8')
+                    msg_err = self.strip_special_characters(msgs[0])
+                    label_err = info_json.get('label')
                     msg_err_arr.append(str(msg_err+':'+label_err))
                 else:
                     for i_err in info_json:
                         info_i = info_json[i_err]
                         for id_group in info_i:
                             info_group = info_i[id_group]
-                            msg_err = str(info_group['msg'][0]).decode('utf-8')
-                            label_err = info_group['label'].decode('utf-8')
+                            msg_err = self.strip_special_characters(info_group['msg'][0])
+                            label_err = info_group['label']
                             msg_err_arr.append('SET {0}:: {1} - {2}'.format(i_err, msg_err, label_err))
             if msg_err_arr:
                 data_str_err = self.list_to_str(msg_err_arr)
@@ -335,8 +335,8 @@ class CargaUniversal:
             #msg_errores_row += ', '.join([str(a) for a in error if a])
             for a in error:
                 if a:
-                    if isinstance(a, types.UnicodeType):
-                        a = a.decode('utf-8')
+                    # if isinstance(a, types.UnicodeType):
+                    #     a = a.decode('utf-8')
                     msg_errores_row += (a+', ')
             answers.update({'error': 'Registro con errores'})
             if not answers.get('dict_errors'):
@@ -514,7 +514,7 @@ class CargaUniversal:
                     info_catalog = self.lkf_api.get_catalog_id_fields(ccat.get('catalog',{}).get('catalog_id',0), jwt_settings_key='USER_JWT_KEY')
                     dict_filters = info_catalog.get('catalog',{}).get('filters',{})
                     #print('+++++ dict_filters',dict_filters)
-                    ccat['catalog']['filters'] = dict_filters[filters]
+                    ccat['catalog']['filters'] = dict_filters.get(filters, {})
             #print("----- dict_catalogs con filtro:", dict_catalogs)
             # Reviso si existen grupos repetitivos en el archivo de carga
             fields_groups = { f['field_id']: f['label'] for f in info_fields if f['field_type'] == 'group' }
