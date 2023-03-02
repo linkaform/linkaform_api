@@ -321,6 +321,7 @@ class CargaUniversal:
                         else:
                             answers.update({id_cat:dict_record_catalog_to_save})
                     else:
+                        print('----- No se encontro info en el catalogo con el filtro = ',mango_query)
                         error.append('No se encontro informacion en el catalogo '+cont_cat['label'])
         if grupo_repetitivo:
             for id_g in grupo_repetitivo:
@@ -430,6 +431,15 @@ class CargaUniversal:
                         error_records.append(records[dentro_grupo]+['',])
         return proceso
 
+    def get_repeated_ids_in_filter(self, filters_catalog):
+        dict_counts = {}
+        for ff in filters_catalog:
+            kk = list(ff.keys())[0]
+            if not dict_counts.get(kk):
+                dict_counts[kk] = 0
+            dict_counts[kk] += 1
+        return [ ii for ii in dict_counts if dict_counts[ii] > 1 ]
+
     def carga_doctos(self, current_record, record_id):
         self.update_status_record(current_record, record_id, 'procesando')
         global error_records
@@ -515,6 +525,28 @@ class CargaUniversal:
                     dict_filters = info_catalog.get('catalog',{}).get('filters',{})
                     #print('+++++ dict_filters',dict_filters)
                     ccat['catalog']['filters'] = dict_filters.get(filters, {})
+
+                    # Reviso si hay campos repetidos en el filtro para entonces armar los $or
+                    if dict_filters.get(filters):
+                        list_repeated_fields = self.get_repeated_ids_in_filter(dict_filters.get(filters, {}).get('$and', []))
+                        if list_repeated_fields:
+                            print('list_repeated_fields =====',list_repeated_fields)
+                            new_and = []
+                            fields_or = {}
+                            #dict_filters[filters]['$and'].append({'6205f73281bb36a6f1500000': {'$eq': 'Test01'}})
+                            for rr in dict_filters.get(filters, {}).get('$and', []):
+                                rr_idfield = list(rr.keys())[0]
+                                if rr_idfield in list_repeated_fields:
+                                    if not fields_or.get(rr_idfield):
+                                        fields_or[rr_idfield] = {'$or': []}
+                                    fields_or[rr_idfield]['$or'].append(rr[rr_idfield])
+                                else:
+                                    new_and.append(rr)
+                            print('........... fields_or=',fields_or)
+                            for fff in fields_or:
+                                new_and.append({fff: fields_or[fff]})
+                            print('........... new_and=',new_and)
+                            ccat['catalog']['filters'] = {'$and':new_and}
             #print("----- dict_catalogs con filtro:", dict_catalogs)
             # Reviso si existen grupos repetitivos en el archivo de carga
             fields_groups = { f['field_id']: f['label'] for f in info_fields if f['field_type'] == 'group' }
