@@ -208,6 +208,15 @@ class Network:
                     return response
             else:
                 response['data'] = r_data.get('objects',r_data)
+        else:
+            try:
+                response['data'] = r.text
+            except:
+                try:
+                    response['data'] = r.content
+                except:
+                    response['data'] = r
+                    
         return response
 
     def do_patch(self, url, data, use_login=False, use_api_key=False,
