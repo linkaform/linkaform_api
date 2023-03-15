@@ -749,7 +749,7 @@ class Cache(object):
             'catalog_id': catalog_id,
             'objects': record_id
         }
-        return self.network.dispatch(self.api_url.catalog['update_catalog_multi'], data=data, jwt_settings_key=jwt_settings_key)
+        return self.network.dispatch(self.api_url.catalog['catalog_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
 
     def create_filter(self, catalog_id, filter_name, filter_to_search, jwt_settings_key=False):
         url = self.api_url.catalog['create_filter']['url']
