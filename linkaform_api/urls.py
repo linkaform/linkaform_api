@@ -65,7 +65,9 @@ class Api_url:
                 'create_filter': {'url': self.dest_url + '/api/infosync/user_properties/create_filter/', 'method': 'POST'},
                 'delete_filter': {'url': self.dest_url + '/api/infosync/catalog/delete_filter/', 'method': 'POST'},
                 'share_catalog': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'},
-                'update_catalog_model': {'url': self.dest_url + '/api/infosync/catalog_model/{0}/', 'method': 'PATCH'}
+                'update_catalog_model': {'url': self.dest_url + '/api/infosync/catalog_model/{0}/', 'method': 'PATCH'},
+                'create_catalog': {'url': self.dest_url + '/api/infosync/catalog_model/', 'method':'POST'},
+                'load_rows': {'url': self.dest_url + '/api/infosync/catalog_answers/sheet_to_catalog/', 'method': 'POST'}
                 }
 
     def get_users_url(self):
@@ -101,4 +103,5 @@ class Api_url:
     def get_airflow(self):
         return  {
                 'subscribe': {'url': self.airflow_dest_url + '/subscribe/script', 'method':'POST'},
+                'delete_schedule': {'url': self.airflow_dest_url + '/subscribe', 'method':'DELETE'},
                 }

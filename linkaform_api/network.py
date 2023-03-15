@@ -78,6 +78,11 @@ class Network:
                 raise  ValueError('No data to post, check you post method')
             response = self.do_patch(url, data, use_login, use_api_key, use_jwt=use_jwt,
                 jwt_settings_key=jwt_settings_key, up_file=up_file)
+        if method == 'DELETE':
+            if data == '{}' or not data:
+                raise  ValueError('No data to post, check you post method')
+            response = self.do_delete(url, data, use_login, use_api_key, use_jwt=use_jwt,
+                jwt_settings_key=jwt_settings_key, up_file=up_file)
         if response['status_code'] == 502:
             if count < 11 :
                 count = count + 1
@@ -216,7 +221,7 @@ class Network:
                     response['data'] = r.content
                 except:
                     response['data'] = r
-                    
+
         return response
 
     def do_patch(self, url, data, use_login=False, use_api_key=False,
@@ -253,6 +258,65 @@ class Network:
                     verify=True )
             if up_file:
                 r = requests.patch(
+                    url,
+                    headers=headers,
+                    verify=False,
+                    files=up_file,
+                    data=simplejson.loads(data))
+
+        response['status_code'] = r.status_code
+
+        if r.content and type(r.content) is dict:
+            try:
+               response['content'] = simplejson.loads(r.content)
+            except simplejson.scanner.JSONDecodeError:
+                response['content'] = r.content
+        try:
+        	response['json'] = r.json()
+        except simplejson.scanner.JSONDecodeError:
+            pass
+
+        if r.status_code == 200:
+            response['status_code'] = r.status_code
+            response['json'] = r.json()
+            response['data'] = simplejson.loads(r.content)
+        #print('response', response)
+        return response
+
+    def do_delete(self, url, data, use_login=False, use_api_key=False,
+        use_jwt=False, jwt_settings_key=False, encoding='utf-8', up_file=False, params=False):
+        response = {'data':{}, 'status_code':''}
+        send_data = {}
+        JWT = self.settings.config['JWT_KEY']
+        #print('in do patch')
+        if jwt_settings_key:
+            JWT = self.settings.config[jwt_settings_key]
+        if use_jwt and not use_api_key:
+            headers = {'Content-type': 'application/json',
+                       'Authorization':'Bearer {0}'.format(JWT)}
+
+        elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
+            headers = {'Content-type': 'application/json',
+                       'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
+                          self.settings.config['AUTHORIZATION_TOKEN_VALUE'])}
+
+        else:
+            use_login = True
+            session = requests.Session()
+            if use_login or (self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']) and not use_api_key):
+                if not up_file:
+                    r = session.delete(url, data, headers={'Content-type': 'application/json'}, verify=False)#, files=file)
+                if up_file:
+                    r = session.delete(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
+        if not use_login:
+            if not up_file:
+                r = requests.request("delete",
+                    url,
+                    data=data,
+                    headers=headers,
+                    verify=True )
+            if up_file:
+                r = requests.delete(
                     url,
                     headers=headers,
                     verify=False,

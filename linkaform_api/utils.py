@@ -622,6 +622,33 @@ class Cache(object):
 #### Catalogos
 ####
 
+    def create_catalog(self, catalog_model, jwt_settings_key=False):
+        url = self.api_url.catalog['create_catalog']['url']
+        method = self.api_url.catalog['create_catalog']['method']
+        response = self.network.dispatch(url=url, method=method, data=data, use_api_key=False, jwt_settings_key=jwt_settings_key)
+        if response['status_code'] == 201:
+            return response['data']
+        return False
+
+    def update_catalog_model(self, catalog_id, catalog_model, jwt_settings_key=False):
+        url = self.api_url.catalog['update_catalog_model']['url'].format(catalog_id)
+        method = self.api_url.catalog['update_catalog_model']['method']
+        r = self.network.dispatch(url=url, method=method, data=catalog_model, jwt_settings_key=jwt_settings_key)
+        return r
+
+    def catalog_load_rows(self, catalog_id, catalog_map, spreadsheet_url, jwt_settings_key=False):
+        url = self.api_url.catalog['load_rows']['url']
+        method = self.api_url.catalog['load_rows']['method']
+        data ={
+            'catalog_id': catalog_id,
+            'mapping': catalog_map,
+            'spreadsheet_url': spreadsheet_url
+        }
+        r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+        if response['status_code'] == 202:
+            return response['data']
+        return False
+
     def get_catalog_id_fields(self, catalog_id, jwt_settings_key=False):
         url = self.api_url.catalog['catalog_id_fields']['url']+str(catalog_id)+'/'
         method = self.api_url.catalog['catalog_id_fields']['method']
@@ -718,7 +745,6 @@ class Cache(object):
             res.append(self.network.dispatch(post_json, data=data, jwt_settings_key=jwt_settings_key))
         return res
 
-
     def delete_catalog_record(self, catalog_id, id_record, rev, jwt_settings_key=False):
         url = self.api_url.catalog['delete_catalog_record']
         data_for_post = {"docs":[{"_id":id_record, "_rev":rev, "_deleted":True, "index":0}],"catalog_id":catalog_id}
@@ -801,12 +827,6 @@ class Cache(object):
         else:
             data = { 'objects': [ data_to_share, ] }
         r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
-        return r
-
-    def update_catalog_model(self, catalog_id, catalog_model, jwt_settings_key=False):
-        url = self.api_url.catalog['update_catalog_model']['url'].format(catalog_id)
-        method = self.api_url.catalog['update_catalog_model']['method']
-        r = self.network.dispatch(url=url, method=method, data=catalog_model, jwt_settings_key=jwt_settings_key)
         return r
 
     def find_record(self, db_cr, rec_id):
@@ -943,6 +963,19 @@ class Cache(object):
         post_json = self.api_url.get_airflow()['subscribe']
         url = post_json['url']
         response = self.network.dispatch(url=url, method=post_json['method'], data=body, jwt_settings_key=jwt_settings_key)
+        return response
+
+    def delete_schedule(self, schedule_id, delete_all_events=True, jwt_settings_key=False):
+        #Returns all users of a group
+        #user_type 'users', 'admin_users','supervisor_users'
+        post_json = self.api_url.get_airflow()['delete_schedule']
+        url = post_json['url']
+        method = post_json['method']
+        body = {
+            "_id": schedule_id,
+            "delete_all_events":delete_all_events
+        }
+        response = self.network.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
         return response
 
 def warning(*objs):
