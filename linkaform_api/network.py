@@ -2,7 +2,7 @@
 #!/usr/bin/python
 
 import requests, sys, simplejson, simplejson, time, threading, concurrent.futures
-from bson import json_util
+from bson import json_util, ObjectId
 from urllib.parse import quote
 import psycopg2
 
@@ -440,7 +440,18 @@ class Network:
             finally:
                 counter = counter +1
 
-    def pdf_record(self, record_id, template_id=None, upload_data=None, send_url=False, jwt_settings_key=False):
+    def try_get_pdf_multi_record(self, cr_downloads, name_pdf_record, number_try=0):
+        print('number_try to check pdf =',number_try)
+        pdf_in_mongo = cr_downloads.find_one({'name': name_pdf_record, 'status': 'done'}, {'path':1, 'status':1})
+        if pdf_in_mongo:
+            return pdf_in_mongo
+        elif number_try == 10:
+            return {'error': 'No se pudo obtener el archivo PDF'}
+        time.sleep(2)
+        new_number_try = number_try + 1
+        return self.try_get_pdf_multi_record(cr_downloads, name_pdf_record, number_try=new_number_try)
+
+    def pdf_record(self, record_id, template_id=None, upload_data=None, send_url=False, name_pdf='', jwt_settings_key=False):
         url = self.api_url.record['get_record_pdf']['url']
         method = self.api_url.record['get_record_pdf']['method']
         body = {
@@ -448,11 +459,34 @@ class Network:
             'filter_id':None,
             'template':template_id,
         }
+
+        if type(record_id) == list:
+            name_full_pdf = '{}_{}'.format( name_pdf, str( ObjectId() ) )
+            url = self.api_url.record['get_pdf_multi_records']['url']
+            method = self.api_url.record['get_pdf_multi_records']['method']
+            body.pop('answer_uri')
+            body.update({
+                'archived': False,
+                'merge': True,
+                'name': name_full_pdf,
+                'records_uri': record_id
+            })
+
+        
         if send_url:
             body.update({
                 'send_url': send_url
             })
         response = self.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
+        print('********************* response =',response)
+        if type(record_id) == list and response.get('status_code',0) == 202:
+            cr_downloads = self.get_collections( collection='download_history' )
+            # db.download_history.findOne({name:'1234567' , 'status':'done'}, {path:1, status:1})
+            #pdf_in_mongo = cr_downloads.find_one({'name': name_full_pdf, 'status': 'done'}, {'path':1, 'status':1})
+            pdf_in_mongo = self.try_get_pdf_multi_record(cr_downloads, name_full_pdf)
+            print('.................. pdf_in_mongo =',pdf_in_mongo)
+            return pdf_in_mongo
+
         if upload_data:
             try:
                 file_name = upload_data.get('file_name', '{}.pdf'.format(str(ObjectId())))
