@@ -445,7 +445,7 @@ class Network:
         pdf_in_mongo = cr_downloads.find_one({'name': name_pdf_record, 'status': 'done'}, {'path':1, 'status':1})
         if pdf_in_mongo:
             return pdf_in_mongo
-        elif number_try == 10:
+        elif number_try == 60:
             return {'error': 'No se pudo obtener el archivo PDF'}
         time.sleep(2)
         new_number_try = number_try + 1
@@ -462,6 +462,7 @@ class Network:
 
         if type(record_id) == list:
             name_full_pdf = '{}_{}'.format( name_pdf, str( ObjectId() ) )
+            print('creating pdf =',name_full_pdf)
             url = self.api_url.record['get_pdf_multi_records']['url']
             method = self.api_url.record['get_pdf_multi_records']['method']
             body.pop('answer_uri')
