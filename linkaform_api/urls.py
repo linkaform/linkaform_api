@@ -51,7 +51,8 @@ class Api_url:
                 'assigne_user':{'url': self.dest_url + '/api/infosync/form_answer/assign_lead/', 'method':'POST'},
                 'delete_inbox':{'url': self.dest_url + '/api/infosync/device/delete_inbox/', 'method':'POST'},
                 'assigne_connection': {'url': self.dest_url + '/api/infosync/form_answer/assign_lead_connection/', 'method':'POST'},
-                'get_record_pdf': {'url': self.dest_url + '/api/infosync/form_answer/pdf/', 'method':'POST'}
+                'get_record_pdf': {'url': self.dest_url + '/api/infosync/form_answer/pdf/', 'method':'POST'},
+                'get_pdf_multi_records': {'url': self.dest_url + '/api/infosync/form_answer/records_pdf/', 'method':'POST'}
                 }
 
     def get_catalog_url(self):
