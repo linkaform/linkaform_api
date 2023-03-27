@@ -625,10 +625,10 @@ class Cache(object):
     def create_catalog(self, catalog_model, jwt_settings_key=False):
         url = self.api_url.catalog['create_catalog']['url']
         method = self.api_url.catalog['create_catalog']['method']
-        response = self.network.dispatch(url=url, method=method, data=data, use_api_key=False, jwt_settings_key=jwt_settings_key)
+        response = self.network.dispatch(url=url, method=method, data=catalog_model, use_api_key=False, jwt_settings_key=jwt_settings_key)
         if response['status_code'] == 201:
-            return response['data']
-        return False
+            return {'data' : response['data'], 'status_code': response['status_code'] }
+        return response
 
     def update_catalog_model(self, catalog_id, catalog_model, jwt_settings_key=False):
         url = self.api_url.catalog['update_catalog_model']['url'].format(catalog_id)
@@ -645,9 +645,7 @@ class Cache(object):
             'spreadsheet_url': spreadsheet_url
         }
         r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
-        if response['status_code'] == 202:
-            return response['data']
-        return False
+        return r
 
     def get_catalog_id_fields(self, catalog_id, jwt_settings_key=False):
         url = self.api_url.catalog['catalog_id_fields']['url']+str(catalog_id)+'/'
