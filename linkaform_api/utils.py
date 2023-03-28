@@ -386,24 +386,27 @@ class Cache(object):
                 return {}
         return {}
 
-    def thread_function_dict(self, record, data,  jwt_settings_key):
+    def thread_function_dict(self, record, data, type_update, jwt_settings_key):
         #if record not in self.thread_dict.keys():
-        data['folios'] = [record]
+        data[type_update] = [record]
         res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data,
             jwt_settings_key=jwt_settings_key)
         self.thread_dict[record] = res
+        return res
         #logging.info("Finishing with code"%(record, res))
 
     def patch_multi_record(self, answers, form_id, folios=[], record_id=[], jwt_settings_key=False, threading=False):
         if not answers or not (folios or record_id):
             print 'patch_multi_record >> no obtubo answers o folios'
             return {}
-        data = {}
+        data = {'all_responses': True}
         data['answers'] = answers
         data['form_id'] = form_id
+        type_update = 'records'
 
         if folios and not record_id:
             data['folios'] = folios
+            type_update = 'folios'
 
         elif not folios and record_id:
             data['records'] = record_id
@@ -412,20 +415,42 @@ class Cache(object):
 
         data['form_id'] = form_id
 
+        records_updated = []
+
         if threading:
             self.thread_dict = {}
             with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
-                if data.get('records', False):
-                    records = data.pop('records')
+                if data.get(type_update, False):
+                    records = data.pop(type_update)
+                    to_multi_patch = [executor.submit(self.thread_function_dict, record, data, type_update, jwt_settings_key=jwt_settings_key) for record in records]
+                    for one_multi_patch in concurrent.futures.as_completed(to_multi_patch):
+                        resp = one_multi_patch.result()
+                        objects_updated = resp.get('json', {}).get('objects', [])
+                        for o in objects_updated:
+                            for f in o:
+                                if type_update == 'folios':
+                                    records_updated.append( o[f].get('folio') )
+                                else:
+                                    records_updated.append( o[f].get('id') )
+                    '''
                     for record in records:
                         data['records'] = [record]
                         executor.map(lambda x: self.thread_function_dict(x, data,
                             jwt_settings_key=jwt_settings_key), [record])
-                elif data.get('folios', False):
-                    folios = data.pop('folios')
-                    for folio in folios:
-                        executor.map(lambda x: self.thread_function_dict(x, data,
-                            jwt_settings_key=jwt_settings_key), [folio])
+                    '''
+                # elif data.get('folios', False):
+                #     folios = data.pop('folios')
+                #     for folio in folios:
+                #         executor.map(lambda x: self.thread_function_dict(x, data,
+                #             jwt_settings_key=jwt_settings_key), [folio])
+            no_records_updated = []
+            if record_id:
+                no_records_updated = list( set(record_id) - set(records_updated) )
+            elif folios:
+                no_records_updated = list( set(folios) - set(records_updated) )
+            for no_update in no_records_updated:
+                self.thread_dict[ no_update ] = {'status_code': 400, 'error': 'Error al acutalizar el registro con multi_record, favor de reintenar'}
+            print 'no_records_updated = ',no_records_updated
             return  self.thread_dict
 
         return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data,
