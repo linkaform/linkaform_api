@@ -955,7 +955,7 @@ class Cache(object):
         wget.download(file_url, '/tmp/{}'.format(oc_name))
         return oc_name
 
-    def subscribe_event_body(self, body, jwt_settings_key=False):
+    def subscribe_cron(self, body, jwt_settings_key=False):
         #Returns all users of a group
         #user_type 'users', 'admin_users','supervisor_users'
         post_json = self.api_url.get_airflow()['subscribe']
@@ -963,7 +963,15 @@ class Cache(object):
         response = self.network.dispatch(url=url, method=post_json['method'], data=body, jwt_settings_key=jwt_settings_key)
         return response
 
-    def delete_schedule(self, schedule_id, delete_all_events=True, jwt_settings_key=False):
+    def update_cron(self, body, jwt_settings_key=False):
+        #Returns all users of a group
+        #user_type 'users', 'admin_users','supervisor_users'
+        post_json = self.api_url.get_airflow()['update']
+        url = post_json['url']
+        response = self.network.dispatch(url=url, method=post_json['method'], data=body, jwt_settings_key=jwt_settings_key)
+        return response
+
+    def delete_cron(self, schedule_id, delete_all_events=True, jwt_settings_key=False):
         #Returns all users of a group
         #user_type 'users', 'admin_users','supervisor_users'
         post_json = self.api_url.get_airflow()['delete_schedule']

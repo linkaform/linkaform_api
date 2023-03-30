@@ -104,6 +104,7 @@ class Api_url:
 
     def get_airflow(self):
         return  {
-                'subscribe': {'url': self.airflow_dest_url + '/subscribe/script', 'method':'POST'},
-                'delete_schedule': {'url': self.airflow_dest_url + '/subscribe', 'method':'DELETE'},
+                'update': {'url': self.airflow_dest_url + '/cron', 'method':'PATCH'},
+                'subscribe': {'url': self.airflow_dest_url + '/cron', 'method':'POST'},
+                'delete_schedule': {'url': self.airflow_dest_url + '/cron', 'method':'DELETE'},
                 }
