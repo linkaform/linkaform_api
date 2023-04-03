@@ -442,7 +442,7 @@ class Network:
 
     def try_get_pdf_multi_record(self, cr_downloads, name_pdf_record, number_try=0):
         print('number_try to check pdf =',number_try)
-        pdf_in_mongo = cr_downloads.find_one({'name': name_pdf_record, 'status': 'done'}, {'path':1, 'status':1})
+        pdf_in_mongo = cr_downloads.find_one({'name': name_pdf_record, '$or':[{'status': 'done'},{'path': {'$regex': '.zip$'}}]}, {'path':1, 'status':1})
         if pdf_in_mongo:
             return pdf_in_mongo
         elif number_try == 60:
