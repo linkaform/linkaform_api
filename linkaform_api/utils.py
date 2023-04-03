@@ -625,10 +625,10 @@ class Cache(object):
     def create_catalog(self, catalog_model, jwt_settings_key=False):
         url = self.api_url.catalog['create_catalog']['url']
         method = self.api_url.catalog['create_catalog']['method']
-        response = self.network.dispatch(url=url, method=method, data=data, use_api_key=False, jwt_settings_key=jwt_settings_key)
+        response = self.network.dispatch(url=url, method=method, data=catalog_model, use_api_key=False, jwt_settings_key=jwt_settings_key)
         if response['status_code'] == 201:
-            return response['data']
-        return False
+            return {'data' : response['data'], 'status_code': response['status_code'] }
+        return response
 
     def update_catalog_model(self, catalog_id, catalog_model, jwt_settings_key=False):
         url = self.api_url.catalog['update_catalog_model']['url'].format(catalog_id)
@@ -645,9 +645,7 @@ class Cache(object):
             'spreadsheet_url': spreadsheet_url
         }
         r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
-        if response['status_code'] == 202:
-            return response['data']
-        return False
+        return r
 
     def get_catalog_id_fields(self, catalog_id, jwt_settings_key=False):
         url = self.api_url.catalog['catalog_id_fields']['url']+str(catalog_id)+'/'
@@ -957,7 +955,7 @@ class Cache(object):
         wget.download(file_url, '/tmp/{}'.format(oc_name))
         return oc_name
 
-    def subscribe_event_body(self, body, jwt_settings_key=False):
+    def subscribe_cron(self, body, jwt_settings_key=False):
         #Returns all users of a group
         #user_type 'users', 'admin_users','supervisor_users'
         post_json = self.api_url.get_airflow()['subscribe']
@@ -965,7 +963,15 @@ class Cache(object):
         response = self.network.dispatch(url=url, method=post_json['method'], data=body, jwt_settings_key=jwt_settings_key)
         return response
 
-    def delete_schedule(self, schedule_id, delete_all_events=True, jwt_settings_key=False):
+    def update_cron(self, body, jwt_settings_key=False):
+        #Returns all users of a group
+        #user_type 'users', 'admin_users','supervisor_users'
+        post_json = self.api_url.get_airflow()['update']
+        url = post_json['url']
+        response = self.network.dispatch(url=url, method=post_json['method'], data=body, jwt_settings_key=jwt_settings_key)
+        return response
+
+    def delete_cron(self, schedule_id, delete_all_events=True, jwt_settings_key=False):
         #Returns all users of a group
         #user_type 'users', 'admin_users','supervisor_users'
         post_json = self.api_url.get_airflow()['delete_schedule']
