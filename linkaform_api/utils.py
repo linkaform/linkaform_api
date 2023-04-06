@@ -618,9 +618,23 @@ class Cache(object):
     def run_script(self, data, jwt_settings_key=False):
         return self.network.dispatch(self.api_url.script['run_script'], data=data, jwt_settings_key=jwt_settings_key)
 
-####
-#### Catalogos
-####
+
+    """
+    Formas
+    """
+    def create_form(self, data, jwt_settings_key=False):
+        url = '{}'.format(self.api_url.form['create_form']['url'])
+        method = self.api_url.form['create_form']['method']
+        return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+
+    def download_form(self, form_id, jwt_settings_key=False):
+        url = '{}{}/'.format(self.api_url.form['download_form_data']['url'], form_id)
+        method = self.api_url.form['download_form_data']['method']
+        return self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+
+    """
+    Catalogos
+    """
 
     def create_catalog(self, catalog_model, jwt_settings_key=False):
         url = self.api_url.catalog['create_catalog']['url']
