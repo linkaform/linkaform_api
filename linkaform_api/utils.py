@@ -632,6 +632,40 @@ class Cache(object):
         method = self.api_url.form['download_form_data']['method']
         return self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
 
+    def upload_rules(self, data, jwt_settings_key=False):
+        url = self.api_url.form['upload_rules']['url']
+        method = self.api_url.form['upload_rules']['method']
+        return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+
+    def upload_workflows(self, data, jwt_settings_key=False):
+        url = self.api_url.form['upload_workflows']['url']
+        method = self.api_url.form['upload_workflows']['method']
+        return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+
+    def get_form_to_duplicate(self, form_id, jwt_settings_key=False):
+        form_with_fields = self.get_form_id_fields(form_id, jwt_settings_key=jwt_settings_key)
+        if form_with_fields:
+            dict_form = form_with_fields[0]
+            dict_form.pop('form_id')
+            dict_form.pop('fields')
+            return dict_form
+
+    def get_form_rules(self, form_id, jwt_settings_key=False):
+        url = self.api_url.form['get_form_rules']['url']+str(form_id)
+        method = self.api_url.form['get_form_rules']['method']
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
+        if response['status_code'] == 200:
+            return response['data']
+        return False
+
+    def get_form_workflows(self, form_id, jwt_settings_key=False):
+        url = self.api_url.form['get_form_workflows']['url']+str(form_id)
+        method = self.api_url.form['get_form_workflows']['method']
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
+        if response['status_code'] == 200:
+            return response['data']
+        return False
+
     """
     Catalogos
     """
