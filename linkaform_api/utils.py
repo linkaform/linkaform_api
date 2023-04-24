@@ -643,6 +643,43 @@ class Cache(object):
         r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
         return r
 
+    def get_form_to_duplicate(self, form_id, jwt_settings_key=False):
+        form_with_fields = self.get_form_id_fields(form_id, jwt_settings_key=jwt_settings_key)
+        if form_with_fields:
+            dict_form = form_with_fields[0]
+            dict_form.pop('form_id')
+            dict_form.pop('fields')
+            return dict_form
+
+    # Rules
+    def get_form_rules(self, form_id, jwt_settings_key=False):
+        url = self.api_url.form['get_form_rules']['url']+str(form_id)
+        method = self.api_url.form['get_form_rules']['method']
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
+        if response['status_code'] == 200:
+            return response['data']
+        return False
+
+    def upload_rules(self, data, jwt_settings_key=False):
+        url = self.api_url.form['upload_rules']['url']
+        method = self.api_url.form['upload_rules']['method']
+        return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+
+
+    # Workflows
+    def upload_workflows(self, data, jwt_settings_key=False):
+        url = self.api_url.form['upload_workflows']['url']
+        method = self.api_url.form['upload_workflows']['method']
+        return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+
+    def get_form_workflows(self, form_id, jwt_settings_key=False):
+        url = self.api_url.form['get_form_workflows']['url']+str(form_id)
+        method = self.api_url.form['get_form_workflows']['method']
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
+        if response['status_code'] == 200:
+            return response['data']
+        return False
+
     """
     Catalogos
     """
@@ -773,21 +810,6 @@ class Cache(object):
         data_for_post = {"docs":[{"_id":id_record, "_rev":rev, "_deleted":True, "index":0}],"catalog_id":catalog_id}
         response = self.network.dispatch(url, data=data_for_post, jwt_settings_key=jwt_settings_key)
         return response
-        # url = self.api_url.catalog['delete_catalog_record']['url']
-        # method = self.api_url.catalog['delete_catalog_record']['method']
-        # data_for_post = {"docs":[{"_id":id_record, "_rev":rev, "_deleted":True, "index":0}],"catalog_id":catalog_id}
-        # #response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post)
-        # #return response
-        # data = simplejson.dumps(data_for_post, default=json_util.default, for_json=True)
-        # response = {'data':{}, 'status_code':''}
-        # JWT = self.settings.config['JWT_KEY']
-        # if jwt_settings_key:
-        #     JWT = self.settings.config[jwt_settings_key]
-        # headers = {'Authorization':'jwt {0}'.format(JWT), 'Content-type': 'application/json'}
-        # r = requests.post(url,data,headers=headers,verify=True)
-        # response['status_code'] = r.status_code
-        # response['data'] = r.json()
-        # return response
 
     def update_catalog_multi_record(self, answers, catalog_id, record_id=[], jwt_settings_key=False):
         if not answers or not record_id:

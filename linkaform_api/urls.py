@@ -40,6 +40,10 @@ class Api_url:
             'upload_file': {'url': self.dest_url + '/api/infosync/cloud_upload/', 'method':'POST'},
             'upload_tmp': {'url': self.dest_url + '/api/infosync/upload_tmp/', 'method':'POST'},
             'version': {'url': self.dest_url + '/api/infosync/version/', 'method':'GET'},
+            'upload_rules': {'url': self.dest_url + '/api/infosync/form_rules/', 'method':'POST'},
+            'upload_workflows': {'url': self.dest_url + '/api/infosync/workflows/', 'method':'POST'},
+            'get_form_rules': {'url': self.dest_url + '/api/infosync/form_rules/?form_id=', 'method':'GET'},
+            'get_form_workflows': {'url': self.dest_url + '/api/infosync/workflows/?form_id=', 'method':'GET'},
             }
 
     def get_records_url(self):
