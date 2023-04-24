@@ -632,6 +632,17 @@ class Cache(object):
         method = self.api_url.form['download_form_data']['method']
         return self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
 
+    def share_form(self, data_to_share, unshare=False, jwt_settings_key=False):
+        url = self.api_url.form['share_form']['url']
+        method = self.api_url.form['share_form']['method']
+        if unshare:
+            data = {'objects': [], 'deleted_objects': data_to_share}
+        else:
+            data = {'objects': [data_to_share,]}
+
+        r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+        return r
+
     """
     Catalogos
     """
@@ -811,26 +822,6 @@ class Cache(object):
         response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post, jwt_settings_key=jwt_settings_key)
         return response
 
-    def get_user_connection(self, email_user, jwt_settings_key=False):
-        #TODO UPDATE SELF.ITESM
-        #Returns all the connections
-        connections = []
-        post_json = self.api_url.get_connections_url()['user_connection']
-        post_json['url'] = post_json['url'] + str(email_user)
-        user_connection = self.network.dispatch(post_json, jwt_settings_key=jwt_settings_key)
-        objects = user_connection['data']
-        return objects
-
-    def share_form(self, data_to_share, unshare=False, jwt_settings_key=False):
-        url = self.api_url.form['share_form']['url']
-        method = self.api_url.form['share_form']['method']
-        if unshare:
-            data = { 'objects': [], 'deleted_objects': data_to_share }
-        else:
-            data = { 'objects': [ data_to_share, ] }
-        r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
-        return r
-
     def share_catalog(self, data_to_share, unshare=False, jwt_settings_key=False):
         url = self.api_url.catalog['share_catalog']['url']
         method = self.api_url.catalog['share_catalog']['method']
@@ -962,6 +953,9 @@ class Cache(object):
         f = open( "/tmp/{}".format( name_downloded ) )
         return simplejson.loads( f.read() )
 
+    """
+    PDF
+    """
     def download_pdf(self, file_url, is_txt=False):
         oc_name = 'oc_{}.pdf'.format(str(bson.ObjectId()))
         if is_txt:
@@ -969,6 +963,32 @@ class Cache(object):
         wget.download(file_url, '/tmp/{}'.format(oc_name))
         return oc_name
 
+    """
+    Usuarios
+    """
+    def get_all_user_connection(self, email_user, jwt_settings_key=False):
+        # Returns all users and connections
+        connections = []
+        url_data = self.api_url.get_connections_url()['all_user_connection']
+        url_data['url'] = '{}?data={}'.format(url_data['url'], email_user)
+        response = self.network.dispatch(url_data, jwt_settings_key=jwt_settings_key)
+
+        return response
+
+    def get_user_connection(self, email_user, jwt_settings_key=False):
+        # TODO UPDATE SELF.ITESM
+        # Returns a user or connection
+        connections = []
+        post_json = self.api_url.get_connections_url()['user_connection']
+        post_json['url'] = '{}{}'.format(post_json['url'], email_user)
+        user_connection = self.network.dispatch(post_json, jwt_settings_key=jwt_settings_key)
+        objects = user_connection['data']
+
+        return objects
+
+    """
+    CRON
+    """
     def subscribe_cron(self, body, jwt_settings_key=False):
         #Returns all users of a group
         #user_type 'users', 'admin_users','supervisor_users'
