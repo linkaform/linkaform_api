@@ -612,15 +612,102 @@ class Cache(object):
             jwt = self.network.login(session, user, password, get_jwt=get_jwt)
         return jwt
 
-    def get_pdf_record(self, record_id, template_id=None, upload_data=None, send_url=False, jwt_settings_key=False):
-        return self.network.pdf_record(record_id , template_id=template_id, upload_data=upload_data, send_url=send_url, jwt_settings_key=jwt_settings_key)
+    def get_pdf_record(self, record_id, template_id=None, upload_data=None, send_url=False, name_pdf='', jwt_settings_key=False):
+        return self.network.pdf_record(record_id , template_id=template_id, upload_data=upload_data, send_url=send_url, name_pdf=name_pdf, jwt_settings_key=jwt_settings_key)
 
     def run_script(self, data, jwt_settings_key=False):
         return self.network.dispatch(self.api_url.script['run_script'], data=data, jwt_settings_key=jwt_settings_key)
 
-####
-#### Catalogos
-####
+
+    """
+    Formas
+    """
+    def create_form(self, data, jwt_settings_key=False):
+        url = '{}'.format(self.api_url.form['create_form']['url'])
+        method = self.api_url.form['create_form']['method']
+        return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+
+    def download_form(self, form_id, jwt_settings_key=False):
+        url = '{}{}/'.format(self.api_url.form['download_form_data']['url'], form_id)
+        method = self.api_url.form['download_form_data']['method']
+        return self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+
+    def share_form(self, data_to_share, unshare=False, jwt_settings_key=False):
+        url = self.api_url.form['share_form']['url']
+        method = self.api_url.form['share_form']['method']
+        if unshare:
+            data = {'objects': [], 'deleted_objects': data_to_share}
+        else:
+            data = {'objects': [data_to_share,]}
+
+        r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+        return r
+
+    def get_form_to_duplicate(self, form_id, jwt_settings_key=False):
+        form_with_fields = self.get_form_id_fields(form_id, jwt_settings_key=jwt_settings_key)
+        if form_with_fields:
+            dict_form = form_with_fields[0]
+            dict_form.pop('form_id')
+            dict_form.pop('fields')
+            return dict_form
+
+    # Rules
+    def get_form_rules(self, form_id, jwt_settings_key=False):
+        url = self.api_url.form['get_form_rules']['url']+str(form_id)
+        method = self.api_url.form['get_form_rules']['method']
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
+        if response['status_code'] == 200:
+            return response['data']
+        return False
+
+    def upload_rules(self, data, jwt_settings_key=False):
+        url = self.api_url.form['upload_rules']['url']
+        method = self.api_url.form['upload_rules']['method']
+        return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+
+
+    # Workflows
+    def upload_workflows(self, data, jwt_settings_key=False):
+        url = self.api_url.form['upload_workflows']['url']
+        method = self.api_url.form['upload_workflows']['method']
+        return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+
+    def get_form_workflows(self, form_id, jwt_settings_key=False):
+        url = self.api_url.form['get_form_workflows']['url']+str(form_id)
+        method = self.api_url.form['get_form_workflows']['method']
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
+        if response['status_code'] == 200:
+            return response['data']
+        return False
+
+    """
+    Catalogos
+    """
+
+    def create_catalog(self, catalog_model, jwt_settings_key=False):
+        url = self.api_url.catalog['create_catalog']['url']
+        method = self.api_url.catalog['create_catalog']['method']
+        response = self.network.dispatch(url=url, method=method, data=catalog_model, use_api_key=False, jwt_settings_key=jwt_settings_key)
+        if response['status_code'] == 201:
+            return {'data' : response['data'], 'status_code': response['status_code'] }
+        return response
+
+    def update_catalog_model(self, catalog_id, catalog_model, jwt_settings_key=False):
+        url = self.api_url.catalog['update_catalog_model']['url'].format(catalog_id)
+        method = self.api_url.catalog['update_catalog_model']['method']
+        r = self.network.dispatch(url=url, method=method, data=catalog_model, jwt_settings_key=jwt_settings_key)
+        return r
+
+    def catalog_load_rows(self, catalog_id, catalog_map, spreadsheet_url, jwt_settings_key=False):
+        url = self.api_url.catalog['load_rows']['url']
+        method = self.api_url.catalog['load_rows']['method']
+        data ={
+            'catalog_id': catalog_id,
+            'mapping': catalog_map,
+            'spreadsheet_url': spreadsheet_url
+        }
+        r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+        return r
 
     def get_catalog_id_fields(self, catalog_id, jwt_settings_key=False):
         url = self.api_url.catalog['catalog_id_fields']['url']+str(catalog_id)+'/'
@@ -719,27 +806,11 @@ class Cache(object):
                 res.append(self.network.dispatch(post_json, data=data, jwt_settings_key=jwt_settings_key))
         return res
 
-
     def delete_catalog_record(self, catalog_id, id_record, rev, jwt_settings_key=False):
         url = self.api_url.catalog['delete_catalog_record']
         data_for_post = {"docs":[{"_id":id_record, "_rev":rev, "_deleted":True, "index":0}],"catalog_id":catalog_id}
         response = self.network.dispatch(url, data=data_for_post, jwt_settings_key=jwt_settings_key)
         return response
-        # url = self.api_url.catalog['delete_catalog_record']['url']
-        # method = self.api_url.catalog['delete_catalog_record']['method']
-        # data_for_post = {"docs":[{"_id":id_record, "_rev":rev, "_deleted":True, "index":0}],"catalog_id":catalog_id}
-        # #response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post)
-        # #return response
-        # data = simplejson.dumps(data_for_post, default=json_util.default, for_json=True)
-        # response = {'data':{}, 'status_code':''}
-        # JWT = self.settings.config['JWT_KEY']
-        # if jwt_settings_key:
-        #     JWT = self.settings.config[jwt_settings_key]
-        # headers = {'Authorization':'jwt {0}'.format(JWT), 'Content-type': 'application/json'}
-        # r = requests.post(url,data,headers=headers,verify=True)
-        # response['status_code'] = r.status_code
-        # response['data'] = r.json()
-        # return response
 
     def update_catalog_multi_record(self, answers, catalog_id, record_id=[], jwt_settings_key=False):
         if not answers or not record_id:
@@ -750,7 +821,7 @@ class Cache(object):
             'catalog_id': catalog_id,
             'objects': record_id
         }
-        return self.network.dispatch(self.api_url.catalog['update_catalog_multi'], data=data, jwt_settings_key=jwt_settings_key)
+        return self.network.dispatch(self.api_url.catalog['catalog_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
 
     def create_filter(self, catalog_id, filter_name, filter_to_search, jwt_settings_key=False):
         url = self.api_url.catalog['create_filter']['url']
@@ -774,26 +845,6 @@ class Cache(object):
         response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post, jwt_settings_key=jwt_settings_key)
         return response
 
-    def get_user_connection(self, email_user, jwt_settings_key=False):
-        #TODO UPDATE SELF.ITESM
-        #Returns all the connections
-        connections = []
-        post_json = self.api_url.get_connections_url()['user_connection']
-        post_json['url'] = post_json['url'] + str(email_user)
-        user_connection = self.network.dispatch(post_json, jwt_settings_key=jwt_settings_key)
-        objects = user_connection['data']
-        return objects
-
-    def share_form(self, data_to_share, unshare=False, jwt_settings_key=False):
-        url = self.api_url.form['share_form']['url']
-        method = self.api_url.form['share_form']['method']
-        if unshare:
-            data = { 'objects': [], 'deleted_objects': data_to_share }
-        else:
-            data = { 'objects': [ data_to_share, ] }
-        r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
-        return r
-
     def share_catalog(self, data_to_share, unshare=False, jwt_settings_key=False):
         url = self.api_url.catalog['share_catalog']['url']
         method = self.api_url.catalog['share_catalog']['method']
@@ -802,12 +853,6 @@ class Cache(object):
         else:
             data = { 'objects': [ data_to_share, ] }
         r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
-        return r
-
-    def update_catalog_model(self, catalog_id, catalog_model, jwt_settings_key=False):
-        url = self.api_url.catalog['update_catalog_model']['url'].format(catalog_id)
-        method = self.api_url.catalog['update_catalog_model']['method']
-        r = self.network.dispatch(url=url, method=method, data=catalog_model, jwt_settings_key=jwt_settings_key)
         return r
 
     def find_record(self, db_cr, rec_id):
@@ -931,6 +976,9 @@ class Cache(object):
         f = open( "/tmp/{}".format( name_downloded ) )
         return simplejson.loads( f.read() )
 
+    """
+    PDF
+    """
     def download_pdf(self, file_url, is_txt=False):
         oc_name = 'oc_{}.pdf'.format(str(bson.ObjectId()))
         if is_txt:
@@ -938,12 +986,59 @@ class Cache(object):
         wget.download(file_url, '/tmp/{}'.format(oc_name))
         return oc_name
 
-    def subscribe_event_body(self, body, jwt_settings_key=False):
+    """
+    Usuarios
+    """
+    def get_all_user_connection(self, email_user, jwt_settings_key=False):
+        # Returns all users and connections
+        connections = []
+        url_data = self.api_url.get_connections_url()['all_user_connection']
+        url_data['url'] = '{}?data={}'.format(url_data['url'], email_user)
+        response = self.network.dispatch(url_data, jwt_settings_key=jwt_settings_key)
+
+        return response
+
+    def get_user_connection(self, email_user, jwt_settings_key=False):
+        # TODO UPDATE SELF.ITESM
+        # Returns a user or connection
+        connections = []
+        post_json = self.api_url.get_connections_url()['user_connection']
+        post_json['url'] = '{}{}'.format(post_json['url'], email_user)
+        user_connection = self.network.dispatch(post_json, jwt_settings_key=jwt_settings_key)
+        objects = user_connection['data']
+
+        return objects
+
+    """
+    CRON
+    """
+    def subscribe_cron(self, body, jwt_settings_key=False):
         #Returns all users of a group
         #user_type 'users', 'admin_users','supervisor_users'
         post_json = self.api_url.get_airflow()['subscribe']
         url = post_json['url']
         response = self.network.dispatch(url=url, method=post_json['method'], data=body, jwt_settings_key=jwt_settings_key)
+        return response
+
+    def update_cron(self, body, jwt_settings_key=False):
+        #Returns all users of a group
+        #user_type 'users', 'admin_users','supervisor_users'
+        post_json = self.api_url.get_airflow()['update']
+        url = post_json['url']
+        response = self.network.dispatch(url=url, method=post_json['method'], data=body, jwt_settings_key=jwt_settings_key)
+        return response
+
+    def delete_cron(self, schedule_id, delete_all_events=True, jwt_settings_key=False):
+        #Returns all users of a group
+        #user_type 'users', 'admin_users','supervisor_users'
+        post_json = self.api_url.get_airflow()['delete_schedule']
+        url = post_json['url']
+        method = post_json['method']
+        body = {
+            "_id": schedule_id,
+            "delete_all_events":delete_all_events
+        }
+        response = self.network.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
         return response
 
 def warning(*objs):

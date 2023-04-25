@@ -7,7 +7,7 @@
 # Script to upload documents to Forms
 #####
 import simplejson
-import re, os, zipfile, wget, random, shutil, datetime, types
+import re, os, zipfile, wget, random, shutil, datetime
 from linkaform_api import settings, network, utils, upload_file
 
 #fields_no_update = ['post_status', 'next_cut_week', 'cut_week', 'cycle_group', 'ready_year_week']
@@ -46,9 +46,9 @@ class CargaUniversal:
 
     def list_to_str(self, list_to_proccess):
         str_return = ''
-        for i, value in enumerate(list_to_proccess):
-            if isinstance(value, types.UnicodeType):
-                list_to_proccess[i] = value.decode('utf-8')
+        # for i, value in enumerate(list_to_proccess):
+        #     if isinstance(value, types.UnicodeType):
+        #         list_to_proccess[i] = value.decode('utf-8')
         str_return += ', '.join([a for a in list_to_proccess if a])
         return str_return
 
@@ -62,16 +62,16 @@ class CargaUniversal:
                 info_json = response['json'][msg_fin]
                 msgs = info_json.get('msg', [])
                 if msgs:
-                    msg_err = str(msgs[0]).decode('utf-8')
-                    label_err = info_json.get('label').decode('utf-8')
+                    msg_err = self.strip_special_characters(msgs[0])
+                    label_err = info_json.get('label')
                     msg_err_arr.append(str(msg_err+':'+label_err))
                 else:
                     for i_err in info_json:
                         info_i = info_json[i_err]
                         for id_group in info_i:
                             info_group = info_i[id_group]
-                            msg_err = str(info_group['msg'][0]).decode('utf-8')
-                            label_err = info_group['label'].decode('utf-8')
+                            msg_err = self.strip_special_characters(info_group['msg'][0])
+                            label_err = info_group['label']
                             msg_err_arr.append('SET {0}:: {1} - {2}'.format(i_err, msg_err, label_err))
             if msg_err_arr:
                 data_str_err = self.list_to_str(msg_err_arr)
@@ -321,6 +321,7 @@ class CargaUniversal:
                         else:
                             answers.update({id_cat:dict_record_catalog_to_save})
                     else:
+                        print('----- No se encontro info en el catalogo con el filtro = ',mango_query)
                         error.append('No se encontro informacion en el catalogo '+cont_cat['label'])
         if grupo_repetitivo:
             for id_g in grupo_repetitivo:
@@ -335,8 +336,8 @@ class CargaUniversal:
             #msg_errores_row += ', '.join([str(a) for a in error if a])
             for a in error:
                 if a:
-                    if isinstance(a, types.UnicodeType):
-                        a = a.decode('utf-8')
+                    # if isinstance(a, types.UnicodeType):
+                    #     a = a.decode('utf-8')
                     msg_errores_row += (a+', ')
             answers.update({'error': 'Registro con errores'})
             if not answers.get('dict_errors'):
@@ -430,6 +431,15 @@ class CargaUniversal:
                         error_records.append(records[dentro_grupo]+['',])
         return proceso
 
+    def get_repeated_ids_in_filter(self, filters_catalog):
+        dict_counts = {}
+        for ff in filters_catalog:
+            kk = list(ff.keys())[0]
+            if not dict_counts.get(kk):
+                dict_counts[kk] = 0
+            dict_counts[kk] += 1
+        return [ ii for ii in dict_counts if dict_counts[ii] > 1 ]
+
     def carga_doctos(self, current_record, record_id):
         self.update_status_record(current_record, record_id, 'procesando')
         global error_records
@@ -514,7 +524,29 @@ class CargaUniversal:
                     info_catalog = self.lkf_api.get_catalog_id_fields(ccat.get('catalog',{}).get('catalog_id',0), jwt_settings_key='USER_JWT_KEY')
                     dict_filters = info_catalog.get('catalog',{}).get('filters',{})
                     #print('+++++ dict_filters',dict_filters)
-                    ccat['catalog']['filters'] = dict_filters[filters]
+                    ccat['catalog']['filters'] = dict_filters.get(filters, {})
+
+                    # Reviso si hay campos repetidos en el filtro para entonces armar los $or
+                    if dict_filters.get(filters):
+                        list_repeated_fields = self.get_repeated_ids_in_filter(dict_filters.get(filters, {}).get('$and', []))
+                        if list_repeated_fields:
+                            print('list_repeated_fields =====',list_repeated_fields)
+                            new_and = []
+                            fields_or = {}
+                            #dict_filters[filters]['$and'].append({'6205f73281bb36a6f1500000': {'$eq': 'Test01'}})
+                            for rr in dict_filters.get(filters, {}).get('$and', []):
+                                rr_idfield = list(rr.keys())[0]
+                                if rr_idfield in list_repeated_fields:
+                                    if not fields_or.get(rr_idfield):
+                                        fields_or[rr_idfield] = {'$or': []}
+                                    fields_or[rr_idfield]['$or'].append(rr[rr_idfield])
+                                else:
+                                    new_and.append(rr)
+                            print('........... fields_or=',fields_or)
+                            for fff in fields_or:
+                                new_and.append({fff: fields_or[fff]})
+                            print('........... new_and=',new_and)
+                            ccat['catalog']['filters'] = {'$and':new_and}
             #print("----- dict_catalogs con filtro:", dict_catalogs)
             # Reviso si existen grupos repetitivos en el archivo de carga
             fields_groups = { f['field_id']: f['label'] for f in info_fields if f['field_type'] == 'group' }
@@ -627,6 +659,8 @@ class CargaUniversal:
             subgrupo_errors = []
             dict_records_to_multi = {'create': [], 'update': []}
             dict_records_copy = {'create': [], 'update': {}}
+            list_cols_for_upload = list( pos_field_dict.keys() )
+            print('list_cols_for_upload =',list_cols_for_upload)
             for p, record in enumerate(records):
                 print("=========================================== >> Procesando renglon:",p)
                 if p in subgrupo_errors:
@@ -634,7 +668,7 @@ class CargaUniversal:
                     continue
                 # Recorro la lista de campos de tipo documento para determinar si el contenido en esa posición está dentro del zip de carga
                 no_en_zip = [record[i] for i in file_records if record[i] and record[i] not in files_dir]
-                new_record = [record[i] for i in not_groups if record[i]]
+                new_record = [record[i] for i in not_groups if record[i] and i in list_cols_for_upload]
                 if new_record and p != 0:
                     if metadata.get('answers',{}):
                         proceso = self.crea_actualiza_record(metadata, existing_records, error_records, records, sets_in_row, dict_records_to_multi, dict_records_copy, ids_fields_no_update)

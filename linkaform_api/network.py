@@ -2,7 +2,7 @@
 #!/usr/bin/python
 
 import requests, sys, simplejson, simplejson, time, threading, concurrent.futures
-from bson import json_util
+from bson import json_util, ObjectId
 from urllib.parse import quote
 import psycopg2
 
@@ -38,16 +38,17 @@ class Network:
         if not url and url_method.get('url'):
             url = url_method['url']
         elif not url:
-            raise Exception ("No URL found")
+            raise Exception('No URL found')
+
         if not method and url_method.get('method'):
             method = url_method['method']
         elif not method:
-            raise Exception ("No Method found")
+            raise Exception ('No Method found')
+
         return url, method.upper()
 
-    def dispatch(self, url_method={}, url='', method='', data={}, params={},
-                use_login=False, use_api_key=False, use_jwt=False, jwt_settings_key=False,
-                encoding='utf-8', up_file=False, count=0):
+    def dispatch(self, url_method={}, url='', method='', data={}, params={}, use_login=False, use_api_key=False, use_jwt=False,
+            jwt_settings_key=False, encoding='utf-8', up_file=False, count=0, format_response=True):
         #must use the url_method or a url and method directly
         #url_method is a {} with a key url and method just like expres on urls
         #url defines the url to make the call
@@ -56,28 +57,33 @@ class Network:
         #use_api_key -Optinal- forces the dispatch to be made by api_key method, if not will use  the config method
         url, method = self.get_url_method(url_method, url=url, method=method)
         response = False
-        #print('DISPATCH')
         if type(data) in (dict,str) and not up_file:
-                data = simplejson.dumps(data, default=json_util.default, for_json=True)
-        #print('jwt_settings_key',jwt_settings_key)
+            data = simplejson.dumps(data, default=json_util.default, for_json=True)
+
         use_jwt = self.settings.config['USE_JWT']
         if method == 'GET':
-            if params:
-                response = self.do_get(url, params=params, use_login=use_login,
-                    use_api_key=use_api_key, use_jwt=use_jwt, jwt_settings_key=jwt_settings_key)
-            else:
-                response = self.do_get(url, use_login=use_login,
-                    use_api_key=use_api_key, use_jwt=use_jwt, jwt_settings_key=jwt_settings_key)
+            params = params if params else {}
+            response = self.do_get(url, params=params, use_login=use_login, use_api_key=use_api_key,
+                use_jwt=use_jwt, jwt_settings_key=jwt_settings_key)
+
         if method == 'POST':
             if data == '{}' or not data:
                 raise  ValueError('No data to post, check you post method')
             response = self.do_post(url, data, use_login, use_api_key, use_jwt=use_jwt,
                 jwt_settings_key=jwt_settings_key, up_file=up_file)
+
         if method == 'PATCH':
             if data == '{}' or not data:
                 raise  ValueError('No data to post, check you post method')
             response = self.do_patch(url, data, use_login, use_api_key, use_jwt=use_jwt,
                 jwt_settings_key=jwt_settings_key, up_file=up_file)
+
+        if method == 'DELETE':
+            if data == '{}' or not data:
+                raise  ValueError('No data to post, check you post method')
+            response = self.do_delete(url, data, use_login, use_api_key, use_jwt=use_jwt,
+                jwt_settings_key=jwt_settings_key, up_file=up_file)
+
         if response['status_code'] == 502:
             if count < 11 :
                 count = count + 1
@@ -85,22 +91,27 @@ class Network:
                 self.dispatch(url_method=url_method, url=url, method=method, data=data, params=params,
                     use_login=use_login, use_api_key=use_api_key, use_jwt=use_jwt, jwt_settings_key=jwt_settings_key,
                     encoding=encoding, up_file=up_file, count=count)
+
         return response
 
-    def do_get(self, url, params= {}, use_login=False, use_api_key=False,
-        use_jwt=False, jwt_settings_key=False):
+    def do_get(self, url, params={}, use_login=False, use_api_key=False, use_jwt=False, jwt_settings_key=False):
         response = {'data':{}, 'status_code':''}
         JWT = self.settings.config['JWT_KEY']
         if jwt_settings_key:
             JWT = self.settings.config[jwt_settings_key]
+
         if use_jwt and not use_api_key:
-            headers = {'Content-type': 'application/json',
-                       'Authorization':'Bearer {0}'.format(JWT)}
+            headers = {
+                'Content-type': 'application/json',
+                'Authorization':'Bearer {0}'.format(JWT)
+            }
 
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
-            headers = {'Content-type': 'application/json',
-                       'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
-                          self.settings.config['AUTHORIZATION_TOKEN_VALUE'])}
+            headers = {
+                'Content-type': 'application/json',
+                'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
+                    self.settings.config['AUTHORIZATION_TOKEN_VALUE'])
+            }
         if use_login:
             use_login = True
             session = requests.Session()
@@ -121,7 +132,6 @@ class Network:
         response['status_code'] = r.status_code
 
         if r.content and type(r.content) is dict:
-            #print('IMPRIMIENDO CONTENT: ', r.content)
             response['content'] = simplejson.loads(r.content)
 
         try:
@@ -137,53 +147,48 @@ class Network:
                 response['data'] = r_data['json']
             else:
                 response['data'] = r_data
-	#print('RESPONSE=', response)
+
         return response
 
-    def do_post(self, url, data, use_login=False, use_api_key=False,
-        use_jwt=False, jwt_settings_key=False, encoding='utf-8', up_file=False, params=False):
+    def do_post(self, url, data, use_login=False, use_api_key=False, use_jwt=False, jwt_settings_key=False, encoding='utf-8',
+            up_file=False, params=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
         JWT = self.settings.config['JWT_KEY']
         if jwt_settings_key:
             JWT = self.settings.config[jwt_settings_key]
+
         if use_jwt and not use_api_key:
-            #print('use_jwtuse_jwtuse_jwt')
             headers = {'Authorization':'Bearer {0}'.format(JWT)}
             if not up_file:
                 headers['Content-type'] = 'application/json'
-
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
-            headers = {'Content-type': 'application/json',
-                       'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
-                          self.settings.config['AUTHORIZATION_TOKEN_VALUE'])}
+            headers = {
+                'Content-type': 'application/json',
+                'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
+                    self.settings.config['AUTHORIZATION_TOKEN_VALUE'])
+            }
 
         if use_login:
             session = requests.Session()
             if use_login or (self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']) and not use_api_key):
                 if not up_file:
                     r = session.post(url, data, headers={'Content-type': 'application/json'}, verify=False)#, files=file)
+
                 if up_file:
                     r = session.post(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
 
         if not use_login:
             if not up_file:
-                r = requests.post(
-                    url,
-                    data,
-                    headers=headers,
-                    verify=True )
+                r = requests.post(url, data, headers=headers, verify=True)
+
             if up_file:
-                r = requests.post(
-                    url,
-                    headers=headers,
-                    verify=True,
-                    files=up_file,
-                    data=data)
+                r = requests.post(url, headers=headers, verify=True, files=up_file, data=data)
 
         response['status_code'] = r.status_code
         if r.content and type(r.content) is dict:
         	response['content'] = simplejson.loads(r.content)
+
         try:
         	response['json'] = r.json()
         except simplejson.scanner.JSONDecodeError:
@@ -207,10 +212,76 @@ class Network:
                 if r_data['success']:
                     return response
             else:
-                response['data'] = r_data.get('objects',r_data)
+                response['data'] = r_data.get('objects', r_data)
+                response['statud_code'] = r.status_code
+        else:
+            try:
+                response['data'] = r.text
+            except:
+                try:
+                    response['data'] = r.content
+                except:
+                    response['data'] = r
+
         return response
 
-    def do_patch(self, url, data, use_login=False, use_api_key=False,
+    def do_patch(self, url, data, use_login=False, use_api_key=False, use_jwt=False, jwt_settings_key=False, encoding='utf-8',
+            up_file=False, params=False):
+        response = {'data':{}, 'status_code':''}
+        send_data = {}
+        JWT = self.settings.config['JWT_KEY']
+
+        if jwt_settings_key:
+            JWT = self.settings.config[jwt_settings_key]
+
+        if use_jwt and not use_api_key:
+            headers = {
+                'Content-type': 'application/json',
+                'Authorization':'Bearer {0}'.format(JWT)
+            }
+        elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
+            headers = {
+                'Content-type': 'application/json',
+                'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
+                    self.settings.config['AUTHORIZATION_TOKEN_VALUE'])
+            }
+        else:
+            use_login = True
+            session = requests.Session()
+            if use_login or (self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']) and not use_api_key):
+                if not up_file:
+                    r = session.patch(url, data, headers={'Content-type': 'application/json'}, verify=False)#, files=file)
+
+                if up_file:
+                    r = session.patch(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
+
+        if not use_login:
+            if not up_file:
+                r = requests.request('patch', url, data=data, headers=headers, verify=True)
+
+            if up_file:
+                r = requests.patch(url, headers=headers, verify=False, files=up_file, data=simplejson.loads(data))
+
+        response['status_code'] = r.status_code
+
+        if r.content and type(r.content) is dict:
+            try:
+               response['content'] = simplejson.loads(r.content)
+            except simplejson.scanner.JSONDecodeError:
+                response['content'] = r.content
+        try:
+        	response['json'] = r.json()
+        except simplejson.scanner.JSONDecodeError:
+            pass
+
+        if r.status_code == 200:
+            response['status_code'] = r.status_code
+            response['json'] = r.json()
+            response['data'] = simplejson.loads(r.content)
+
+        return response
+
+    def do_delete(self, url, data, use_login=False, use_api_key=False,
         use_jwt=False, jwt_settings_key=False, encoding='utf-8', up_file=False, params=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
@@ -232,18 +303,18 @@ class Network:
             session = requests.Session()
             if use_login or (self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']) and not use_api_key):
                 if not up_file:
-                    r = session.patch(url, data, headers={'Content-type': 'application/json'}, verify=False)#, files=file)
+                    r = session.delete(url, data, headers={'Content-type': 'application/json'}, verify=False)#, files=file)
                 if up_file:
-                    r = session.patch(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
+                    r = session.delete(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
         if not use_login:
             if not up_file:
-                r = requests.request("patch",
+                r = requests.request("delete",
                     url,
                     data=data,
                     headers=headers,
                     verify=True )
             if up_file:
-                r = requests.patch(
+                r = requests.delete(
                     url,
                     headers=headers,
                     verify=False,
@@ -354,7 +425,6 @@ class Network:
         return res
 
     def upload_answers_to_database(self, answers):
-        print("> Uploading Content ...")
         user_connection = self.get_user_connection(config['USER_ID'])
         collection = self.create_collection(config['COLLECTION'], user_connection)
         counter = 0
@@ -367,7 +437,18 @@ class Network:
             finally:
                 counter = counter +1
 
-    def pdf_record(self, record_id, template_id=None, upload_data=None, send_url=False, jwt_settings_key=False):
+    def try_get_pdf_multi_record(self, cr_downloads, name_pdf_record, number_try=0):
+        print('number_try to check pdf =',number_try)
+        pdf_in_mongo = cr_downloads.find_one({'name': name_pdf_record, '$or':[{'status': 'done'},{'path': {'$regex': '.zip$'}}]}, {'path':1, 'status':1})
+        if pdf_in_mongo:
+            return pdf_in_mongo
+        elif number_try == 60:
+            return {'error': 'No se pudo obtener el archivo PDF'}
+        time.sleep(2)
+        new_number_try = number_try + 1
+        return self.try_get_pdf_multi_record(cr_downloads, name_pdf_record, number_try=new_number_try)
+
+    def pdf_record(self, record_id, template_id=None, upload_data=None, send_url=False, name_pdf='', jwt_settings_key=False):
         url = self.api_url.record['get_record_pdf']['url']
         method = self.api_url.record['get_record_pdf']['method']
         body = {
@@ -375,11 +456,35 @@ class Network:
             'filter_id':None,
             'template':template_id,
         }
+
+        if type(record_id) == list:
+            name_full_pdf = '{}_{}'.format( name_pdf, str( ObjectId() ) )
+            print('creating pdf =',name_full_pdf)
+            url = self.api_url.record['get_pdf_multi_records']['url']
+            method = self.api_url.record['get_pdf_multi_records']['method']
+            body.pop('answer_uri')
+            body.update({
+                'archived': False,
+                'merge': True,
+                'name': name_full_pdf,
+                'records_uri': record_id
+            })
+
+        
         if send_url:
             body.update({
                 'send_url': send_url
             })
         response = self.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
+        print('********************* response =',response)
+        if type(record_id) == list and response.get('status_code',0) == 202:
+            cr_downloads = self.get_collections( collection='download_history' )
+            # db.download_history.findOne({name:'1234567' , 'status':'done'}, {path:1, status:1})
+            #pdf_in_mongo = cr_downloads.find_one({'name': name_full_pdf, 'status': 'done'}, {'path':1, 'status':1})
+            pdf_in_mongo = self.try_get_pdf_multi_record(cr_downloads, name_full_pdf)
+            print('.................. pdf_in_mongo =',pdf_in_mongo)
+            return pdf_in_mongo
+
         if upload_data:
             try:
                 file_name = upload_data.get('file_name', '{}.pdf'.format(str(ObjectId())))
