@@ -711,11 +711,12 @@ class Cache(object):
                     executor.map(lambda x: self.thread_function_bulk_patch_catalog(x, catalog_id,
                         jwt_settings_key=jwt_settings_key), [data])
             return  self.thread_dict
-        post_json = self.api_url.catalog['update_catalog_multi']
-        post_json['url'] = post_json['url'].format(data['record_id'])
-        res = []
-        for data in records:
-            res.append(self.network.dispatch(post_json, data=data, jwt_settings_key=jwt_settings_key))
+        else:
+            res = []
+            for data in records:
+                post_json = self.api_url.catalog['update_catalog_multi']
+                post_json['url'] = post_json['url'].format(data['record_id'])
+                res.append(self.network.dispatch(post_json, data=data, jwt_settings_key=jwt_settings_key))
         return res
 
 
