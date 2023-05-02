@@ -7,7 +7,7 @@ class ImportData:
 
 #cache =Cache()
 
-mongo_hosts = 'dev1.linkaform.com:27017,dev2.linkaform.com:27027,dev3.linkaform.com:27037'
+mongo_hosts = '192.168.0.25:27017'
 mongo_replicaSet = 'info_repl'
 MONGO_READPREFERENCE='primary'
 #MONGO_READPREFERENCE='secondaryPreferred'
@@ -22,7 +22,9 @@ config = {
     'PASS' : '654321',
     'COLLECTION' : 'form_answer',
     'MONGODB_PORT':27017,
-    'MONGODB_HOST': '',
+    'MONGODB_HOST': mongo_hosts,
+    'MONGODB_CR': {},
+    'MONGODB_PASSWORD': 'you_password_here',
     # 'MONGODB_REPLICASET': 'linkaform_replica',
     # 'MONGO_READPREFERENCE': 'secondaryPreferred',
     'MONGODB_MAX_IDLE_TIME': 12000,
@@ -59,5 +61,9 @@ config = {
     'COUCH_DEV_PORT':'',
 }
 
+config['LKF_OPERATORS'] =  ['LKFLogin', 'CreateAndAssignTask', 'LKFRunScript']
+
+
 GLOBAL_ERRORS = []
 GLOBAL_VAR ={'count':0}
+

@@ -6,7 +6,7 @@ import datetime
 
 
 #variables
-dbname = 'infosync'
+dbname = 'infosyncd'
 collection_name = 'form_data'
 
 def close_connection(cur_db):
@@ -15,6 +15,12 @@ def close_connection(cur_db):
 
 def connect_mongodb(dbname, host='localhost', port=27017):
   client = MongoClient(host, port)
+  cur_db = client[dbname]
+  return cur_db
+
+def uri_connect_mongodb(mongo_uri):
+  client = MongoClient(mongo_uri)
+  dbname = mongo_uri.split('@')[1].split('/')[1]
   cur_db = client[dbname]
   return cur_db
 

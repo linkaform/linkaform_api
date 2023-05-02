@@ -14,6 +14,22 @@ from linkaform_api  import couch_util
 import pyexcel
 from . import network
 
+
+class InvalidAPIUsage(Exception):
+    status_code = 400
+
+    def __init__(self, message, status_code=400, payload=None):
+        super().__init__()
+        self.message = message
+        if status_code is not None:
+            self.status_code = status_code
+        self.payload = payload
+
+    def to_dict(self):
+        rv = dict(self.payload or ())
+        rv['message'] = self.message
+        return rv
+
 class Cache(object):
 
     def __init__(self, settings={}):
