@@ -26,12 +26,15 @@ class Network:
             data = {"username":username, "api_key": api_key}
         else:
             data = {"password": self.settings.config['PASS'], "username": self.settings.config['USERNAME']}
+
         response = self.dispatch(self.api_url.globals['login'], data=data, use_login=True)
         if get_jwt and response['status_code'] != 400:
             if response.get('content'):
                 return response['content']['jwt']
+
             if response.get('json'):
                 return response['json']['jwt']
+
         return response['status_code'] == 200
 
     def get_url_method(self, url_method={}, url='', method=''):
@@ -65,24 +68,19 @@ class Network:
             params = params if params else {}
             response = self.do_get(url, params=params, use_login=use_login, use_api_key=use_api_key,
                 use_jwt=use_jwt, jwt_settings_key=jwt_settings_key)
-
-        if method == 'POST':
+        else:
             if data == '{}' or not data:
-                raise  ValueError('No data to post, check you post method')
-            response = self.do_post(url, data, use_login, use_api_key, use_jwt=use_jwt,
-                jwt_settings_key=jwt_settings_key, up_file=up_file)
+                raise ValueError('No data to post, check you post method')
 
-        if method == 'PATCH':
-            if data == '{}' or not data:
-                raise  ValueError('No data to post, check you post method')
-            response = self.do_patch(url, data, use_login, use_api_key, use_jwt=use_jwt,
-                jwt_settings_key=jwt_settings_key, up_file=up_file)
-
-        if method == 'DELETE':
-            if data == '{}' or not data:
-                raise  ValueError('No data to post, check you post method')
-            response = self.do_delete(url, data, use_login, use_api_key, use_jwt=use_jwt,
-                jwt_settings_key=jwt_settings_key, up_file=up_file)
+            if method == 'POST':
+                response = self.do_post(url, data, use_login, use_api_key, use_jwt=use_jwt,
+                    jwt_settings_key=jwt_settings_key, up_file=up_file)
+            elif method == 'PATCH':
+                response = self.do_patch(url, data, use_login, use_api_key, use_jwt=use_jwt,
+                    jwt_settings_key=jwt_settings_key, up_file=up_file)
+            elif method == 'DELETE':
+                response = self.do_delete(url, data, use_login, use_api_key, use_jwt=use_jwt,
+                    jwt_settings_key=jwt_settings_key, up_file=up_file)
 
         if response['status_code'] == 502:
             if count < 11 :
@@ -142,7 +140,7 @@ class Network:
         if r.status_code == 200:
             r_data = simplejson.loads(r.content)
             if r_data.get('objects'):
-            	response['data'] = r_data['objects']
+                response['data'] = r_data['objects']
             elif r_data.get('json'):
                 response['data'] = r_data['json']
             else:
@@ -151,7 +149,7 @@ class Network:
         return response
 
     def do_post(self, url, data, use_login=False, use_api_key=False, use_jwt=False, jwt_settings_key=False, encoding='utf-8',
-            up_file=False, params=False):
+            up_file=False, params=False, unformatted_response=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
         JWT = self.settings.config['JWT_KEY']
@@ -185,48 +183,51 @@ class Network:
             if up_file:
                 r = requests.post(url, headers=headers, verify=True, files=up_file, data=data)
 
-        response['status_code'] = r.status_code
-        if r.content and type(r.content) is dict:
-        	response['content'] = simplejson.loads(r.content)
-
-        try:
-        	response['json'] = r.json()
-        except simplejson.scanner.JSONDecodeError:
-            pass
-
-        if r.status_code == 200:
-            try:
-                r_data = simplejson.loads(r.content)
-                # Agrego esto porque cuando se ejecuta una eliminacion de registro de catalogo el resultado es algo como:
-                # [{'ok': True, 'id': '05d7caf176a5cdd658cca083829b21a4'}]
-                if type(r_data) == list:
-                    response['data'] = r_data
-                    return response
-            except:
-                response['data'] = r.text
-                return response
-
-            if up_file:
-                response['data'] = r_data
-            elif r_data.get('success'):
-                if r_data['success']:
-                    return response
-            else:
-                response['data'] = r_data.get('objects', r_data)
-                response['statud_code'] = r.status_code
+        if unformatted_response:
+            response = r
         else:
+            response['status_code'] = r.status_code
+            if r.content and type(r.content) is dict:
+                response['content'] = simplejson.loads(r.content)
+
             try:
-                response['data'] = r.text
-            except:
+                response['json'] = r.json()
+            except simplejson.scanner.JSONDecodeError:
+                pass
+
+            if r.status_code == 200:
                 try:
-                    response['data'] = r.content
+                    r_data = simplejson.loads(r.content)
+                    # Agrego esto porque cuando se ejecuta una eliminacion de registro de catalogo el resultado es algo como:
+                    # [{'ok': True, 'id': '05d7caf176a5cdd658cca083829b21a4'}]
+                    if type(r_data) == list:
+                        response['data'] = r_data
+                        return response
                 except:
-                    response['data'] = r
+                    response['data'] = r.text
+                    return response
+
+                if up_file:
+                    response['data'] = r_data
+                elif r_data.get('success'):
+                    if r_data['success']:
+                        return response
+                else:
+                    response['data'] = r_data.get('objects', r_data)
+                    response['statud_code'] = r.status_code
+            else:
+                try:
+                    response['data'] = r.text
+                except:
+                    try:
+                        response['data'] = r.content
+                    except:
+                        response['data'] = r
 
         return response
 
     def do_patch(self, url, data, use_login=False, use_api_key=False, use_jwt=False, jwt_settings_key=False, encoding='utf-8',
-            up_file=False, params=False):
+            up_file=False, params=False, unformatted_response=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
         JWT = self.settings.config['JWT_KEY']
@@ -262,41 +263,49 @@ class Network:
             if up_file:
                 r = requests.patch(url, headers=headers, verify=False, files=up_file, data=simplejson.loads(data))
 
-        response['status_code'] = r.status_code
-
-        if r.content and type(r.content) is dict:
-            try:
-               response['content'] = simplejson.loads(r.content)
-            except simplejson.scanner.JSONDecodeError:
-                response['content'] = r.content
-        try:
-        	response['json'] = r.json()
-        except simplejson.scanner.JSONDecodeError:
-            pass
-
-        if r.status_code == 200:
+        if unformatted_response:
+            response = r
+        else:
             response['status_code'] = r.status_code
-            response['json'] = r.json()
-            response['data'] = simplejson.loads(r.content)
+
+            if r.content and type(r.content) is dict:
+                try:
+                   response['content'] = simplejson.loads(r.content)
+                except simplejson.scanner.JSONDecodeError:
+                    response['content'] = r.content
+            try:
+                response['json'] = r.json()
+            except simplejson.scanner.JSONDecodeError:
+                pass
+
+            if r.status_code == 200:
+                response['status_code'] = r.status_code
+                response['json'] = r.json()
+                response['data'] = simplejson.loads(r.content)
 
         return response
 
-    def do_delete(self, url, data, use_login=False, use_api_key=False,
-        use_jwt=False, jwt_settings_key=False, encoding='utf-8', up_file=False, params=False):
+    def do_delete(self, url, data, use_login=False, use_api_key=False, use_jwt=False, jwt_settings_key=False, encoding='utf-8',
+            up_file=False, params=False):
         response = {'data':{}, 'status_code':''}
         send_data = {}
         JWT = self.settings.config['JWT_KEY']
-        #print('in do patch')
+
         if jwt_settings_key:
             JWT = self.settings.config[jwt_settings_key]
+
         if use_jwt and not use_api_key:
-            headers = {'Content-type': 'application/json',
-                       'Authorization':'Bearer {0}'.format(JWT)}
+            headers = {
+                'Content-type': 'application/json',
+                'Authorization':'Bearer {0}'.format(JWT)
+            }
 
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
-            headers = {'Content-type': 'application/json',
-                       'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
-                          self.settings.config['AUTHORIZATION_TOKEN_VALUE'])}
+            headers = {
+                'Content-type': 'application/json',
+                'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
+                    self.settings.config['AUTHORIZATION_TOKEN_VALUE'])
+            }
 
         else:
             use_login = True
@@ -304,22 +313,15 @@ class Network:
             if use_login or (self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']) and not use_api_key):
                 if not up_file:
                     r = session.delete(url, data, headers={'Content-type': 'application/json'}, verify=False)#, files=file)
+
                 if up_file:
                     r = session.delete(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
         if not use_login:
             if not up_file:
-                r = requests.request("delete",
-                    url,
-                    data=data,
-                    headers=headers,
-                    verify=True )
+                r = requests.request('delete', url, data=data, headers=headers, verify=True)
+
             if up_file:
-                r = requests.delete(
-                    url,
-                    headers=headers,
-                    verify=False,
-                    files=up_file,
-                    data=simplejson.loads(data))
+                r = requests.delete(url, headers=headers, verify=False, files=up_file, data=simplejson.loads(data))
 
         response['status_code'] = r.status_code
 
@@ -329,7 +331,7 @@ class Network:
             except simplejson.scanner.JSONDecodeError:
                 response['content'] = r.content
         try:
-        	response['json'] = r.json()
+            response['json'] = r.json()
         except simplejson.scanner.JSONDecodeError:
             pass
 
@@ -337,7 +339,7 @@ class Network:
             response['status_code'] = r.status_code
             response['json'] = r.json()
             response['data'] = simplejson.loads(r.content)
-        #print('response', response)
+
         return response
 
     def post_forms_answers(self, answers, jwt_settings_key=False):
