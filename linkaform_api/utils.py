@@ -218,6 +218,12 @@ class Cache(object):
         objects = user['data']
         return objects
 
+    def get_licences(self, jwt_settings_key=False):
+        url = self.api_url.users['get_licenses']['url']
+        method = self.api_url.users['get_licenses']['method']
+        licenses = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+        return licenses['data']
+
     def get_from_fields(self, form_id, jwt_settings_key=False):
         field = []
         url = self.api_url.form['get_form_fields']['url'] + str(form_id) + '/'
@@ -559,6 +565,13 @@ class Cache(object):
 
     def run_script(self, data, jwt_settings_key=False):
         return self.network.dispatch(self.api_url.script['run_script'], data=data, jwt_settings_key=jwt_settings_key)
+
+    def get_records_by_filter(self, filter_id, limit=20, jwt_settings_key=False):
+        url = self.api_url.record['get_form_records_filter']['url'].format(filter_id, limit)
+        method = self.api_url.record['get_form_records_filter']['method']
+        records = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+        objects = records['data']
+        return objects
 
 
 ####

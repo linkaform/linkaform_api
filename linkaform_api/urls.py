@@ -41,7 +41,8 @@ class Api_url:
                 'form_answer_patch_multi': {'url': self.dest_url + '/api/infosync/form_answer/update_records/', 'method':'PATCH'},
                 'assigne_user':{'url': self.dest_url + '/api/infosync/form_answer/assign_lead/', 'method':'POST'},
                 'assigne_connection': {'url': self.dest_url + '/api/infosync/form_answer/assign_lead_connection/', 'method':'POST'},
-                'get_record_pdf': {'url': self.dest_url + '/api/infosync/form_answer/pdf/', 'method':'POST'}
+                'get_record_pdf': {'url': self.dest_url + '/api/infosync/form_answer/pdf/', 'method':'POST'},
+                'get_form_records_filter': {'url': self.dest_url + '/api/infosync/form_answer/?filter_id={}&deleted=false&archived=false&limit={}&offset=0', 'method': 'GET'}
                 }
 
 
@@ -64,7 +65,8 @@ class Api_url:
                 'all_users': {'url': self.dest_url + '/api/infosync/user_admin/?limit=0', 'method':'GET'},
                 'user_id_by_email': {'url': self.dest_url + '/api/infosync/user/?email__contains={0}', 'method':'GET'},
                 'user_by_id': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'GET'},
-                'get_form_users' :{'url': self.dest_url + '/api/infosync/item/{0}/get_users/?limit=0', 'method':'GET'}
+                'get_form_users' :{'url': self.dest_url + '/api/infosync/item/{0}/get_users/?limit=0', 'method':'GET'},
+                'get_licenses': {'url': self.dest_url + '/api/infosync/licenses/?limit=0', 'method': 'GET'}
                 }
 
 
