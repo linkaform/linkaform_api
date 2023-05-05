@@ -56,7 +56,8 @@ class Api_url:
             'delete_inbox':{'url': self.dest_url + '/api/infosync/device/delete_inbox/', 'method':'POST'},
             'assigne_connection': {'url': self.dest_url + '/api/infosync/form_answer/assign_lead_connection/', 'method':'POST'},
             'get_record_pdf': {'url': self.dest_url + '/api/infosync/form_answer/pdf/', 'method':'POST'},
-            'get_pdf_multi_records': {'url': self.dest_url + '/api/infosync/form_answer/records_pdf/', 'method':'POST'}
+            'get_pdf_multi_records': {'url': self.dest_url + '/api/infosync/form_answer/records_pdf/', 'method':'POST'},
+            'get_form_records_filter': {'url': self.dest_url + '/api/infosync/form_answer/?filter_id={}&deleted=false&archived=false&limit={}&offset=0', 'method': 'GET'}
         }
 
     def get_catalog_url(self):
@@ -83,7 +84,8 @@ class Api_url:
             'user_by_id': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'GET'},
             'create_user': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'POST'},
             'get_form_users' :{'url': self.dest_url + '/api/infosync/item/{0}/get_users/?limit=0', 'method':'GET'},
-            'updated_users' :{'url': self.dest_url + '/api/infosync/user_admin/?limit=0&updated_at__gte={}', 'method':'GET'}
+            'updated_users' :{'url': self.dest_url + '/api/infosync/user_admin/?limit=0&updated_at__gte={}', 'method':'GET'},
+            'get_licenses': {'url': self.dest_url + '/api/infosync/licenses/?limit=0', 'method': 'GET'}
         }
 
     def get_groups_url(self):
