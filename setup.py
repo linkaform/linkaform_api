@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(name='linkaform_api',
     version='3.0',
@@ -7,7 +7,8 @@ setup(name='linkaform_api',
     author='Linkaform',
     author_email='develop@linkaform.com',
     license='GNU',
-    packages=['linkaform_api'],
+    packages=find_packages(),
+    # packages=['linkaform_api', 'linkaform_api.models'],
     install_requires=[
         'pymongo',
         'pyexcel',
