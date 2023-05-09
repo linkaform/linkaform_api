@@ -10,6 +10,7 @@ from copy import deepcopy
 #from forms import Form
 from linkaform_api import network
 from linkaform_api  import couch_util
+from datetime import datetime
 
 import pyexcel
 from . import network
@@ -835,6 +836,25 @@ class Cache(object):
             'objects': record_id
         }
         return self.network.dispatch(self.api_url.catalog['catalog_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
+
+    def get_exchange_rate(self, type_currency='USD', from_date='', jwt_settings_key=False):
+        if not from_date:
+            current_date = datetime.now()
+            from_date = datetime.strftime(current_date, '%Y-%m-%d')
+        mango_query = {
+            "selector":{"answers": {"$and":[ 
+                {"645545b5738f34f5a955e4ce": {'$eq': type_currency}},
+                {"645545b5738f34f5a955e4cf": {"$lte": from_date}}
+            ]}},
+            "limit":10000,
+            "skip":0,
+            #"sort":[{"645545b5738f34f5a955e4cf": "desc"}]
+        }
+        record_found = self.search_catalog(100534, mango_query, jwt_settings_key=jwt_settings_key)
+        if record_found:
+            record_found.sort(key=lambda x: x.get("645545b5738f34f5a955e4cf"), reverse=True)
+            return record_found[0]
+        return record_found
 
     def create_filter(self, catalog_id, filter_name, filter_to_search, jwt_settings_key=False):
         url = self.api_url.catalog['create_filter']['url']
