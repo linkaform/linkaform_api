@@ -469,7 +469,8 @@ class Network:
                 'archived': False,
                 'merge': True,
                 'name': name_full_pdf,
-                'records_uri': record_id
+                'records_uri': record_id,
+                'notify_by_email': False
             })
 
         
