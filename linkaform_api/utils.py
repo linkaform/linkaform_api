@@ -226,24 +226,33 @@ class Cache(object):
             all_groups = response.get('json',{}).get('objects', [])
         return all_groups
 
-    def get_form_users(self, form_id, include_users=True, include_connections=True,
-        include_owner=True, is_catalog=False, jwt_settings_key=False):
+    def get_form_users(self, form_id, include_users=True, include_connections=True, include_owner=True,
+        is_catalog=False, jwt_settings_key=False, format_response=True):
         #Returns all the form usrs... by default includes users and connections
         connections = []
         post_json = self.api_url.get_users_url()['get_form_users']
         url = post_json['url'].format(form_id)
         response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
+
         if is_catalog:
             return response
-        all_form_users = response.get('data', [])
-        if type(all_form_users) == dict:
-            all_form_users = [all_form_users,]
-        if not include_connections:
-            [all_form_users.pop(pos) for pos, user in enumerate(all_form_users) if user['is_connection']]
-        if not include_users:
-            [all_form_users.pop(pos) for pos, user in enumerate(all_form_users) if not user['is_connection']]
-        if include_owner:
-            all_form_users.append(response.get('json',{}).get('owner', {}))
+
+        if format_response:
+            all_form_users = response.get('data', [])
+            if type(all_form_users) == dict:
+                all_form_users = [all_form_users,]
+
+            if include_connections == False:
+                [all_form_users.pop(pos) for pos, user in enumerate(all_form_users) if user['is_connection']]
+
+            if include_users == False:
+                [all_form_users.pop(pos) for pos, user in enumerate(all_form_users) if not user['is_connection']]
+
+            if include_owner:
+                all_form_users.append(response.get('json',{}).get('owner', {}))
+        else:
+            all_form_users = response
+
         return all_form_users
 
     def get_group_users(self, group_id, user_type='users', jwt_settings_key=False):
