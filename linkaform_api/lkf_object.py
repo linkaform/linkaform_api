@@ -3,19 +3,35 @@ print('loading lkf_object ...')
 #python libs
 from bson import ObjectId
 from hashlib import sha1, md5
+# from pymongo import MongoClient
 
-from app import bob
-from .base_models import UserData
+# from . import settings 
+from .models.base_models import UserData
+from .mongo_util import connect_mongodb
 
 # from  import UserData
-
 #Flask Models
-from flask_pymongo import PyMongo
+# from flask_pymongo import PyMongo
 
 
 #### LKF Object
 class LKFBaseObject:
+    def __init__(self, *, id: str, created_by: UserData, settings: dict,  object: str = None ):
+        self.id = id
+        self.created_by = created_by
+        self.object = object
+        self.cr_con = {}
+        self.settings = settings
 
+
+    def get_user_data(self, user_config):
+        u = user_config['user']
+        return  {
+            'email': u.get('email'),
+            'account_id': u.get('parent_info',{}).get('id'),
+            'name': u.get('first_name',{}),
+            'user_id': u.get('id')
+            }
 
     def get_mongo_uri(self, account_id):
         dbname = 'infosync_answers_client_{}'.format(account_id)
@@ -28,16 +44,10 @@ class LKFBaseObject:
         uri = 'mongodb://{}:{}@{}/{}'.format(
         mongo_user,
         user_pass,
-        bob.config['MONGO_HOST'],
+        self.settings['MONGODB_HOST'],
         dbname,
         )
         return uri
-
-    def __init__(self, *, id: str, object: str = None, created_by: UserData = None):
-        self.id = id
-        self.created_by = created_by
-        self.object = object
-        self.cr_con = {}
 
     def __conect_db(self):
         if isinstance(self.created_by, dict):
@@ -49,22 +59,23 @@ class LKFBaseObject:
             if  hasattr(self.created_by, "account_id"):
                 account_id = self.created_by.account_id
         dbname = 'infosync_answers_client_{}'.format(account_id)
-        if not bob.config['MONGO_CR'].get(dbname):
-            bob.config['MONGO_URI'] = self.get_mongo_uri(account_id)
-            mongo = PyMongo(bob)
-            bob.config['MONGO_CR'][dbname] = PyMongo(bob)
-        return bob.config['MONGO_CR'][dbname]
+        self.settings['MONGO_CR'] = self.settings.get('MONGO_CR', {})
+        if not self.settings['MONGO_CR'].get(dbname):
+            self.settings['MONGO_URI'] = self.get_mongo_uri(account_id)
+
+            # mongo = MongoClient(self.settings)
+            mongo = connect_mongodb(dbname, uri=self.settings['MONGO_URI'])
+            self.settings['MONGO_CR'][dbname] = mongo
+        return self.settings['MONGO_CR'][dbname]
 
     def get_db_cr(self, _object=None, db_name=False, collection=False):
-        if not _object:
-            collection = self.object
+        if self.name:
+            collection = self.name
         else:
-            g = _object.__class__
-            collection = g.__name__
-        # mongo = PyMongo(bob)
+            collection = _object.__class__.__name__
+        # mongo = PyMongo(settings)
         mongo =  self.__conect_db()
-        d  = mongo.db
-        conn = eval('mongo.db.{}'.format(collection))
+        conn = eval('mongo.{}'.format(collection))
             #conn = self.lkf_obj
         #TODO Create database indexes
         # print('sellf', self.lkf_obj)
@@ -91,8 +102,6 @@ class LKFBaseObject:
         except:# StopIteration:
              res.update(self._insert_record(cr, data))
         return res
-
-
 
     def _insert_record(self, cr, data):
         res = {}
@@ -133,6 +142,8 @@ class LKFBaseObject:
                 for x in data:
                     data_res.append(x.dict(exclude_none=True) for x in data)
                 data = data_res
+            elif type(data) == dict:
+                data = _object
             else:
                 data = _object.dict(exclude_none=True)
         elif collection:
@@ -142,7 +153,7 @@ class LKFBaseObject:
             # data = data.dict()
         return cr, data
 
-    def lkf_create(self, _object, is_json=False, collection=False):
+    def create(self, _object, is_json=True, collection=False):
         cr, data = self.get_cr_data(_object, is_json=is_json)
         if type(data) == dict:
             res = {}
@@ -176,7 +187,7 @@ class LKFBaseObject:
         # print('data', data)
         return res
 
-    def lkf_update(self, query, data, replace=False):
+    def update(self, query, data, replace=False):
         cr, cr_data = self.get_cr_data()
         if replace:
             data = data
@@ -186,7 +197,7 @@ class LKFBaseObject:
         res = cr.update_many(query, data)
         return res
 
-    def lkf_search(self, **args):
+    def search(self, **args):
         cols = _one = None
         cr, data = self.get_cr_data()
         if '_one' in list(args.keys()):
@@ -203,7 +214,7 @@ class LKFBaseObject:
                 return res[0]
         return res
 
-    def lkf_delete(self, _object=None, query=False, is_json=False ):
+    def delete(self, _object=None, query=False, is_json=False ):
         cr, data = self.get_cr_data(_object, is_json=False)
         if not query:
             query = {'_id':data['id']}

@@ -20,7 +20,7 @@ class Network:
         self.api_url = Api_url(settings)
         self.thread_result = []
 
-    def login(self, session, username, password=None, get_jwt=False ,api_key=None):
+    def login(self, session, username, password=None, get_jwt=False ,api_key=None, get_user=True):
         #data = simplejson.dumps({"password": self.settings.config['PASS'], "username": self.settings.config['USERNAME']})
         if api_key:
             data = {"username":username, "api_key": api_key}
@@ -28,6 +28,12 @@ class Network:
             data = {"password": self.settings.config['PASS'], "username": self.settings.config['USERNAME']}
 
         response = self.dispatch(self.api_url.globals['login'], data=data, use_login=True)
+        if get_user and response['status_code'] != 400:
+            if response.get('content'):
+                return response['content']
+            if response.get('json'):
+                return response['json']
+
         if get_jwt and response['status_code'] != 400:
             if response.get('content'):
                 return response['content']['jwt']

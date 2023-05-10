@@ -13,8 +13,11 @@ def close_connection(cur_db):
   cur_db.client.close()
   return True
 
-def connect_mongodb(dbname, host='localhost', port=27017):
-  client = MongoClient(host, port)
+def connect_mongodb(dbname, host='localhost', port=27017, uri=False):
+  if uri:
+    client = MongoClient(uri)
+  else:
+    client = MongoClient(host, port)
   cur_db = client[dbname]
   return cur_db
 

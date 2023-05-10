@@ -198,6 +198,7 @@ class Cache(object):
         objects = all_connections['data']
         return objects
 
+
     def get_user_by_email(self, user_email, jwt_settings_key=False):
         post_json = self.api_url.get_users_url()['user_id_by_email']
         url = post_json['url'].format(user_email)
@@ -604,7 +605,7 @@ class Cache(object):
         except ValueError:
             raise ValueError("Incorrect data format, should be YYYY-MM-DD")
 
-    def get_jwt(self, user=None, password=None, get_jwt=True, api_key=None):
+    def get_jwt(self, user=None, password=None, get_jwt=True, api_key=None, get_user=False):
         session = False
         if not user:
             user = self.settings.config.get('USERNAME')
@@ -613,9 +614,9 @@ class Cache(object):
         if api_key:
             if type(api_key) == bool:
                 api_key = self.settings.config.get('api_key')
-            jwt = self.network.login(session, username=user, get_jwt=get_jwt, api_key=api_key)
+            jwt = self.network.login(session, username=user, get_jwt=get_jwt, api_key=api_key, get_user=get_user)
         else:
-            jwt = self.network.login(session, user, password, get_jwt=get_jwt)
+            jwt = self.network.login(session, user, password, get_jwt=get_jwt, get_user=get_user)
         return jwt
 
     def get_pdf_record(self, record_id, template_id=None, upload_data=None, send_url=False, name_pdf='', jwt_settings_key=False):
