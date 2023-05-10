@@ -10,6 +10,7 @@ from copy import deepcopy
 #from forms import Form
 from linkaform_api import network
 from linkaform_api  import couch_util
+from datetime import datetime
 
 import pyexcel
 from . import network
@@ -226,24 +227,33 @@ class Cache(object):
             all_groups = response.get('json',{}).get('objects', [])
         return all_groups
 
-    def get_form_users(self, form_id, include_users=True, include_connections=True,
-        include_owner=True, is_catalog=False, jwt_settings_key=False):
+    def get_form_users(self, form_id, include_users=True, include_connections=True, include_owner=True,
+        is_catalog=False, jwt_settings_key=False, format_response=True):
         #Returns all the form usrs... by default includes users and connections
         connections = []
         post_json = self.api_url.get_users_url()['get_form_users']
         url = post_json['url'].format(form_id)
         response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
+
         if is_catalog:
             return response
-        all_form_users = response.get('data', [])
-        if type(all_form_users) == dict:
-            all_form_users = [all_form_users,]
-        if not include_connections:
-            [all_form_users.pop(pos) for pos, user in enumerate(all_form_users) if user['is_connection']]
-        if not include_users:
-            [all_form_users.pop(pos) for pos, user in enumerate(all_form_users) if not user['is_connection']]
-        if include_owner:
-            all_form_users.append(response.get('json',{}).get('owner', {}))
+
+        if format_response:
+            all_form_users = response.get('data', [])
+            if type(all_form_users) == dict:
+                all_form_users = [all_form_users,]
+
+            if include_connections == False:
+                [all_form_users.pop(pos) for pos, user in enumerate(all_form_users) if user['is_connection']]
+
+            if include_users == False:
+                [all_form_users.pop(pos) for pos, user in enumerate(all_form_users) if not user['is_connection']]
+
+            if include_owner:
+                all_form_users.append(response.get('json',{}).get('owner', {}))
+        else:
+            all_form_users = response
+
         return all_form_users
 
     def get_group_users(self, group_id, user_type='users', jwt_settings_key=False):
@@ -836,6 +846,25 @@ class Cache(object):
             'objects': record_id
         }
         return self.network.dispatch(self.api_url.catalog['catalog_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
+
+    def get_exchange_rate(self, type_currency='USD', from_date='', jwt_settings_key=False):
+        if not from_date:
+            current_date = datetime.now()
+            from_date = datetime.strftime(current_date, '%Y-%m-%d')
+        mango_query = {
+            "selector":{"answers": {"$and":[ 
+                {"645545b5738f34f5a955e4ce": {'$eq': type_currency}},
+                {"645545b5738f34f5a955e4cf": {"$lte": from_date}}
+            ]}},
+            "limit":10000,
+            "skip":0,
+            #"sort":[{"645545b5738f34f5a955e4cf": "desc"}]
+        }
+        record_found = self.search_catalog(100534, mango_query, jwt_settings_key=jwt_settings_key)
+        if record_found:
+            record_found.sort(key=lambda x: x.get("645545b5738f34f5a955e4cf"), reverse=True)
+            return record_found[0]
+        return record_found
 
     def create_filter(self, catalog_id, filter_name, filter_to_search, jwt_settings_key=False):
         url = self.api_url.catalog['create_filter']['url']
