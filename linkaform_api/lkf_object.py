@@ -1,4 +1,5 @@
-print('loading lkf_object ...')
+# coding: utf-8
+#!/usr/bin/python
 
 #python libs
 from bson import ObjectId
@@ -22,16 +23,34 @@ class LKFBaseObject:
         self.object = object
         self.cr_con = {}
         self.settings = settings
+        self.config = settings.config
 
 
-    def get_user_data(self, user_config):
-        u = user_config['user']
-        return  {
-            'email': u.get('email'),
-            'account_id': u.get('parent_info',{}).get('id'),
-            'name': u.get('first_name',{}),
-            'user_id': u.get('id')
+
+    # resource_id: Optional[int]
+    # username: Optional[str]
+    # email: Optional[str]
+    # group_id: Optional[int]
+    # resource_kind: Optional[str]
+    # user_type: Optional[list] #Literal['follower', 'onwer', 'supervisor', 'admin']]
+    # phone: Optional[List[UserPhone]]
+    # properties: Optional[dict]
+    # user_icon: Optional[AnyUrl]
+    # user_url: Optional[AnyUrl]
+    # user_tag: Optional[List[str]]
+    # timezone: Optional[str]
+
+    def get_user_data(self):
+        u = self.config.get('USER')
+        user = {
+            'email': u.get('user',{}).get('email'),
+            'username': u.get('user',{}).get('username'),
+            'account_id': u.get('user',{}).get('parent_info',{}).get('id'),
+            'name': u.get('user',{}).get('first_name',{}),
+            'user_id': u.get('user',{}).get('id')
             }
+        return user
+
 
     def get_mongo_uri(self, account_id):
         dbname = 'infosync_answers_client_{}'.format(account_id)
@@ -44,29 +63,26 @@ class LKFBaseObject:
         uri = 'mongodb://{}:{}@{}/{}'.format(
         mongo_user,
         user_pass,
-        self.settings['MONGODB_HOST'],
+        self.config['MONGODB_HOST'],
         dbname,
         )
         return uri
 
     def __conect_db(self):
-        if isinstance(self.created_by, dict):
-            account_id =self.created_by.get('account_id', self.created_by.get('parent_id'))
-        else:
-        # if type(self.created_by) is LKFBaseObject:
-            if  hasattr(self.created_by, "parent_id"):
-                account_id = self.created_by.parent_id
-            if  hasattr(self.created_by, "account_id"):
-                account_id = self.created_by.account_id
+        if hasattr(self, 'config'):
+            config = self.config
+        elif hasattr(self, 'settings'):
+            config = self.settings.config
+        account_id = config.get('ACCOUNT_ID', config.get('USER',{}).get('user',{}).get('parent_info',{}).get('id'))
         dbname = 'infosync_answers_client_{}'.format(account_id)
-        self.settings['MONGO_CR'] = self.settings.get('MONGO_CR', {})
-        if not self.settings['MONGO_CR'].get(dbname):
-            self.settings['MONGO_URI'] = self.get_mongo_uri(account_id)
+        self.config['MONGO_CR'] = self.config.get('MONGO_CR', {})
+        if not self.config['MONGO_CR'].get(dbname):
+            self.config['MONGO_URI'] = self.get_mongo_uri(account_id)
 
-            # mongo = MongoClient(self.settings)
-            mongo = connect_mongodb(dbname, uri=self.settings['MONGO_URI'])
-            self.settings['MONGO_CR'][dbname] = mongo
-        return self.settings['MONGO_CR'][dbname]
+            # mongo = MongoClient(self.config)
+            mongo = connect_mongodb(dbname, uri=self.config['MONGO_URI'])
+            self.config['MONGO_CR'][dbname] = mongo
+        return self.config['MONGO_CR'][dbname]
 
     def get_db_cr(self, _object=None, db_name=False, collection=False):
         if self.name:

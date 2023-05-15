@@ -8,7 +8,6 @@ class Couch_utils(object):
 
     def __init__(self, settings={}):
         if settings.config['COUCH_ENV'] == 'prod':
-            print('-----------------')
             couch_pord_url = "{}://{}:{}@{}:{}".format(
                 settings.config['COUCH_PROTOCOL'],
                 settings.config['COUCH_USER'],
