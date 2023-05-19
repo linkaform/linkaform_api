@@ -15,9 +15,9 @@ class Network:
 
     def __init__(self, settings={}):
         #linkaform api
-        from .urls import Api_url
+        from linkaform_api import urls
         self.settings = settings
-        self.api_url = Api_url(settings)
+        self.api_url = urls.Api_url(settings)
         self.thread_result = []
 
     def login(self, session, username, password=None, get_jwt=False ,api_key=None, get_user=True):
@@ -159,6 +159,7 @@ class Network:
         response = {'data':{}, 'status_code':''}
         send_data = {}
         JWT = self.settings.config['JWT_KEY']
+        print('url', url)
         if jwt_settings_key:
             JWT = self.settings.config[jwt_settings_key]
 
