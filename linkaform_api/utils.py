@@ -566,6 +566,18 @@ class Cache(object):
         #up_file:
         return self.network.dispatch(self.api_url.form['upload_file'], data=data, up_file=up_file, jwt_settings_key=jwt_settings_key)
 
+    def post_upload_script(self, dir_script, jwt_settings_key=False):
+        script_file = open(dir_script, 'rb')
+        name_script = dir_script.split('/')[-1]
+        print('name_script =',name_script)
+        script_file_dir = [('File', (name_script, script_file, 'application/octet-stream'))]
+        data_script = {
+            'name': name_script,
+            'is_script': True,
+            'properties': '{"container":"linkaform/python3_lkf:latest"}'
+        }
+        return self.network.dispatch(self.api_url.script['upload_script'], data=data_script, up_file=script_file_dir, jwt_settings_key=jwt_settings_key)
+
     def post_upload_tmp(self, data, up_file, jwt_settings_key=False):
         #data:
         #up_file:

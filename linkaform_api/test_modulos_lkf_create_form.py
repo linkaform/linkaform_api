@@ -2,13 +2,14 @@
 # import sys, simplejson
 # from linkaform_api import settings, network, utils
 # from pci_settings import *
+import sys, simplejson
 import settings
 from utils import Cache
 
 settings.mongo_hosts = 'dbs2.lkf.cloud:27918'
 settings.mongo_port = 27918
 settings.MONGODB_URI = 'mongodb://%s/'%(settings.mongo_hosts)
-my_jwt = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImxpbmthZm9ybUBvcGVyYWNpb25wY2kuY29tLm14IiwidXNlcl9pZCI6MTQzMywicGFyZW50X2lkIjoxMjU5LCJpc19tb2JpbGUiOmZhbHNlLCJleHAiOjE2ODIzNjY2NTksImRldmljZV9vcyI6IndlYiIsImVtYWlsIjoibGlua2Fmb3JtQG9wZXJhY2lvbnBjaS5jb20ubXgifQ.I1Xg6ZQ77VY8tcBIpcjwUlf_oWq09EvRTsmxCfSq-VTAocV9NHXPkB_t5kQp1Qi6_ZAOP4Up-XXh_kY58-RivMc9VTMSKrf3mBA9WF26-6lXt0dnkPfvjs7eyeTXOPEupTLnxi372zYdHdDi2zlZ14Dt6bWFyeaYYpsBcbvXWt7xNQFAIdCpES65VIfQ4sJAFykCQhLLjUARK0VIhwEhCD1-sg6UtIRmz-w_5h9bRUd-nQ8bHyQTQbzNdseCdIAfKkJ8TQ1mbHrJ9cX83NIZPWL-nx0KnuJCQMmNIAI4jZjxlEaP-DOSzlVGs9swfkY0OJtsO308S7-Jpzd0t9dZh1Fq9gqZMWXixd9V30TXjQqs50o8FfnHNZlUPpK7bP6n3__lDWcB7Z6EtNUsAcnv9Blp4yko7-JyYHvlclm7ONpQgm7smYsLFzqZLA-KrKmCu4b7ZQfeMkKV4vmohlsh5GTATDySxyyB04G-RAUFGqCTccb3HzJg7Hqg5RVJVaz8gSn8OghdOJzPRmWiNmV9CF91tLotHLWNNcrhB--IelEqwC830AKgfQP1Sp3_f8xJ4n4Den2ruzJ1bNDc38aVFFuM-2pVwwkDHqUFBXUAaYabN95fsLp40ozQXzWqbczQ2qr-wEbp7Eyu3HojlDbtWZC3estFQfPJfJvYxT0NxcQ'
+my_jwt = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImxpbmthZm9ybUBvcGVyYWNpb25wY2kuY29tLm14IiwidXNlcl9pZCI6MTQzMywicGFyZW50X2lkIjoxMjU5LCJpc19tb2JpbGUiOmZhbHNlLCJleHAiOjE2ODQ0NzE5MjAsImRldmljZV9vcyI6IndlYiIsImVtYWlsIjoibGlua2Fmb3JtQG9wZXJhY2lvbnBjaS5jb20ubXgifQ.LSUkY2xYEdT6zJtk_YRC2-Pzd07MJBIKdbcIRPwNr7gtbJkIF_VaBSVVGuTQPKjUIsts1f0vYdv10VUuZ5L-oh5aj11uMXUKm15ODGq-FKWRQV6ZDaxVEBe_HBFvspVqedKHtmkFbmotDBDtc6T9SF2j1DRXeWOYg1gOdJa4QUv1oFjED0UiksbKyFLbhIhhBkV2MCxA1T_CvjYcNWMyOaVkWV05xhUxYP7v0gjzGYYE93a_Qg6BpA-BL-rfDWaKAPQV1r80ECe5nWqWFOsYdWgcaABjPArqb8Kl2A61MxASto9SKSypxSjVGH4RBSThtzcfEzbbgfnw2RsUhdfX-UsM0tuaTK2Z6AehxyUiZMUZmwLpbmUCMwJ67aYimKui5Q0euxdKqwXb4x2XE-k_zZE6hqkNt5Ukof78wEuAnHAcOV8uN8qkmoe4FxD6XRPUZ2lG9KT7NieJxxMNPkz48IhBxgjqD-57Apv1z0hbMpFlQVBa_xt5zGvLzZSOcswQCrn6d9w2CCAjHaY6xOAzHFpAPYoagXTWe9K3VqTPSueHvUNRqM08K5BX_fFFAaIYznUeXVTrUQ8rbKnl7OYMFWt8VKJCtATxGEgZFVOCk7GszNf8TkW2PlYKbgTFKGSs8N6-bKWZ-CDDUkhPiI_jaopcz67on0CdRV_o9NPdE-g'
 config = {
     'USERNAME' : 'linkaform@operacionpci.com.mx',
     'PASS' : '',
@@ -35,6 +36,7 @@ settings.config.update(config)
 if __name__ == '__main__':
     lkf_api = Cache(settings)
 
+    """
     form_id_base = 98193
     '''
     # Se obtiene la forma con todos sus campos para duplicarla y crear una copia
@@ -73,3 +75,54 @@ if __name__ == '__main__':
             print(form_workflows)
             response_workflows = lkf_api.upload_workflows(form_workflows, jwt_settings_key='USER_JWT_KEY')
             #print('response_workflows =',response_workflows)
+    """
+
+    '''
+    # Haciendo pruebas del catalogo
+    json_catalog = {
+        "name": "prueba creacion desde la Api",
+        "active": True,
+        "description": "",
+        "edit_public_records": False,
+        "catalog_pages": [
+            {
+                "page_fields": [
+                    {
+                        "field_id": None,
+                        "field_type": "text",
+                        "label": "hola mundo",
+                        "visible": True,
+                        "required": False,
+                        "validations": {},
+                        "default_value": "",
+                        "rules": [],
+                        "properties": {
+                            "size": "complete",
+                            "custom": None,
+                            "send_email": False
+                        },
+                        "groups_fields": [],
+                        "$$hashKey": "042"
+                    }
+                ],
+                "page_name_tab": "page_name1",
+                "page_name": "PAGE 1",
+                "$$hashKey": "02T"
+            }
+        ],
+        "advanced_options": {},
+        "public": False
+    }
+    resp_create_catalog = lkf_api.create_catalog(json_catalog, jwt_settings_key='USER_JWT_KEY')
+    #print('resp_create_catalog =',resp_create_catalog)
+    if resp_create_catalog.get('status_code',0) == 201:
+        data_catalog = simplejson.loads( resp_create_catalog.get('data', '{}') )
+        print('Catalogo creado correctamente =',data_catalog.get('catalog_id'))
+    '''
+
+    # Haciendo pruebas de carga de scripts
+    dir_script = 'TestUploadScript/delete_old_images.py'
+    resp_upload_script = lkf_api.post_upload_script(dir_script, jwt_settings_key='USER_JWT_KEY')
+    print('resp_upload_script =',resp_upload_script)
+    if resp_upload_script.get('status_code') == 200:
+        print('Script cargado')
