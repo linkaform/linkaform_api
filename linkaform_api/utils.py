@@ -13,7 +13,7 @@ from linkaform_api  import couch_util
 from datetime import datetime
 
 import pyexcel
-from . import network
+from linkaform_api import network
 
 class Cache(object):
 
@@ -22,8 +22,8 @@ class Cache(object):
         self.items_data = {}
         self.items_fields = {}
         self.settings = settings
-        from .urls import Api_url
-        self.api_url = Api_url(settings)
+        from linkaform_api import urls
+        self.api_url = urls.Api_url(settings)
         self.network = network.Network(self.settings)
         self.couch = couch_util.Couch_utils(self.settings)
         self.thread_dict = {}
