@@ -199,7 +199,6 @@ class Cache(object):
         objects = all_connections['data']
         return objects
 
-
     def get_user_by_email(self, user_email, jwt_settings_key=False):
         post_json = self.api_url.get_users_url()['user_id_by_email']
         url = post_json['url'].format(user_email)
@@ -668,17 +667,6 @@ class Cache(object):
         method = self.api_url.form['download_form_data']['method']
         return self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
 
-    def share_form(self, data_to_share, unshare=False, jwt_settings_key=False):
-        url = self.api_url.form['share_form']['url']
-        method = self.api_url.form['share_form']['method']
-        if unshare:
-            data = {'objects': [], 'deleted_objects': data_to_share}
-        else:
-            data = {'objects': [data_to_share,]}
-
-        r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
-        return r
-
     def get_form_to_duplicate(self, form_id, jwt_settings_key=False):
         form_with_fields = self.get_form_id_fields(form_id, jwt_settings_key=jwt_settings_key)
         if form_with_fields:
@@ -701,8 +689,23 @@ class Cache(object):
         method = self.api_url.form['upload_rules']['method']
         return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
 
+    """
+    Items
+    """
+    def share_form(self, data_to_share, unshare=False, jwt_settings_key=False):
+        # Compartir y descompartir items
+        url = self.api_url.form['share_form']['url']
+        method = self.api_url.form['share_form']['method']
+        if unshare:
+            data = {'objects': [], 'deleted_objects': data_to_share}
+        else:
+            data = {'objects': [data_to_share,]}
 
-    # Workflows
+        return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+
+    """
+    Workflows
+    """
     def upload_workflows(self, data, jwt_settings_key=False):
         url = self.api_url.form['upload_workflows']['url']
         method = self.api_url.form['upload_workflows']['method']
@@ -744,6 +747,11 @@ class Cache(object):
         }
         r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
         return r
+
+    def download_catalog_model(self, catalog_id, jwt_settings_key=False):
+        url = '{}{}/'.format(self.api_url.catalog['download_catalog_model']['url'], catalog_id)
+        method = self.api_url.catalog['download_catalog_model']['method']
+        return self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
 
     def get_catalog_id_fields(self, catalog_id, jwt_settings_key=False):
         url = self.api_url.catalog['catalog_id_fields']['url']+str(catalog_id)+'/'

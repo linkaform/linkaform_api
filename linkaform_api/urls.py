@@ -39,11 +39,12 @@ class Api_url:
             'set_form_answer': {'url': self.dest_url + '/api/infosync/form_answer/', 'method':'POST'},
             'upload_file': {'url': self.dest_url + '/api/infosync/cloud_upload/', 'method':'POST'},
             'upload_tmp': {'url': self.dest_url + '/api/infosync/upload_tmp/', 'method':'POST'},
-            'version': {'url': self.dest_url + '/api/infosync/version/', 'method':'GET'},
             'upload_rules': {'url': self.dest_url + '/api/infosync/form_rules/', 'method':'POST'},
             'upload_workflows': {'url': self.dest_url + '/api/infosync/workflows/', 'method':'POST'},
             'get_form_rules': {'url': self.dest_url + '/api/infosync/form_rules/?form_id=', 'method':'GET'},
             'get_form_workflows': {'url': self.dest_url + '/api/infosync/workflows/?form_id=', 'method':'GET'},
+            'unshare_item': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'},
+            'version': {'url': self.dest_url + '/api/infosync/version/', 'method':'GET'},
             }
 
     def get_records_url(self):
@@ -63,18 +64,19 @@ class Api_url:
     def get_catalog_url(self):
         return  {
             'catalog_id_fields': {'url': self.dest_url + '/api/infosync/catalog_model/send_catalog/', 'method':'GET'},
-            'set_catalog_answer': {'url': self.dest_url + '/api/infosync/catalog_answers/', 'method':'POST'},
-            'get_record_by_folio': {'url': self.dest_url + '/api/infosync/catalog/find/', 'method':'POST'},
-            'update_catalog_answer': {'url': self.dest_url + '/api/infosync/catalog_answers/', 'method': 'PATCH'},
-            'delete_catalog_record': {'url': self.dest_url + '/api/infosync/catalog/bulk_docs/', 'method': 'POST'},
-            'update_catalog_multi': {'url': self.dest_url + '/api/infosync/catalog_answers/{}/', 'method': 'PATCH'},
             'catalog_answer_patch_multi': {'url': self.dest_url + '/api/infosync/catalog_answers/update_catalogs/', 'method': 'PATCH'},
-            'create_filter': {'url': self.dest_url + '/api/infosync/user_properties/create_filter/', 'method': 'POST'},
-            'delete_filter': {'url': self.dest_url + '/api/infosync/catalog/delete_filter/', 'method': 'POST'},
-            'share_catalog': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'},
-            'update_catalog_model': {'url': self.dest_url + '/api/infosync/catalog_model/{0}/', 'method': 'PATCH'},
             'create_catalog': {'url': self.dest_url + '/api/infosync/catalog_model/', 'method':'POST'},
-            'load_rows': {'url': self.dest_url + '/api/infosync/catalog_answers/sheet_to_catalog/', 'method': 'POST'}
+            'create_filter': {'url': self.dest_url + '/api/infosync/user_properties/create_filter/', 'method': 'POST'},
+            'delete_catalog_record': {'url': self.dest_url + '/api/infosync/catalog/bulk_docs/', 'method': 'POST'},
+            'delete_filter': {'url': self.dest_url + '/api/infosync/catalog/delete_filter/', 'method': 'POST'},
+            'download_catalog_model': {'url': self.dest_url + '/api/infosync/catalog_model/download/', 'method':'GET'},
+            'get_record_by_folio': {'url': self.dest_url + '/api/infosync/catalog/find/', 'method':'POST'},
+            'load_rows': {'url': self.dest_url + '/api/infosync/catalog_answers/sheet_to_catalog/', 'method': 'POST'},
+            'set_catalog_answer': {'url': self.dest_url + '/api/infosync/catalog_answers/', 'method':'POST'},
+            'share_catalog': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'},
+            'update_catalog_answer': {'url': self.dest_url + '/api/infosync/catalog_answers/', 'method': 'PATCH'},
+            'update_catalog_model': {'url': self.dest_url + '/api/infosync/catalog_model/{0}/', 'method': 'PATCH'},
+            'update_catalog_multi': {'url': self.dest_url + '/api/infosync/catalog_answers/{}/', 'method': 'PATCH'},
         }
 
     def get_users_url(self):
