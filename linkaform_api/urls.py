@@ -6,24 +6,57 @@ class Api_url:
 
     def __init__(self, settings):
         self.urls = {}
+        # LKF
         self.dest_url = settings.config['PROTOCOL'] + '://' + settings.config['HOST']
-        self.bob_url = settings.config['PROTOCOL'] + '://' + settings.config['HOST']
+        self.catalog = self.get_catalog_url()
+        self.connections = self.get_connections_url()
+        self.form = self.get_forms_url()
+        self.item = self.get_items_url()
+        self.globals = self.get_global_url()
+        self.groups = self.get_groups_url()
+        self.record = self.get_records_url()
+        self.script = self.get_script()
+        self.users = self.get_users_url()
+        # AIRFLOW
         self.airflow_dest_url = settings.config['AIRFLOW_PROTOCOL'] + '://' + settings.config['AIRFLOW_HOST']
         if settings.config['AIRFLOW_PORT']:
             self.airflow_dest_url += ':{}'.format(settings.config['AIRFLOW_PORT'])
-        self.globals = self.get_global_url()
-        self.form = self.get_forms_url()
-        self.record = self.get_records_url()
-        self.catalog = self.get_catalog_url()
-        self.users = self.get_users_url()
-        self.groups = self.get_groups_url()
-        self.connections = self.get_connections_url()
-        self.script = self.get_script()
         self.airflow = self.get_airflow()
+        self.bob_url = settings.config['PROTOCOL'] + '://' + settings.config['HOST']
 
-    def get_global_url(self):
-        return {
-            'login': {'url': self.dest_url + '/api/infosync/user_admin/login/', 'method':'POST'},
+    def get_airflow(self):
+        return  {
+            'update': {'url': self.airflow_dest_url + '/cron', 'method':'PATCH'},
+            'subscribe': {'url': self.airflow_dest_url + '/cron', 'method':'POST'},
+            'delete_schedule': {'url': self.airflow_dest_url + '/cron', 'method':'DELETE'},
+        }
+
+    def get_catalog_url(self):
+        return  {
+            'catalog_id_fields': {'url': self.dest_url + '/api/infosync/catalog_model/send_catalog/', 'method':'GET'},
+            'catalog_answer_patch_multi': {'url': self.dest_url + '/api/infosync/catalog_answers/update_catalogs/', 'method': 'PATCH'},
+            'create_catalog': {'url': self.dest_url + '/api/infosync/catalog_model/', 'method':'POST'},
+            'create_filter': {'url': self.dest_url + '/api/infosync/user_properties/create_filter/', 'method': 'POST'},
+            'delete_catalog_record': {'url': self.dest_url + '/api/infosync/catalog/bulk_docs/', 'method': 'POST'},
+            'delete_filter': {'url': self.dest_url + '/api/infosync/catalog/delete_filter/', 'method': 'POST'},
+            'download_catalog_model': {'url': self.dest_url + '/api/infosync/catalog_model/download/', 'method':'GET'},
+            'get_record_by_folio': {'url': self.dest_url + '/api/infosync/catalog/find/', 'method':'POST'},
+            'load_rows': {'url': self.dest_url + '/api/infosync/catalog_answers/sheet_to_catalog/', 'method': 'POST'},
+            'set_catalog_answer': {'url': self.dest_url + '/api/infosync/catalog_answers/', 'method':'POST'},
+            'share_catalog': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'},
+            'update_catalog_answer': {'url': self.dest_url + '/api/infosync/catalog_answers/', 'method': 'PATCH'},
+            'update_catalog_model': {'url': self.dest_url + '/api/infosync/catalog_model/{0}/', 'method': 'PATCH'},
+            'update_catalog_multi': {'url': self.dest_url + '/api/infosync/catalog_answers/{}/', 'method': 'PATCH'},
+        }
+
+    def get_connections_url(self):
+        return  {
+            'all_connections': {'url': self.dest_url + '/api/infosync/connection/', 'method':'GET'},
+            'all_user_connection': {'url': self.dest_url + '/api/infosync/user_connection/', 'method': 'GET'},
+            'connection_by_id': {'url': self.dest_url + '/api/infosync/connection/', 'method':'GET'},
+            'form_connections': {'url': self.dest_url + '/api/infosync/connection_record_filter/?form_id=', 'method':'GET'},
+            'user_by_form' : {'url': self.dest_url + '/api/infosync/file_shared/?form_id=&user_id=', 'method':'GET'},
+            'user_connection': {'url': self.dest_url + '/api/infosync/user_connection/load_user/?email=', 'method': 'GET'}
         }
 
     def get_forms_url(self):
@@ -45,7 +78,23 @@ class Api_url:
             'get_form_workflows': {'url': self.dest_url + '/api/infosync/workflows/?form_id=', 'method':'GET'},
             'unshare_item': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'},
             'version': {'url': self.dest_url + '/api/infosync/version/', 'method':'GET'},
-            }
+        }
+
+    def get_global_url(self):
+        return {
+            'login': {'url': self.dest_url + '/api/infosync/user_admin/login/', 'method':'POST'},
+        }
+
+    def get_groups_url(self):
+        return  {
+            'get_group_users': {'url': self.dest_url + '/api/infosync/group/{}/', 'method':'GET'},
+            'updated_groups': {'url': self.dest_url + '/api/infosync/group/?limit=0&updated_at__gte={}/', 'method':'GET'},
+        }
+
+    def get_items_url(self):
+        return {
+            'delete_item': {'url': self.dest_url + '/api/infosync/item/{}/', 'method':'DELETE'},
+        }
 
     def get_records_url(self):
         return  {
@@ -61,22 +110,10 @@ class Api_url:
             'get_form_records_filter': {'url': self.dest_url + '/api/infosync/form_answer/?filter_id={}&deleted=false&archived=false&limit={}&offset=0', 'method': 'GET'}
         }
 
-    def get_catalog_url(self):
+    def get_script(self):
         return  {
-            'catalog_id_fields': {'url': self.dest_url + '/api/infosync/catalog_model/send_catalog/', 'method':'GET'},
-            'catalog_answer_patch_multi': {'url': self.dest_url + '/api/infosync/catalog_answers/update_catalogs/', 'method': 'PATCH'},
-            'create_catalog': {'url': self.dest_url + '/api/infosync/catalog_model/', 'method':'POST'},
-            'create_filter': {'url': self.dest_url + '/api/infosync/user_properties/create_filter/', 'method': 'POST'},
-            'delete_catalog_record': {'url': self.dest_url + '/api/infosync/catalog/bulk_docs/', 'method': 'POST'},
-            'delete_filter': {'url': self.dest_url + '/api/infosync/catalog/delete_filter/', 'method': 'POST'},
-            'download_catalog_model': {'url': self.dest_url + '/api/infosync/catalog_model/download/', 'method':'GET'},
-            'get_record_by_folio': {'url': self.dest_url + '/api/infosync/catalog/find/', 'method':'POST'},
-            'load_rows': {'url': self.dest_url + '/api/infosync/catalog_answers/sheet_to_catalog/', 'method': 'POST'},
-            'set_catalog_answer': {'url': self.dest_url + '/api/infosync/catalog_answers/', 'method':'POST'},
-            'share_catalog': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'},
-            'update_catalog_answer': {'url': self.dest_url + '/api/infosync/catalog_answers/', 'method': 'PATCH'},
-            'update_catalog_model': {'url': self.dest_url + '/api/infosync/catalog_model/{0}/', 'method': 'PATCH'},
-            'update_catalog_multi': {'url': self.dest_url + '/api/infosync/catalog_answers/{}/', 'method': 'PATCH'},
+            'run_script': {'url': self.dest_url + '/api/infosync/scripts/run/', 'method':'POST'},
+            'upload_script': {'url': self.dest_url + '/api/infosync/upload_script/', 'method': 'POST'}
         }
 
     def get_users_url(self):
@@ -88,33 +125,4 @@ class Api_url:
             'get_form_users' :{'url': self.dest_url + '/api/infosync/item/{0}/get_users/?limit=0', 'method':'GET'},
             'updated_users' :{'url': self.dest_url + '/api/infosync/user_admin/?limit=0&updated_at__gte={}', 'method':'GET'},
             'get_licenses': {'url': self.dest_url + '/api/infosync/licenses/?limit=0', 'method': 'GET'}
-        }
-
-    def get_groups_url(self):
-        return  {
-            'get_group_users': {'url': self.dest_url + '/api/infosync/group/{}/', 'method':'GET'},
-            'updated_groups': {'url': self.dest_url + '/api/infosync/group/?limit=0&updated_at__gte={}/', 'method':'GET'},
-        }
-
-    def get_connections_url(self):
-        return  {
-            'all_connections': {'url': self.dest_url + '/api/infosync/connection/', 'method':'GET'},
-            'all_user_connection': {'url': self.dest_url + '/api/infosync/user_connection/', 'method': 'GET'},
-            'connection_by_id': {'url': self.dest_url + '/api/infosync/connection/', 'method':'GET'},
-            'form_connections': {'url': self.dest_url + '/api/infosync/connection_record_filter/?form_id=', 'method':'GET'},
-            'user_by_form' : {'url': self.dest_url + '/api/infosync/file_shared/?form_id=&user_id=', 'method':'GET'},
-            'user_connection': {'url': self.dest_url + '/api/infosync/user_connection/load_user/?email=', 'method': 'GET'}
-        }
-
-    def get_script(self):
-        return  {
-            'run_script': {'url': self.dest_url + '/api/infosync/scripts/run/', 'method':'POST'},
-            'upload_script': {'url': self.dest_url + '/api/infosync/upload_script/', 'method': 'POST'}
-        }
-
-    def get_airflow(self):
-        return  {
-            'update': {'url': self.airflow_dest_url + '/cron', 'method':'PATCH'},
-            'subscribe': {'url': self.airflow_dest_url + '/cron', 'method':'POST'},
-            'delete_schedule': {'url': self.airflow_dest_url + '/cron', 'method':'DELETE'},
         }

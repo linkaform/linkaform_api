@@ -75,7 +75,7 @@ class Network:
             response = self.do_get(url, params=params, use_login=use_login, use_api_key=use_api_key,
                 use_jwt=use_jwt, jwt_settings_key=jwt_settings_key)
         else:
-            if data == '{}' or not data:
+            if (data == '{}' or not data) and method in ('POST', 'PATCH'):
                 raise ValueError('No data to post, check you post method')
 
             if method == 'POST':
