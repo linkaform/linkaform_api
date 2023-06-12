@@ -3,13 +3,13 @@
 # from linkaform_api import settings, network, utils
 # from pci_settings import *
 import sys, simplejson
-import settings
+import settings, carga_universal
 from utils import Cache
 
 settings.mongo_hosts = 'dbs2.lkf.cloud:27918'
 settings.mongo_port = 27918
 settings.MONGODB_URI = 'mongodb://%s/'%(settings.mongo_hosts)
-my_jwt = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImxpbmthZm9ybUBvcGVyYWNpb25wY2kuY29tLm14IiwidXNlcl9pZCI6MTQzMywicGFyZW50X2lkIjoxMjU5LCJpc19tb2JpbGUiOmZhbHNlLCJleHAiOjE2ODQ0NzE5MjAsImRldmljZV9vcyI6IndlYiIsImVtYWlsIjoibGlua2Fmb3JtQG9wZXJhY2lvbnBjaS5jb20ubXgifQ.LSUkY2xYEdT6zJtk_YRC2-Pzd07MJBIKdbcIRPwNr7gtbJkIF_VaBSVVGuTQPKjUIsts1f0vYdv10VUuZ5L-oh5aj11uMXUKm15ODGq-FKWRQV6ZDaxVEBe_HBFvspVqedKHtmkFbmotDBDtc6T9SF2j1DRXeWOYg1gOdJa4QUv1oFjED0UiksbKyFLbhIhhBkV2MCxA1T_CvjYcNWMyOaVkWV05xhUxYP7v0gjzGYYE93a_Qg6BpA-BL-rfDWaKAPQV1r80ECe5nWqWFOsYdWgcaABjPArqb8Kl2A61MxASto9SKSypxSjVGH4RBSThtzcfEzbbgfnw2RsUhdfX-UsM0tuaTK2Z6AehxyUiZMUZmwLpbmUCMwJ67aYimKui5Q0euxdKqwXb4x2XE-k_zZE6hqkNt5Ukof78wEuAnHAcOV8uN8qkmoe4FxD6XRPUZ2lG9KT7NieJxxMNPkz48IhBxgjqD-57Apv1z0hbMpFlQVBa_xt5zGvLzZSOcswQCrn6d9w2CCAjHaY6xOAzHFpAPYoagXTWe9K3VqTPSueHvUNRqM08K5BX_fFFAaIYznUeXVTrUQ8rbKnl7OYMFWt8VKJCtATxGEgZFVOCk7GszNf8TkW2PlYKbgTFKGSs8N6-bKWZ-CDDUkhPiI_jaopcz67on0CdRV_o9NPdE-g'
+my_jwt = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImxpbmthZm9ybUBvcGVyYWNpb25wY2kuY29tLm14IiwidXNlcl9pZCI6MTQzMywicGFyZW50X2lkIjoxMjU5LCJpc19tb2JpbGUiOmZhbHNlLCJleHAiOjE2ODUzNzQxMzUsImRldmljZV9vcyI6IndlYiIsImVtYWlsIjoibGlua2Fmb3JtQG9wZXJhY2lvbnBjaS5jb20ubXgifQ.PmWDCW7QXjQmpw6TnwnTquPPoY0sLx9rPl6cXhpDm42V5iMbJpLEpZZ07MOdavIUuxHoVlr8DeAzJvLR9eRVyPNqBqje20JtVKVqGB8w--NN_TzzjHebtKk6blbAQVxedB8CGllgSVpJlmDdquHXOZsPjswVAPD5no62aNlCrd14DNo4OCet63liTMOiLjIHYWPD_3NsCsVSl8arBNhUUnHysKRFsqkRjsqtyKYjB3GS1LfHIXOvlD1kCODVaTnUs986eSioMeBgoogN821R_7OvRbQOUkIhIbT3cZ2rxgju-R9ms7YaybrdOQi2Idao14GiSZZbJmBog4N5se0f5euwahKrYhbHzrd5egDBcuk8EjE2qXEluiSJeu5MiC7uDh7Mu4RVN8jgjmKgXFnuLil6d-idLaLfRnqxa_j9rRHxzX6vML5Gn4xYHXV1RnCXIFIyt1s2kEXbmjcrGOkJ_jJ9ccnRRhlnEdc5HPRQ7mlcveyQgXZSkbNHZj5KbOwZO0vSBlkU8or_AvR4kAVpfyjMrE8P2exOHbvbDvXKV6c7xi_wu0vfFLxLXxJR3XQqXndME2X7iPnR7uIVPZ6rZWFhpH5LeRV5QvdmCvz0rgN1m7j_xwjYFOLb4NXmQwjuBdqMZy0-fTbWsFckzgwf_2yAJkfmVj8w-svDrguXuGw'
 config = {
     'USERNAME' : 'linkaform@operacionpci.com.mx',
     'PASS' : '',
@@ -121,8 +121,16 @@ if __name__ == '__main__':
     '''
 
     # Haciendo pruebas de carga de scripts
+    '''
     dir_script = 'TestUploadScript/delete_old_images.py'
     resp_upload_script = lkf_api.post_upload_script(dir_script, jwt_settings_key='USER_JWT_KEY')
     print('resp_upload_script =',resp_upload_script)
     if resp_upload_script.get('status_code') == 200:
         print('Script cargado')
+    '''
+
+    dir_excel = 'PruebasCU.xlsx'
+    form_id_to_load = 43181
+    class_cu = carga_universal.CargaUniversal(settings=settings)
+    resp_cu = class_cu.carga_doctos(form_id_to_load=form_id_to_load, read_excel_from=dir_excel)
+    print('resp_cu =',resp_cu)

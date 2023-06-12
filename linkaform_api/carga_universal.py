@@ -119,6 +119,10 @@ class CargaUniversal:
         return existentes
 
     def update_status_record(self,  current_record, record_id, status, msg_comentarios='' ):
+        if not record_id:
+            if status == 'carga_terminada':
+                return {'msg': msg_comentarios}
+            return {'error': msg_comentarios}
         current_record['answers'][self.field_id_status] = status
         if msg_comentarios:
             current_record['answers'][self.field_id_comentarios] = msg_comentarios
@@ -440,8 +444,9 @@ class CargaUniversal:
             dict_counts[kk] += 1
         return [ ii for ii in dict_counts if dict_counts[ii] > 1 ]
 
-    def carga_doctos(self, current_record, record_id):
-        self.update_status_record(current_record, record_id, 'procesando')
+    def carga_doctos(self, current_record={}, record_id=None, form_id_to_load=None, read_excel_from=None):
+        if record_id:
+            self.update_status_record(current_record, record_id, 'procesando')
         global error_records
         error_records = []
         #try:
@@ -449,16 +454,23 @@ class CargaUniversal:
             """
             Obtengo los renglones y las cabeceras del excel
             """
-            answer_file = current_record['answers'][self.field_id_xls]
-
-            file_url = answer_file[0]['file_url'] if type(answer_file) == list else answer_file['file_url']
-            print('********************** file_url=',file_url)
-            header, records = self.upfile.read_file(file_url=file_url)
+            if not current_record:
+                current_record = {'folio': 'ApiLKF', 'answers': {}}
+                print('**** leyendo el archivo Excel =',read_excel_from)
+                header, records = self.upfile.read_file(file_name=read_excel_from)
+            else:
+                answer_file = current_record['answers'][self.field_id_xls]
+                file_url = answer_file[0]['file_url'] if type(answer_file) == list else answer_file['file_url']
+                print('********************** file_url=',file_url)
+                header, records = self.upfile.read_file(file_url=file_url)
             """
             Obtengo la información de la forma seleccionada del catálogo
             """
-            field_forma = current_record['answers'][self.field_id_catalog_form]
-            id_forma_seleccionada = field_forma[self.field_id_catalog_form_detail][0]
+            if not form_id_to_load:
+                field_forma = current_record['answers'][self.field_id_catalog_form]
+                id_forma_seleccionada = field_forma[self.field_id_catalog_form_detail][0]
+            else:
+                id_forma_seleccionada = form_id_to_load
             form_fields = self.lkf_api.get_form_id_fields(id_forma_seleccionada, jwt_settings_key='USER_JWT_KEY')
             if not form_fields:
                 return self.update_status_record(current_record, record_id, 'error', msg_comentarios='No se encontró la forma %s'%(str(id_forma_seleccionada)))
@@ -759,8 +771,15 @@ class CargaUniversal:
                     return self.update_status_record(current_record, record_id, 'carga_terminada', msg_comentarios='Registros Creados: %s, Actualizados: %s, No actualizados por información igual: %s'%(str(resultado['creados']), str(resultado['actualizados']), str(resultado['no_update'])))
             else:
                 if error_records:
-                    # current_record['answers'].update( upload_error_file(header + ['error',], error_records, current_record['form_id'], file_field_id=self.field_id_error_records) )
-                    current_record['answers'].update( self.lkf_api.make_excel_file(header + ['error',], error_records, current_record['form_id'], self.field_id_error_records, jwt_settings_key='USER_JWT_KEY') )
+                    if record_id:
+                        current_record['answers'].update( self.lkf_api.make_excel_file(header + ['error',], error_records, current_record['form_id'], self.field_id_error_records, jwt_settings_key='USER_JWT_KEY') )
+                    else:
+                        error_file = self.lkf_api.make_excel_file(header + ['error',], error_records, None, self.field_id_error_records, jwt_settings_key='USER_JWT_KEY', is_tmp=True)
+                        dict_respuesta = {
+                            'error': 'Registros Creados: {}, Actualizados: {}, Erroneos: {}, No actualizados por información igual: {}'.format( resultado['creados'], resultado['actualizados'], resultado['error'], resultado['no_update'] )
+                        }
+                        dict_respuesta.update(error_file)
+                        return dict_respuesta
                 return self.update_status_record(current_record, record_id, 'error', msg_comentarios='Registros Creados: %s, Actualizados: %s, Erroneos: %s, No actualizados por información igual: %s'%(str(resultado['creados']), str(resultado['actualizados']), str(resultado['error']), str(resultado['no_update'])))
             return True
         # except Exception as e:

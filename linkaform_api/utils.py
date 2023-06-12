@@ -45,9 +45,11 @@ class Cache(object):
                   'send_mail': send_email}
         if previos_user_id:
             data.update({'prev_user_id':previos_user_id})
+
         response = self.network.dispatch(url_method=url_method, data=data, jwt_settings_key=jwt_settings_key)
         if response['status_code'] == 200:
             return response['data']
+
         return response
 
     def assigne_connection_records(self, connection_id, record_id_list, user_of_connection=False,
@@ -58,9 +60,11 @@ class Cache(object):
                   'send_mail': send_email}
         if user_of_connection:
             data['userOfConnection'] = user_of_connection
+
         response = self.network.dispatch(url_method=url_method, data=data, jwt_settings_key=jwt_settings_key)
         if response['status_code'] == 200:
             return response['data']
+
         return response
 
     def drop_fields_for_patch(self, record):
@@ -72,6 +76,7 @@ class Cache(object):
                 record.pop(field)
             except KeyError:
                 pass
+
         return record
 
     def ftp_upload(self, server, username, password, file_name, file_path):
@@ -96,7 +101,7 @@ class Cache(object):
             uri = last_version_uri.get('uri')
         else:
             uri = last_version_uri
-        print('self.dest_url  ', self.api_url.dest_url )
+
         url = self.api_url.dest_url +  uri
         method = self.api_url.form['version']['method']
 
@@ -199,7 +204,6 @@ class Cache(object):
         objects = all_connections['data']
         return objects
 
-
     def get_user_by_email(self, user_email, jwt_settings_key=False):
         post_json = self.api_url.get_users_url()['user_id_by_email']
         url = post_json['url'].format(user_email)
@@ -256,17 +260,6 @@ class Cache(object):
 
         return all_form_users
 
-    def get_group_users(self, group_id, user_type='users', jwt_settings_key=False):
-        #Returns all users of a group
-        #user_type 'users', 'admin_users','supervisor_users'
-        post_json = self.api_url.get_groups_url()['get_group_users']
-        url = post_json['url'].format(group_id)
-        response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
-        if user_type in ('users', 'admin_users','supervisor_users'):
-            return response.get('data', {}).get(user_type,[])
-        else:
-            return response.get('data', {})
-
     def get_form_connections(self, form_id, jwt_settings_key=False):
         #TODO UPDATE SELF.ITESM
         #Returns all the connections
@@ -309,7 +302,6 @@ class Cache(object):
         # "password":"123456","password2":"123456","position":"111","phone":1,"permissions":["add_form"]}
         url = self.api_url.users['create_user']['url']
         method = self.api_url.users['create_user']['method']
-        print('methodmethod', method)
         user = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
         return user
 
@@ -397,7 +389,7 @@ class Cache(object):
                 file_url = upload_url['json'][0]['file_url']
                 data = {'file_url': file_url}
             except KeyError:
-                print('could not save file Errores')
+                pass
         else:
             upload_data = {'form_id': form_id, 'field_id': file_field_id}
             upload_url = self.post_upload_file(data=upload_data, up_file=csv_file_dir, jwt_settings_key=jwt_settings_key)
@@ -405,7 +397,7 @@ class Cache(object):
                 file_url = upload_url['data']['file']
                 data = {file_field_id: {'file_name':'{}.xlsx'.format(upload_name), 'file_url':file_url}}
             except KeyError:
-                print('could not save file Errores')
+                pass
 
         csv_file.close()
 
@@ -417,7 +409,8 @@ class Cache(object):
         try:
             answer = answer.decode('utf-8')
         except Exception as e:
-            print('error decoding', e)
+            pass
+
         if element.get('options') and  element.get('options'):
             options = element['options']
             default = False
@@ -487,24 +480,26 @@ class Cache(object):
                 return {}
         return {}
 
-    def thread_function_dict(self, record, data,  jwt_settings_key):
+    def thread_function_dict(self, record, data, type_update, jwt_settings_key):
         #if record not in self.thread_dict.keys():
-        data['folios'] = [record]
+        data[type_update] = [record]
         res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data,
             jwt_settings_key=jwt_settings_key)
         self.thread_dict[record] = res
+        return res
         #logging.info("Finishing with code"%(record, res))
 
     def patch_multi_record(self, answers, form_id, folios=[], record_id=[], jwt_settings_key=False, threading=False):
         if not answers or not (folios or record_id):
-            print('patch_multi_record >> no obtubo answers o folios')
             return {}
-        data = {}
+        data = {'all_responses': True}
         data['answers'] = answers
         data['form_id'] = form_id
+        type_update = 'records'
 
         if folios and not record_id:
             data['folios'] = folios
+            type_update = 'folios'
 
         elif not folios and record_id:
             data['records'] = record_id
@@ -513,20 +508,42 @@ class Cache(object):
 
         data['form_id'] = form_id
 
+        records_updated = []
+
         if threading:
             self.thread_dict = {}
             with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
-                if data.get('records', False):
-                    records = data.pop('records')
+                if data.get(type_update, False):
+                    records = data.pop(type_update)
+                    to_multi_patch = [executor.submit(self.thread_function_dict, record, data, type_update, jwt_settings_key=jwt_settings_key) for record in records]
+                    for one_multi_patch in concurrent.futures.as_completed(to_multi_patch):
+                        resp = one_multi_patch.result()
+                        objects_updated = resp.get('json', {}).get('objects', [])
+                        for o in objects_updated:
+                            for f in o:
+                                if type_update == 'folios':
+                                    records_updated.append( o[f].get('folio') )
+                                else:
+                                    records_updated.append( o[f].get('id') )
+                    '''
                     for record in records:
                         data['records'] = [record]
                         executor.map(lambda x: self.thread_function_dict(x, data,
                             jwt_settings_key=jwt_settings_key), [record])
-                elif data.get('folios', False):
-                    folios = data.pop('folios')
-                    for folio in folios:
-                        executor.map(lambda x: self.thread_function_dict(x, data,
-                            jwt_settings_key=jwt_settings_key), [folio])
+                    '''
+                # elif data.get('folios', False):
+                #     folios = data.pop('folios')
+                #     for folio in folios:
+                #         executor.map(lambda x: self.thread_function_dict(x, data,
+                #             jwt_settings_key=jwt_settings_key), [folio])
+            no_records_updated = []
+            if record_id:
+                no_records_updated = list( set(record_id) - set(records_updated) )
+            elif folios:
+                no_records_updated = list( set(folios) - set(records_updated) )
+            for no_update in no_records_updated:
+                self.thread_dict[ no_update ] = {'status_code': 400, 'error': 'Error al acutalizar el registro con multi_record, favor de reintenar'}
+            print 'no_records_updated = ',no_records_updated
             return  self.thread_dict
 
         return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data,
@@ -535,11 +552,9 @@ class Cache(object):
     def thread_function_bulk_patch(self, data, form_id,  jwt_settings_key):
         #if record not in self.thread_dict.keys():
         data['form_id'] = form_id
-        #print('data=', data)
 
         res = self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data,
             jwt_settings_key=jwt_settings_key)
-        #print('res=',res)
         if data.get('folio'):
             self.thread_dict[data['folio']] = res
         else:
@@ -569,7 +584,6 @@ class Cache(object):
     def post_upload_script(self, dir_script, jwt_settings_key=False):
         script_file = open(dir_script, 'rb')
         name_script = dir_script.split('/')[-1]
-        print('name_script =',name_script)
         script_file_dir = [('File', (name_script, script_file, 'application/octet-stream'))]
         data_script = {
             'name': name_script,
@@ -603,11 +617,9 @@ class Cache(object):
         return self.network.patch_forms_answers_list(data, jwt_settings_key=jwt_settings_key)
 
     def post_forms_answers(self, answers, test=False, jwt_settings_key=False):
-        print('post_forms_answers', jwt_settings_key)
         return self.network.post_forms_answers(answers, jwt_settings_key=jwt_settings_key)
 
     def post_forms_answers_list(self, answers, test=False, jwt_settings_key=False ):
-        print('utls post_forms_answers_list')
         return self.network.post_forms_answers_list(answers, jwt_settings_key=jwt_settings_key)
 
     def validate(self, date_str, check='date'):
@@ -654,6 +666,15 @@ class Cache(object):
         objects = records['data']
         return objects
 
+    """
+    ITEMS
+    """
+    def delete_item(self, item_id, jwt_settings_key=False):
+        # Delete an item
+        url = self.api_url.item['delete_item']['url'].format(item_id)
+        method = self.api_url.item['delete_item']['method']
+        return self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+
 
     """
     Formas
@@ -668,17 +689,6 @@ class Cache(object):
         method = self.api_url.form['download_form_data']['method']
         return self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
 
-    def share_form(self, data_to_share, unshare=False, jwt_settings_key=False):
-        url = self.api_url.form['share_form']['url']
-        method = self.api_url.form['share_form']['method']
-        if unshare:
-            data = {'objects': [], 'deleted_objects': data_to_share}
-        else:
-            data = {'objects': [data_to_share,]}
-
-        r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
-        return r
-
     def get_form_to_duplicate(self, form_id, jwt_settings_key=False):
         form_with_fields = self.get_form_id_fields(form_id, jwt_settings_key=jwt_settings_key)
         if form_with_fields:
@@ -687,7 +697,23 @@ class Cache(object):
             dict_form.pop('fields')
             return dict_form
 
-    # Rules
+    """
+    GROUPS
+    """
+    def get_group_users(self, group_id, user_type='users', jwt_settings_key=False):
+        #Returns all users of a group
+        #user_type 'users', 'admin_users','supervisor_users'
+        post_json = self.api_url.get_groups_url()['get_group_users']
+        url = post_json['url'].format(group_id)
+        response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
+        if user_type in ('users', 'admin_users','supervisor_users'):
+            return response.get('data', {}).get(user_type,[])
+        else:
+            return response.get('data', {})
+
+    """
+    Rules
+    """
     def get_form_rules(self, form_id, jwt_settings_key=False):
         url = self.api_url.form['get_form_rules']['url']+str(form_id)
         method = self.api_url.form['get_form_rules']['method']
@@ -701,8 +727,23 @@ class Cache(object):
         method = self.api_url.form['upload_rules']['method']
         return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
 
+    """
+    Items
+    """
+    def share_form(self, data_to_share, unshare=False, jwt_settings_key=False):
+        # Compartir y descompartir items
+        url = self.api_url.form['share_form']['url']
+        method = self.api_url.form['share_form']['method']
+        if unshare:
+            data = {'objects': [], 'deleted_objects': data_to_share}
+        else:
+            data = {'objects': [data_to_share,]}
 
-    # Workflows
+        return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+
+    """
+    Workflows
+    """
     def upload_workflows(self, data, jwt_settings_key=False):
         url = self.api_url.form['upload_workflows']['url']
         method = self.api_url.form['upload_workflows']['method']
@@ -719,7 +760,6 @@ class Cache(object):
     """
     Catalogos
     """
-
     def create_catalog(self, catalog_model, jwt_settings_key=False):
         url = self.api_url.catalog['create_catalog']['url']
         method = self.api_url.catalog['create_catalog']['method']
@@ -744,6 +784,11 @@ class Cache(object):
         }
         r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
         return r
+
+    def download_catalog_model(self, catalog_id, jwt_settings_key=False):
+        url = '{}{}/'.format(self.api_url.catalog['download_catalog_model']['url'], catalog_id)
+        method = self.api_url.catalog['download_catalog_model']['method']
+        return self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
 
     def get_catalog_id_fields(self, catalog_id, jwt_settings_key=False):
         url = self.api_url.catalog['catalog_id_fields']['url']+str(catalog_id)+'/'
@@ -850,7 +895,6 @@ class Cache(object):
 
     def update_catalog_multi_record(self, answers, catalog_id, record_id=[], jwt_settings_key=False):
         if not answers or not record_id:
-            print('update_catalog_multi_record >> no obtubo answers o record_id')
             return {}
         data = {
             'answers': answers,
