@@ -159,7 +159,6 @@ class Network:
         response = {'data':{}, 'status_code':''}
         send_data = {}
         JWT = self.settings.config['JWT_KEY']
-        print('url', url)
         if jwt_settings_key:
             JWT = self.settings.config[jwt_settings_key]
 
