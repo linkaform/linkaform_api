@@ -94,8 +94,6 @@ class LKFBaseObject:
         conn = eval('mongo.{}'.format(collection))
             #conn = self.lkf_obj
         #TODO Create database indexes
-        # print('sellf', self.lkf_obj)
-        # print('seleeelf ======', self.lkf_obj['account_{}'.format(self.created_by.account_id)])
         # return self.lkf_obj['account_{}'.format(self.created_by.account_id)]
         return conn
 

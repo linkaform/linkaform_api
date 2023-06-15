@@ -1,4 +1,3 @@
-print('###### LinkaForm API ######')
 from .models import base_models
 from .utils import Cache
 from .odoo import Odoo

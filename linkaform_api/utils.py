@@ -1,6 +1,7 @@
 # coding: utf-8
 #!/usr/bin/python
 
+#Python Imports
 import simplejson, time, datetime, concurrent.futures
 import threading
 import wget, bson
@@ -11,8 +12,14 @@ from copy import deepcopy
 from linkaform_api import network
 from linkaform_api  import couch_util
 from datetime import datetime
-
 import pyexcel
+import xml.etree.ElementTree as ET
+import xml.dom.minidom
+import hashlib
+
+
+
+#Linkaform Imports
 from . import network
 
 class Cache(object):
@@ -557,16 +564,31 @@ class Cache(object):
         #up_file:
         return self.network.dispatch(self.api_url.form['upload_file'], data=data, up_file=up_file, jwt_settings_key=jwt_settings_key)
 
-    def post_upload_script(self, dir_script, jwt_settings_key=False):
+    def post_upload_script(self, dir_script, script_id=None, image=None, jwt_settings_key=False):
+        url = self.api_url.script['upload_script']['url']
+        method = self.api_url.script['upload_script']['method']
+        if script_id:
+            url += str(script_id)
+        if not image:
+            image = "linkaform/python3_lkf:latest"
         script_file = open(dir_script, 'rb')
         name_script = dir_script.split('/')[-1]
         script_file_dir = [('File', (name_script, script_file, 'application/octet-stream'))]
         data_script = {
             'name': name_script,
             'is_script': True,
-            'properties': '{"container":"linkaform/python3_lkf:latest"}'
+            'properties': '{"container":"' + image + '"}'
         }
-        return self.network.dispatch(self.api_url.script['upload_script'], data=data_script, up_file=script_file_dir, jwt_settings_key=jwt_settings_key)
+        return self.network.dispatch(url=url, method=method, data=data_script, up_file=script_file_dir, jwt_settings_key=jwt_settings_key)
+
+    def update_script(self, script_id, properites, jwt_settings_key=False):
+        url = self.api_url.script['update_script']['url'].format(script_id)
+        method = self.api_url.script['update_script']['method']
+        return self.network.dispatch(url=url, method=method, data=properites, jwt_settings_key=jwt_settings_key)
+
+    def get_md5hash(self, file_name):
+        md5 = hashlib.md5(open(file_name,'rb').read()).hexdigest()
+        return md5
 
     def post_upload_tmp(self, data, up_file, jwt_settings_key=False):
         #data:
@@ -618,7 +640,7 @@ class Cache(object):
     def get_jwt(self, user=None, password=None, get_jwt=True, api_key=None, get_user=False):
         session = False
         if not user:
-            user = self.settings.config.get('USERNAME')
+            user = self.settings.config.get('AUTHORIZATION_EMAIL_VALUE',self.settings.config.get('USERNAME'))
         if not password:
             password = self.settings.config.get('PASS')
         if api_key:
@@ -698,9 +720,11 @@ class Cache(object):
             return response['data']
         return False
 
-    def upload_rules(self, data, jwt_settings_key=False):
-        url = self.api_url.form['upload_rules']['url']
-        method = self.api_url.form['upload_rules']['method']
+    def upload_rules(self, data, method='POST', jwt_settings_key=False):
+        if method == 'PATCH':
+            url = self.api_url.form['upload_rules']['url'] + data.get('id') +'/'
+        else:
+            url = self.api_url.form['upload_rules']['url']
         return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
 
     """
@@ -720,9 +744,11 @@ class Cache(object):
     """
     Workflows
     """
-    def upload_workflows(self, data, jwt_settings_key=False):
-        url = self.api_url.form['upload_workflows']['url']
-        method = self.api_url.form['upload_workflows']['method']
+    def upload_workflows(self, data, method='POST', jwt_settings_key=False):
+        if method == 'PATCH':
+            url = self.api_url.form['upload_workflows']['url'] + data.get('id') +'/'
+        else:
+            url = self.api_url.form['upload_workflows']['url']
         return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
 
     def get_form_workflows(self, form_id, jwt_settings_key=False):
@@ -739,10 +765,14 @@ class Cache(object):
     def create_catalog(self, catalog_model, jwt_settings_key=False):
         url = self.api_url.catalog['create_catalog']['url']
         method = self.api_url.catalog['create_catalog']['method']
-        response = self.network.dispatch(url=url, method=method, data=catalog_model, use_api_key=False, jwt_settings_key=jwt_settings_key)
-        if response['status_code'] == 201:
-            return {'data' : response['data'], 'status_code': response['status_code'] }
-        return response
+        # print('data', catalog_model)
+        return self.network.dispatch(url=url, method=method, data=catalog_model, use_api_key=False, jwt_settings_key=jwt_settings_key)
+        # response = self.network.dispatch(url=url, method=method, data=catalog_model, use_api_key=False, jwt_settings_key=jwt_settings_key)
+        # print('response', response)
+        # print('response', responses)
+        # if response['status_code'] == 201:
+        #     return {'data' : response['data'], 'status_code': response['status_code'] }
+        # return response
 
     def update_catalog_model(self, catalog_id, catalog_model, jwt_settings_key=False):
         url = self.api_url.catalog['update_catalog_model']['url'].format(catalog_id)
@@ -1116,9 +1146,136 @@ class Cache(object):
         response = self.network.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
         return response
 
+    def xml_to_json(self, xml_data):
+        #TODO AGUAS CON LOS ENTEROS
+        # Create an ElementTree object from the XML data
+        tree = ET.ElementTree(ET.fromstring(xml_data))
+        # Function to recursively convert XML elements to JSON
+        def element_to_json(element):
+            data = {}
+            # Process attributes of the element (excluding "item" elements)
+            if element.tag != "item" and element.attrib:
+                #TODO SPECIAL ATRIBUTS LIKE A VALUE IS A STRING NOT AN INTEGER
+                data[element.tag] = data.get(element.tag,{})
+                data[element.tag].update(element.attrib)
+                # data["@attributes"] = element.attrib
+            # Process child elements of the element
+            if element.findall("*"):
+                for child in element:
+                    if child.tag == "item":
+                        if child.tag in data:
+                            if isinstance(data[child.tag], list):
+                                data[child.tag].append(element_to_json(child))
+                            else:
+                                data[child.tag] = [data[child.tag], element_to_json(child)]
+                        else:
+                            data[child.tag] = [element_to_json(child)]
+                    else:
+                        if child.tag in data:
+                            if isinstance(data[child.tag], list):
+                                data[child.tag].append(element_to_json(child))
+                            else:
+                                data[child.tag] = [data[child.tag], element_to_json(child)]
+                        else:
+                            res = element_to_json(child)
+                            child_data = deepcopy(res)
+                            if isinstance(child_data, dict):
+                                for key, value in child_data.items():
+                                    if key == 'item':
+                                        data[child.tag] = data.get(child.tag, [])
+                                        data[child.tag] = value
+                                    else:
+                                        data[child.tag] = data.get(child.tag, {})
+                                        ch_data = get_same_properites(child.tag, res)
+                                        data[child.tag] = transform_dict_values(ch_data)
+                            else:
+                                data[child.tag] = transform_values(child_data)
+            # Process text content of the element
+            if element.text:
+                text = element.text.strip()
+                if data:
+                    if text:
+                        data['value'] = text
+                    #Do not delete or move
+                    pass
+                else:
+                    data = text
+            return data
+        # Convert the root element to JSON
+        json_data = element_to_json(tree.getroot())
+        return json_data
+
+
+    def json_to_xml(self, json_data, pretty=True):
+        # Create the root element of the XML tree
+        root = ET.Element('lkf')
+        # Function to recursively convert JSON data to XML elements
+        def json_to_xml_elements(data, parent):
+            if isinstance(data, dict):
+                for key, value in data.items():
+                    element = ET.SubElement(parent, key)
+                    json_to_xml_elements(value, element)
+            elif isinstance(data, list):
+                for item in data:
+                    element = ET.SubElement(parent, 'item')
+                    json_to_xml_elements(item, element)
+            else:
+                if isinstance(data, str):
+                    parent.text = str(data.encode('utf-8'))
+                else:
+                    parent.text = str(data)
+        # Convert JSON data to XML elements
+        json_to_xml_elements(json_data, root)
+        # Create an XML tree from the root element
+        tree = ET.ElementTree(root)
+        # Convert the XML tree to a string
+        xml_str = ET.tostring(root, encoding='utf-8').decode()
+        if pretty:
+            dom = xml.dom.minidom.parseString(xml_str)
+            xml_str = dom.toprettyxml(indent="    ")
+        return xml_str
+
+
 def warning(*objs):
     '''
     To print(stuff at stderr)
     '''
     output = "warning:%s\n" % objs
     stderr.write(output)
+
+def transform_dict_values(data):
+    return { k:(transform_values(v)) for k,v in data.items()}
+
+def transform_values(value):
+    #check if is boolean
+    if value == 'False' or value == 'false' or value == False:
+        value = False
+    elif value == 'True' or value == 'true' or value == True:
+        value = True
+    elif value == 'None' or value == 'none' or value == None or not value:
+        value = None
+    else:
+        #checks if its a numeric value
+        value = get_numeric(value)
+    return value
+
+def get_numeric(value):
+    if isinstance(value, str):
+        has_decimal = value.find('.')
+        if has_decimal < 0:
+            try:
+                value = int(value)
+            except ValueError:
+                return value
+        else:
+            try:
+                value = float(value)
+            except:
+                return value
+    return value
+
+def get_same_properites(key, values):
+    if values.get(key):
+        update_vals = values.pop(key)
+        values.update(update_vals)
+    return values
