@@ -260,7 +260,6 @@ class Couch_utils(object):
                 }
         if partitioned:
             params.update({"partitioned":True})
-        print('url', url)
         r = requests.post(url, json=params, headers=headers)
         res = r.json()
         res['status_code'] = r.status_code

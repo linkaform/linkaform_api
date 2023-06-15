@@ -15,9 +15,9 @@ class Network:
 
     def __init__(self, settings={}):
         #linkaform api
-        from .urls import Api_url
+        from linkaform_api import urls
         self.settings = settings
-        self.api_url = Api_url(settings)
+        self.api_url = urls.Api_url(settings)
         self.thread_result = []
 
     def login(self, session, username, password=None, get_jwt=False ,api_key=None, get_user=True):

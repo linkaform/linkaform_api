@@ -29,8 +29,8 @@ class Cache(object):
         self.items_data = {}
         self.items_fields = {}
         self.settings = settings
-        from .urls import Api_url
-        self.api_url = Api_url(settings)
+        from linkaform_api import urls
+        self.api_url = urls.Api_url(settings)
         self.network = network.Network(self.settings)
         self.couch = couch_util.Couch_utils(self.settings)
         self.thread_dict = {}
@@ -548,9 +548,10 @@ class Cache(object):
                 no_records_updated = list( set(record_id) - set(records_updated) )
             elif folios:
                 no_records_updated = list( set(folios) - set(records_updated) )
+
             for no_update in no_records_updated:
                 self.thread_dict[ no_update ] = {'status_code': 400, 'error': 'Error al acutalizar el registro con multi_record, favor de reintenar'}
-            print 'no_records_updated = ',no_records_updated
+
             return  self.thread_dict
 
         return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data,

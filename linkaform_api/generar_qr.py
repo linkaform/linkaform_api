@@ -22,7 +22,6 @@ class LKF_QR:
         res = {}
         if True:
             upload_url = self.lkf_api.post_upload_file(data=upload_data, up_file=pdf_file_dir)
-            print 'upload_url=',upload_url
             pdf_file.close()
             if upload_url.get('status_code',0) == 200:
                 res = upload_url.get('json', upload_url.get('data',{}))
