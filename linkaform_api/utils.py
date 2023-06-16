@@ -701,6 +701,19 @@ class Cache(object):
     """
     GROUPS
     """
+    def create_group(self, data, jwt_settings_key=False):
+        post_json = self.api_url.groups['create_group']
+        response = self.network.dispatch(url=post_json['url'], method=post_json['method'], data=data, jwt_settings_key=jwt_settings_key)
+
+        return response
+
+    def edit_group(self, group_id, data, jwt_settings_key=False):
+        post_json = self.api_url.groups['edit_group']
+        url = post_json['url'].format(group_id)
+        response = self.network.dispatch(url=url, method=post_json['method'], data=data, jwt_settings_key=jwt_settings_key)
+
+        return response
+
     def get_group_users(self, group_id, user_type='users', jwt_settings_key=False):
         #Returns all users of a group
         #user_type 'users', 'admin_users','supervisor_users'
