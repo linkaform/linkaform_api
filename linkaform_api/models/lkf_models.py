@@ -96,13 +96,13 @@ class LKFModules(LKFBaseObject):
             return res
 
     def catalog_id(self, catalog_name, info=None):
-        return item_id(self, catalog_name, 'catalog', info=info)
+        return self.item_id(self, catalog_name, 'catalog', info=info)
 
     def form_id(self, form_name, info=None):
-        return item_id(self, catalog_name, 'form', info=info)
+        return self.item_id(self, catalog_name, 'form', info=info)
 
     def script_id(self, script_name, info=None):
-        return item_id(self, catalog_name, 'script', info=info)
+        return self.item_id(self, catalog_name, 'script', info=info)
 
     def install_script(self, module, script_path, image=None, script_properties=None):
         lkf_api = self.lkf_api
