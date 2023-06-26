@@ -94,6 +94,7 @@ class Api_url:
     def get_items_url(self):
         return {
             'delete_item': {'url': self.dest_url + '/api/infosync/item/{}/', 'method':'DELETE'},
+            'get_item': {'url': self.dest_url + '/api/infosync/item/?id={}', 'method':'GET'},
         }
 
     def get_records_url(self):

@@ -8,7 +8,7 @@ from typing import (
     Deque, Optional, Union, List
 )
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, exceptions
 
 #LinkaForm Imports
 from ..lkf_object import LKFBaseObject
@@ -18,7 +18,6 @@ from .base_models import UserData
 
 
 class LKFException(BaseException):
-    print('es un error del tipo lkf')
     def __init__(self, message, res=None):
         self.message = message + 'tset'
 
@@ -74,32 +73,42 @@ class LKFModulesModel(BaseModel, LKFBaseObject):
 
 class LKFModules(LKFBaseObject):
 
-
     def __init__(self, settings):
         self.settings = settings
         self.config = settings.config
         self.name =  __class__.__name__
         self.lkf_api = Cache(settings)
-        self.module_data = {} 
+        self.module_data = {'form':{},'catalog':{},'script':{}} 
         #Inicializa la variable module_data para saber que modulos estan instalados
         self.get_installed_modules()
 
     def serach_module_item(self, item_info):
-        search_by = {
-            'module':item_info['module'],
-            'form_name':item_info['item_name'],
-        }
         res = self.search(**item_info)
         if res and type(res) == list and len(res) > 0:
             return res[0]
         return False
+
+    def item_id(self, catalog_name, item_type, info=None):
+        res = self.module_data[item_type].get(catalog_name)
+        if info:
+            return res.get(info)
+        else:
+            return res
+
+    def catalog_id(self, catalog_name, info=None):
+        return item_id(self, catalog_name, 'catalog', info=info)
+
+    def form_id(self, form_name, info=None):
+        return item_id(self, catalog_name, 'form', info=info)
+
+    def script_id(self, script_name, info=None):
+        return item_id(self, catalog_name, 'script', info=info)
 
     def install_script(self, module, script_path, image=None, script_properties=None):
         lkf_api = self.lkf_api
         user = self.get_user_data()
         script_name = script_path.split('/')[-1]
         script_name = script_name.split('.')[0]
-        print('script_name=', script_name)
         item_info = {
                 # 'created_by' : user,
                 'module': module,
@@ -178,6 +187,7 @@ class LKFModules(LKFBaseObject):
                 'item_name':catalog_name,
             }
         item = self.serach_module_item(item_info)
+        # print('item..=', item)
         if item:
             #Creating New FormExist, lest update it!!!
 
@@ -203,7 +213,7 @@ class LKFModules(LKFBaseObject):
                     self.update(update_query, item)
                 elif res.get('status_code') == 404:
                     item = None
-                    raise LKFException('Not found.....')
+                    raise LKFException('{} Not found.....'.format(catalog_name))
                 else:
                     raise LKFException('Error updating catalog model')
 
@@ -213,8 +223,8 @@ class LKFModules(LKFBaseObject):
                 catalog_model.pop('catalog_id')
             if catalog_model.get('_rev'):
                 catalog_model.pop('_rev')
+            catalog_full_name = catalog_model.get('name',catalog_name)
             res = lkf_api.create_catalog(catalog_model)
-            catalog_full_name = catalog_model['name']
             if res.get('status_code') == 201:
                 item_obj_id = res['json']['_id']
                 catalog_id = res['json']['catalog_id']
@@ -235,8 +245,16 @@ class LKFModules(LKFBaseObject):
                 self.load_module_data( module, 'catalog', catalog_name, catalog_full_name, catalog_id)
                 self.load_item_data('catalog', catalog_name, catalog_full_name, catalog_id, item_obj_id)
             else:
-                raise LKFException('Error creating catalog model')
+                print('res=',res)
+                raise LKFException('Error creating catalog model', res)
         return item_info
+
+    def bad_request(self, form_model):
+        form_pages = form_model.get('form_pages')
+        for page in form_pages:
+            fields = page.get('page_fields')
+            for field in fields:
+                print('field id', field.get('field_id'))
 
     def install_forms(self, module, form_name, form_model):
         lkf_api = self.lkf_api
@@ -276,7 +294,6 @@ class LKFModules(LKFBaseObject):
                     update_query = {'_id':item['_id']}
                     self.update(update_query, item)
         else:
-            print('createing new form')
             #Creating New Form
             if form_model.get('form_id'):
                 form_model.pop('form_id')
@@ -302,6 +319,7 @@ class LKFModules(LKFBaseObject):
                 self.load_module_data( module, 'form', form_name, form_full_name, form_id)
                 self.load_item_data('form', form_name, form_full_name, form_id)
             else:
+                # self.bad_request(form_model)
                 return res
         return item_info
 
@@ -309,7 +327,8 @@ class LKFModules(LKFBaseObject):
         cr, data = self.get_cr_data()
         if item:
             return cr.find({'item_type': item}, {'module':1, 'item_type':1, 'item_name':1, 'item_id':1})
-        return cr.find({}, {'module':1, 'item_type':1, 'item_name':1, 'item_id':1})
+
+        return cr.find({}, {'module':1, 'item_type':1, 'item_name':1, 'item_id':1,'item_obj_id':1})
 
     def load_item_data(self, item_type, item_name, item_full_name, item_id, item_obj_id=None):
         self.module_data[item_type] = self.module_data.get(item_type,{})
@@ -319,7 +338,7 @@ class LKFModules(LKFBaseObject):
         self.module_data[item_type][item_name]['obj_id'] = item_obj_id      
         return True
 
-    def load_module_data(self, module, item_type, item_name, item_full_name, item_id):
+    def load_module_data(self, module, item_type, item_name, item_full_name, item_id, item_obj_id=None):
         if module:
             self.module_data[module] = self.module_data.get(module,{})
             if item_type:
@@ -328,6 +347,7 @@ class LKFModules(LKFBaseObject):
                     self.module_data[module][item_type][item_name] = self.module_data[module][item_type].get(item_name,{})
                     self.module_data[module][item_type][item_name]['id'] = item_id
                     self.module_data[module][item_type][item_name]['name'] = item_full_name
+                    self.module_data[module][item_type][item_name]['item_obj_id'] = item_obj_id
         return True
 
     def get_installed_modules(self):
@@ -337,10 +357,11 @@ class LKFModules(LKFBaseObject):
             item_name = x.get('item_name','') 
             item_full_name = x.get('item_full_name',item_name) 
             item_id = x.get('item_id') 
+            item_obj_id = x.get('item_obj_id') 
             if module:
-                self.load_module_data(module, item_type, item_name, item_full_name, item_id)
+                self.load_module_data(module, item_type, item_name, item_full_name, item_id, item_obj_id)
             if item_type:
-                self.load_item_data(item_type, item_name, item_full_name, item_id)
+                self.load_item_data(item_type, item_name, item_full_name, item_id, item_obj_id)
         return True
 
     def read_template_file(self, file_path, file_name, file_data=None):
@@ -350,8 +371,10 @@ class LKFModules(LKFBaseObject):
         template = env.get_template(file_name)
         # Load and parse the JSON data
         # Render the template with JSON data
-        # print('module_data=', self.module_data)
-        output = template.render(self.module_data)
+        try:
+            output = template.render(self.module_data)
+        except exceptions.UndefinedError as e:
+            raise LKFException('Falta de instalar un modulo', e)
         # Print or use the rendered output
         json_file = self.lkf_api.xml_to_json(output)
         return json_file

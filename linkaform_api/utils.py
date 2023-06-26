@@ -18,6 +18,7 @@ import xml.dom.minidom
 import hashlib
 
 
+# from ..models import LKFException
 
 #Linkaform Imports
 from . import network
@@ -698,6 +699,13 @@ class Cache(object):
         method = self.api_url.item['delete_item']['method']
         return self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
 
+    def get_item(self, item_id, item_type=None, jwt_settings_key=False):
+        # Delete an item
+        url = self.api_url.item['get_item']['url'].format(item_id)
+        url += '&itype__exact={}'.format(item_type)
+        method = self.api_url.item['get_item']['method']
+        return self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+
 
     """
     Formas
@@ -790,14 +798,7 @@ class Cache(object):
     def create_catalog(self, catalog_model, jwt_settings_key=False):
         url = self.api_url.catalog['create_catalog']['url']
         method = self.api_url.catalog['create_catalog']['method']
-        # print('data', catalog_model)
         return self.network.dispatch(url=url, method=method, data=catalog_model, use_api_key=False, jwt_settings_key=jwt_settings_key)
-        # response = self.network.dispatch(url=url, method=method, data=catalog_model, use_api_key=False, jwt_settings_key=jwt_settings_key)
-        # print('response', response)
-        # print('response', responses)
-        # if response['status_code'] == 201:
-        #     return {'data' : response['data'], 'status_code': response['status_code'] }
-        # return response
 
     def update_catalog_model(self, catalog_id, catalog_model, jwt_settings_key=False):
         url = self.api_url.catalog['update_catalog_model']['url'].format(catalog_id)
@@ -1170,6 +1171,10 @@ class Cache(object):
         }
         response = self.network.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
         return response
+    
+    """
+    ADDONS
+    """
 
     def xml_to_json(self, xml_data):
         #TODO AGUAS CON LOS ENTEROS
@@ -1205,16 +1210,23 @@ class Cache(object):
                             res = element_to_json(child)
                             child_data = deepcopy(res)
                             if isinstance(child_data, dict):
+                                if not child_data:
+                                    data[child.tag] = ''
                                 for key, value in child_data.items():
                                     if key == 'item':
-                                        data[child.tag] = data.get(child.tag, [])
-                                        data[child.tag] = value
+                                        # print('chjild tabg22333', child.tag)
+                                        data[tv(child.tag)] = data.get(child.tag, [])
+                                        data[tv(child.tag)] = value
                                     else:
-                                        data[child.tag] = data.get(child.tag, {})
+                                        # print('chjild tabg4444', child.tag)
+                                        data[tv(child.tag)] = data.get(child.tag, {})
                                         ch_data = get_same_properites(child.tag, res)
-                                        data[child.tag] = transform_dict_values(ch_data)
+                                        data[tv(child.tag)] = transform_dict_values(ch_data)
                             else:
-                                data[child.tag] = transform_values(child_data)
+                                if tv(child.tag) == 'font_size' and tv(element.tag) == 'watermark_config':
+                                    data[tv(child.tag)] = str(child_data)
+                                else:
+                                    data[tv(child.tag)] = tv(child_data)
             # Process text content of the element
             if element.text:
                 text = element.text.strip()
@@ -1228,8 +1240,8 @@ class Cache(object):
             return data
         # Convert the root element to JSON
         json_data = element_to_json(tree.getroot())
+        # print('json_data', simplejson.dumps(json_data, indent=4))
         return json_data
-
 
     def json_to_xml(self, json_data, pretty=True):
         # Create the root element of the XML tree
@@ -1237,16 +1249,22 @@ class Cache(object):
         # Function to recursively convert JSON data to XML elements
         def json_to_xml_elements(data, parent):
             if isinstance(data, dict):
-                for key, value in data.items():
-                    element = ET.SubElement(parent, key)
-                    json_to_xml_elements(value, element)
+                if data:
+                    for key, value in data.items():
+                        element = ET.SubElement(parent, key)
+                        json_to_xml_elements(value, element)
+                else:
+                    parent.text = '{}'
             elif isinstance(data, list):
+                if data == []:
+                    parent.text = '[]'
                 for item in data:
                     element = ET.SubElement(parent, 'item')
                     json_to_xml_elements(item, element)
             else:
                 if isinstance(data, str):
-                    parent.text = str(data.encode('utf-8'))
+                    x = str(data.encode('utf-8').decode('utf-8'))
+                    parent.text = x
                 else:
                     parent.text = str(data)
         # Convert JSON data to XML elements
@@ -1260,7 +1278,6 @@ class Cache(object):
             xml_str = dom.toprettyxml(indent="    ")
         return xml_str
 
-
 def warning(*objs):
     '''
     To print(stuff at stderr)
@@ -1269,17 +1286,37 @@ def warning(*objs):
     stderr.write(output)
 
 def transform_dict_values(data):
-    return { k:(transform_values(v)) for k,v in data.items()}
+    #return { tv(k):(tv(v)) for k,v in data.items()}
+    res={}
+    for k,v in  data.items():
+        if k == 'font_size':
+            res[tv(k)] = str(v)
+        else:
+            res[tv(k)] = tv(v)
+    return res
 
-def transform_values(value):
+def tv(value):
     #check if is boolean
-    if value == 'False' or value == 'false' or value == False:
+    if value == 1:
+        value = value
+    elif value == 0:
+        value = value
+    elif value == '[]' or value == []:
+        value = []
+    elif value == '{}' or value == {}:
+        value = {}
+    elif value == 'False' or value == 'false' or value == False:
         value = False
     elif value == 'True' or value == 'true' or value == True:
         value = True
     elif value == 'None' or value == 'none' or value == None or not value:
         value = None
+    elif isinstance(value, str) and value.find('amp_') == 0:
+        value = value.replace('amp_','')
+    elif isinstance(value, str) and value.find('num_') == 0:
+        value = value.replace('num_','')
     else:
+
         #checks if its a numeric value
         value = get_numeric(value)
     return value
@@ -1288,6 +1325,8 @@ def get_numeric(value):
     if isinstance(value, str):
         has_decimal = value.find('.')
         if has_decimal < 0:
+            if value.find('0') == 0 or len(value) == 24:
+                return value
             try:
                 value = int(value)
             except ValueError:
