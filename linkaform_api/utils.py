@@ -230,15 +230,6 @@ class Cache(object):
             all_users = response.get('json',{}).get('objects', [])
         return all_users
 
-    def get_updated_groups(self, date_epoc, jwt_settings_key=False):
-        post_json = self.api_url.get_groups_url()['updated_groups']
-        url = post_json['url'].format(date_epoc)
-        response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
-        all_groups = response.get('objects', [])
-        if not all_groups:
-            all_groups = response.get('json',{}).get('objects', [])
-        return all_groups
-
     def get_form_users(self, form_id, include_users=True, include_connections=True, include_owner=True,
         is_catalog=False, jwt_settings_key=False, format_response=True):
         #Returns all the form usrs... by default includes users and connections
@@ -731,6 +722,26 @@ class Cache(object):
     """
     GROUPS
     """
+    def create_group(self, data, jwt_settings_key=False):
+        post_json = self.api_url.groups['create_group']
+        response = self.network.dispatch(url=post_json['url'], method=post_json['method'], data=data, jwt_settings_key=jwt_settings_key)
+
+        return response
+
+    def delete_group(self, group_id, jwt_settings_key=False):
+        post_json = self.api_url.groups['delete_group']
+        url = post_json['url'].format(group_id)
+        response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
+
+        return response
+
+    def edit_group(self, group_id, data, jwt_settings_key=False):
+        post_json = self.api_url.groups['edit_group']
+        url = post_json['url'].format(group_id)
+        response = self.network.dispatch(url=url, method=post_json['method'], data=data, jwt_settings_key=jwt_settings_key)
+
+        return response
+
     def get_group_users(self, group_id, user_type='users', jwt_settings_key=False):
         #Returns all users of a group
         #user_type 'users', 'admin_users','supervisor_users'
@@ -741,6 +752,15 @@ class Cache(object):
             return response.get('data', {}).get(user_type,[])
         else:
             return response.get('data', {})
+
+    def get_updated_groups(self, date_epoc, jwt_settings_key=False):
+        post_json = self.api_url.get_groups_url()['updated_groups']
+        url = post_json['url'].format(date_epoc)
+        response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
+        all_groups = response.get('objects', [])
+        if not all_groups:
+            all_groups = response.get('json',{}).get('objects', [])
+        return all_groups
 
     """
     Rules

@@ -87,6 +87,9 @@ class Api_url:
 
     def get_groups_url(self):
         return  {
+            'create_group': {'url': self.dest_url + '/api/infosync/group/', 'method':'POST'},
+            'delete_group': {'url': self.dest_url + '/api/infosync/group/{}/', 'method':'DELETE'},
+            'edit_group': {'url': self.dest_url + '/api/infosync/group/{}/', 'method':'PATCH'},
             'get_group_users': {'url': self.dest_url + '/api/infosync/group/{}/', 'method':'GET'},
             'updated_groups': {'url': self.dest_url + '/api/infosync/group/?limit=0&updated_at__gte={}/', 'method':'GET'},
         }
