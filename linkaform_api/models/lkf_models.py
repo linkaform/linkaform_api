@@ -89,6 +89,7 @@ class LKFModules(LKFBaseObject):
         return False
 
     def item_id(self, catalog_name, item_type, info=None):
+        print('info=2', info)
         res = self.module_data[item_type].get(catalog_name)
         if info:
             return res.get(info)
@@ -96,13 +97,14 @@ class LKFModules(LKFBaseObject):
             return res
 
     def catalog_id(self, catalog_name, info=None):
-        return self.item_id(self, catalog_name, 'catalog', info=info)
+        print('info=', info)
+        return self.item_id(catalog_name, 'catalog', info=info)
 
     def form_id(self, form_name, info=None):
-        return self.item_id(self, catalog_name, 'form', info=info)
+        return self.item_id(catalog_name, 'form', info=info)
 
     def script_id(self, script_name, info=None):
-        return self.item_id(self, catalog_name, 'script', info=info)
+        return self.item_id(catalog_name, 'script', info=info)
 
     def install_script(self, module, script_path, image=None, script_properties=None):
         lkf_api = self.lkf_api
