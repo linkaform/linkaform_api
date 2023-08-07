@@ -36,6 +36,7 @@ class Api_url:
             'catalog_id_fields': {'url': self.dest_url + '/api/infosync/catalog_model/send_catalog/', 'method':'GET'},
             'catalog_answer_patch_multi': {'url': self.dest_url + '/api/infosync/catalog_answers/update_catalogs/', 'method': 'PATCH'},
             'create_catalog': {'url': self.dest_url + '/api/infosync/catalog_model/', 'method':'POST'},
+            'get_catalog_filters': {'url': self.dest_url + '/api/infosync/catalog/get_catalog_filters/?catalog_id=', 'method': 'GET'},
             'create_filter': {'url': self.dest_url + '/api/infosync/user_properties/create_filter/', 'method': 'POST'},
             'delete_catalog_record': {'url': self.dest_url + '/api/infosync/catalog/bulk_docs/', 'method': 'POST'},
             'delete_filter': {'url': self.dest_url + '/api/infosync/catalog/delete_filter/', 'method': 'POST'},

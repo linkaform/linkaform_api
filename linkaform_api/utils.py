@@ -25,7 +25,7 @@ from . import network
 
 class Cache(object):
 
-    def __init__(self, settings={}):
+    def __init__(self, settings):
         self.items = {}
         self.items_data = {}
         self.items_fields = {}
@@ -657,7 +657,7 @@ class Cache(object):
     def get_jwt(self, user=None, password=None, get_jwt=True, api_key=None, get_user=False):
         session = False
         if not user:
-            user = self.settings.config.get('AUTHORIZATION_EMAIL_VALUE',self.settings.config.get('USERNAME'))
+            user = self.settings.config.get('USERNAME',self.settings.config.get('AUTHORIZATION_EMAIL_VALUE'))
         if not password:
             password = self.settings.config.get('PASS')
         if api_key:
@@ -974,13 +974,20 @@ class Cache(object):
             return record_found[0]
         return record_found
 
-    def create_filter(self, catalog_id, filter_name, filter_to_search, jwt_settings_key=False):
+    def get_catalog_filters(self, catalog_id, jwt_settings_key=False):
+        url = self.api_url.catalog['get_catalog_filters']['url'] + str(catalog_id)
+        method = self.api_url.catalog['get_catalog_filters']['method']
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
+        return response
+
+    def create_filter(self, catalog_id, filter_name, filter_to_search, filter_selected=None, jwt_settings_key=False):
         url = self.api_url.catalog['create_filter']['url']
         method = self.api_url.catalog['create_filter']['method']
         data_for_post = {
             "catalog_id": catalog_id,
             "filter": filter_to_search,
             "filter_name": filter_name,
+            "filter_selected":filter_selected,
             "pageSize": 20
         }
         response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post, jwt_settings_key=jwt_settings_key)
@@ -1233,6 +1240,7 @@ class Cache(object):
                                 if not child_data:
                                     data[child.tag] = ''
                                 for key, value in child_data.items():
+                                    # print('item...=', child.tag)
                                     if key == 'item':
                                         # print('chjild tabg22333', child.tag)
                                         data[tv(child.tag)] = data.get(child.tag, [])
@@ -1332,7 +1340,7 @@ def tv(value):
     elif value == 'None' or value == 'none' or value == None or not value:
         value = None
     elif isinstance(value, str) and value.find('amp_') == 0:
-        value = value.replace('amp_','')
+        value = value.replace('amp_','$')
     elif isinstance(value, str) and value.find('num_') == 0:
         value = value.replace('num_','')
     else:
