@@ -9,6 +9,7 @@ from typing import (
 )
 
 from jinja2 import Environment, FileSystemLoader, exceptions
+from datetime import datetime
 
 #LinkaForm Imports
 from ..lkf_object import LKFBaseObject
@@ -98,6 +99,10 @@ class LKFModules(LKFBaseObject):
     def catalog_id(self, catalog_name, info=None):
         return self.item_id(catalog_name, 'catalog', info=info)
 
+    def get_item_name_obj_id(self, item_obj_id, item_type):
+        cr, data = self.get_cr_data(collection='LKFModules')
+        return cr.find({'item_obj_id': item_obj_id, 'item_type':item_type}, {'item_name':1,'item_full_name':1})
+
     def form_id(self, form_name, info=None):
         return self.item_id(form_name, 'form', info=info)
 
@@ -123,10 +128,10 @@ class LKFModules(LKFBaseObject):
             script_item_version = item['item_version']
             if script_version == script_item_version:
                 item_info.update(item)
-                print('The script is up to date')
                 pass
             else:
                 #update form
+                print('Updating script: ', script_name)
                 res = lkf_api.post_upload_script(script_path, script_id=item_id, image=image)
                 if res.get('status_code') == 200:
                     updated_at = int(time.time())
@@ -142,10 +147,11 @@ class LKFModules(LKFBaseObject):
                     item = None
                     raise LKFException('Not found.....')
                 elif res.get('status_code') == 400:
-                    raise LKFException('Ya existe un script con este Nombre')
+                    raise LKFException(f'Ya existe un script con este Nombre, item_id:{item_id}')
                 else:
                     raise LKFException('Error updating catalog model')
         else:
+            print('Creating script: ', script_name)
             #Creating New Script
             res = lkf_api.post_upload_script(script_path, image=image)
             if res.get('status_code') == 200:
@@ -176,7 +182,18 @@ class LKFModules(LKFBaseObject):
     def set_script_properties(self, script_id, properties):
         res = self.lkf_api.update_script(script_id, properties)
 
+    def create_catalog_filters(self, catalog_id, catalog_filters, method='create'):
+        res = []
+        exiting_filters = self.lkf_api.get_catalog_filters(catalog_id)
+        for filter_name, filter_to_search in catalog_filters.items():
+            filter_selected=None
+            if method == 'update':
+                filter_selected = f'filters/{filter_name}'
+            res.append(self.lkf_api.create_filter(catalog_id, filter_name, filter_to_search, filter_selected=filter_selected))
+        return res
+
     def install_catalog(self, module, catalog_name, catalog_model):
+        catalog_filters = []
         lkf_api = self.lkf_api
         user = self.get_user_data()
         item_info = {
@@ -187,33 +204,46 @@ class LKFModules(LKFBaseObject):
                 'item_name':catalog_name,
             }
         item = self.serach_module_item(item_info)
-        # print('item..=', item)
+        if catalog_model.get('filters'):
+            catalog_filters = catalog_model.pop('filters')
         if item:
-            #Creating New FormExist, lest update it!!!
 
+            #Creating New FormExist, lest update it!!!
             item_id = item['item_id']
+            item_info.update({
+                '_id': item['_id'],
+                'item_id': item_id, 
+                'load_data':item.get('load_data'), 
+                'load_demo':item.get('load_demo') })
             catalog_item_revision = item['item_version']
             catalog_version = catalog_model['updated_at']
-            if catalog_item_revision != catalog_version:
-                print('the form is at its latest state, no need to update')
+            catalog_item_revision =  datetime.strptime(catalog_item_revision[:19], "%Y-%m-%dT%H:%M:%S")
+            catalog_version =  datetime.strptime(catalog_version[:19], "%Y-%m-%dT%H:%M:%S")
+            if False: #catalog_version >= catalog_item_revision and catalog_name:
+                print(f'the catalog is at its latest state {catalog_version}, {catalog_item_revision}vs no need to update')
                 pass
             else:
                 catalog_model.update({'catalog_id':item_id})
                 #update form
+                # import simplejson
+                # cm = simplejson.dumps(catalog_model, indent=4)
+                # print('cm=',cm)
                 res = lkf_api.update_catalog_model(item_id, catalog_model)
                 if res.get('status_code') == 202:
+                    if catalog_filters:
+                        self.create_catalog_filters(item_id, catalog_filters, method='update')
                     updated_at = res['json']['updated_at']
                     item.update({
                         'updated_by':self.get_user_data(),
                         'item_version':catalog_model['updated_at'],
                         'updated_at':updated_at
-                        })
+                        }) 
                     update_query = {'_id':item['_id']}
                     item_info.update(item)
                     self.update(update_query, item)
                 elif res.get('status_code') == 404:
                     item = None
-                    raise LKFException('{} Not found.....'.format(catalog_name))
+                    raise LKFException('While updating item_id: {} with name {}, was not found on the database for an update.....'.format(item_id, catalog_name))
                 else:
                     raise LKFException('Error updating catalog model')
 
@@ -228,6 +258,8 @@ class LKFModules(LKFBaseObject):
             if res.get('status_code') == 201:
                 item_obj_id = res['json']['_id']
                 catalog_id = res['json']['catalog_id']
+                if catalog_filters:
+                    self.create_catalog_filters(catalog_id, catalog_filters, method='create')
                 item_info = {
                     'created_by' : self.get_user_data(),
                     'updated_by' : self.get_user_data(),
@@ -239,6 +271,8 @@ class LKFModules(LKFBaseObject):
                     'item_type': 'catalog',
                     'item_name':catalog_name,
                     'item_full_name':catalog_full_name,
+                    'load_data': False,
+                    'load_demo': False,
                     'item_version':catalog_model['updated_at']
                 }
                 self.create(item_info)
@@ -324,11 +358,25 @@ class LKFModules(LKFBaseObject):
         return item_info
 
     def fetch_installed_modules(self, item=None):
-        cr, data = self.get_cr_data()
+        cr, data = self.get_cr_data(collection='LKFModules')
         if item:
-            return cr.find({'item_type': item}, {'module':1, 'item_type':1, 'item_name':1, 'item_id':1})
+            return cr.find({'item_type': item}, {'module':1, 'item_type':1, 'item_name':1, 'item_id':1,'item_obj_id':1})
+        else:
+            return cr.find({}, {'module':1, 'item_type':1, 'item_name':1, 'item_id':1,'item_obj_id':1})
 
         return cr.find({}, {'module':1, 'item_type':1, 'item_name':1, 'item_id':1,'item_obj_id':1})
+
+    def get_module_items(self, module_name):
+        print('dos')
+        cr, data = self.get_cr_data(collection='LKFModules')
+        return cr.find({'module': module_name}, {'module':1, 'item_type':1, 'item_name':1, 'item_id':1}).sort([('item_type',1)])
+
+    def remove_module_items(self, item_ids):
+        print('itemids', item_ids)
+        cr, data = self.get_cr_data(collection='LKFModules')
+        print('cr', cr)
+        return cr.remove({'item_id': {'$in': item_ids}})
+
 
     def load_item_data(self, item_type, item_name, item_full_name, item_id, item_obj_id=None):
         self.module_data[item_type] = self.module_data.get(item_type,{})
@@ -372,6 +420,7 @@ class LKFModules(LKFBaseObject):
         # Load and parse the JSON data
         # Render the template with JSON data
         try:
+            # print('self.module_data',self.module_data)
             output = template.render(self.module_data)
         except exceptions.UndefinedError as e:
             raise LKFException('Falta de instalar un modulo', e)
