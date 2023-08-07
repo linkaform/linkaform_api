@@ -11,6 +11,11 @@ from pymongo.collection import Collection
 requests.packages.urllib3.disable_warnings()
 
 
+def unlist(arg):
+    if type(arg) == list and len(arg) > 0:
+        return unlist(arg[0])
+    return arg
+
 class Network:
 
     def __init__(self, settings={}):
@@ -111,10 +116,11 @@ class Network:
             }
 
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
+            username = self.settings.config.get('USERNAME',self.settings.config.get['AUTHORIZATION_EMAIL_VALUE'])
+            api_key = self.settings.config.get('API_KEY',self.settings.config.get['AUTHORIZATION_TOKEN_VALUE'])
             headers = {
                 'Content-type': 'application/json',
-                'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
-                    self.settings.config['AUTHORIZATION_TOKEN_VALUE'])
+                'Authorization':'ApiKey {0}:{1}'.format(username, api_key)
             }
         if use_login:
             use_login = True
@@ -144,10 +150,10 @@ class Network:
             pass
 
         if r.status_code == 200:
-            r_data = simplejson.loads(r.content)
-            if r_data.get('objects'):
+            r_data = unlist(simplejson.loads(r.content))
+            if r_data and r_data.get('objects'):
                 response['data'] = r_data['objects']
-            elif r_data.get('json'):
+            elif r_data and r_data.get('json'):
                 response['data'] = r_data['json']
             else:
                 response['data'] = r_data
@@ -167,10 +173,11 @@ class Network:
             if not up_file:
                 headers['Content-type'] = 'application/json'
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
+            username = self.settings.config.get('USERNAME',self.settings.config.get['AUTHORIZATION_EMAIL_VALUE'])
+            api_key = self.settings.config.get('API_KEY',self.settings.config.get['AUTHORIZATION_TOKEN_VALUE'])
             headers = {
                 'Content-type': 'application/json',
-                'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
-                    self.settings.config['AUTHORIZATION_TOKEN_VALUE'])
+                'Authorization':'ApiKey {0}:{1}'.format(username, api_key)
             }
 
         if use_login:
@@ -247,10 +254,11 @@ class Network:
                 'Authorization':'Bearer {0}'.format(JWT)
             }
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
+            username = self.settings.config.get('USERNAME',self.settings.config.get['AUTHORIZATION_EMAIL_VALUE'])
+            api_key = self.settings.config.get('API_KEY',self.settings.config.get['AUTHORIZATION_TOKEN_VALUE'])
             headers = {
                 'Content-type': 'application/json',
-                'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
-                    self.settings.config['AUTHORIZATION_TOKEN_VALUE'])
+                'Authorization':'ApiKey {0}:{1}'.format(username, api_key)
             }
         else:
             use_login = True
@@ -307,10 +315,11 @@ class Network:
             }
 
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
+            username = self.settings.config.get('USERNAME',self.settings.config.get['AUTHORIZATION_EMAIL_VALUE'])
+            api_key = self.settings.config.get('API_KEY',self.settings.config.get['AUTHORIZATION_TOKEN_VALUE'])
             headers = {
                 'Content-type': 'application/json',
-                'Authorization':'ApiKey {0}:{1}'.format(self.settings.config['AUTHORIZATION_EMAIL_VALUE'],
-                    self.settings.config['AUTHORIZATION_TOKEN_VALUE'])
+                'Authorization':'ApiKey {0}:{1}'.format(username, api_key)
             }
 
         else:
@@ -515,6 +524,13 @@ class Network:
     ### Database Connection
     ###
 
+
+    def get_mongo_passowrd(self):
+        if not self.settings.config.get('MONGODB_PASSWORD'):
+            lkf_api = utils.Cache(settings)
+            MONGODB_PASSWORD = lkf_api.get_mongo_passowrd(api_key=settings.config['APIKEY'], user=settings.config['USERNAME'] )
+            self.settings.config['MONGODB_PASSWORD']
+        return True
 
     def get_mongo_uri(self,db_name):
         param_url = '?authSource={0}'.format(db_name)
