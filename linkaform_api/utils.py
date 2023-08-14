@@ -934,7 +934,7 @@ class Cache(object):
         else:
             res = []
             for data in records:
-                post_json = self.api_url.catalog['update_catalog_multi']
+                post_json = deepcopy(self.api_url.catalog['update_catalog_multi'])
                 post_json['url'] = post_json['url'].format(data['record_id'])
                 res.append(self.network.dispatch(post_json, data=data, jwt_settings_key=jwt_settings_key))
         return res
