@@ -2,7 +2,7 @@
 #!/usr/bin/python
 
 #Python Imports
-import simplejson, time, datetime, concurrent.futures
+import simplejson, time, concurrent.futures
 import threading
 import wget, bson
 from math import ceil
@@ -649,7 +649,7 @@ class Cache(object):
             check_str = '%Y-%m-%d'
             date_str = str(date_str)[:10]
         try:
-            datetime.datetime.strptime(date_str, check_str)
+            datetime.strptime(date_str, check_str)
             return date_str
         except ValueError:
             raise ValueError("Incorrect data format, should be YYYY-MM-DD")
