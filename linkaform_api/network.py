@@ -116,8 +116,10 @@ class Network:
             }
 
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
-            username = self.settings.config.get('USERNAME',self.settings.config.get['AUTHORIZATION_EMAIL_VALUE'])
-            api_key = self.settings.config.get('API_KEY',self.settings.config.get['AUTHORIZATION_TOKEN_VALUE'])
+            AUTHORIZATION_EMAIL_VALUE = self.settings.config.get('AUTHORIZATION_EMAIL_VALUE')
+            AUTHORIZATION_TOKEN_VALUE = self.settings.config.get('AUTHORIZATION_TOKEN_VALUE')
+            username = self.settings.config.get('USERNAME',AUTHORIZATION_EMAIL_VALUE)
+            api_key = self.settings.config.get('API_KEY', AUTHORIZATION_TOKEN_VALUE)
             headers = {
                 'Content-type': 'application/json',
                 'Authorization':'ApiKey {0}:{1}'.format(username, api_key)
@@ -527,15 +529,20 @@ class Network:
 
     def get_mongo_passowrd(self):
         if not self.settings.config.get('MONGODB_PASSWORD'):
-            lkf_api = utils.Cache(settings)
-            MONGODB_PASSWORD = lkf_api.get_mongo_passowrd(api_key=settings.config['APIKEY'], user=settings.config['USERNAME'] )
-            self.settings.config['MONGODB_PASSWORD']
+            # db_pass = self.db_password()
+            response = self.dispatch(self.api_url.globals['db_password'], use_api_key=True)
+            if response['status_code'] == 201:
+                self.settings.config['MONGODB_PASSWORD'] = response['json']['mongo_password']
+                return True
+            else:
+                return False
         return True
 
     def get_mongo_uri(self,db_name):
         param_url = '?authSource={0}'.format(db_name)
-
         user = self.settings.config['MONGODB_USER']
+        if not self.settings.config.get('MONGODB_PASSWORD'):
+            self.get_mongo_passowrd()
         password = self.settings.config['MONGODB_PASSWORD']
         mongo_hosts = self.settings.config['MONGODB_HOST']
 

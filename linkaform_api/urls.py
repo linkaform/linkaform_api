@@ -84,6 +84,7 @@ class Api_url:
     def get_global_url(self):
         return {
             'login': {'url': self.dest_url + '/api/infosync/user_admin/login/', 'method':'POST'},
+            'db_password': {'url': self.dest_url + '/api/infosync/user_admin/mongodb_pwd/', 'method':'GET'},
         }
 
     def get_groups_url(self):

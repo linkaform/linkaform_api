@@ -147,7 +147,7 @@ class LKFModules(LKFBaseObject):
                     item = None
                     raise LKFException('Not found.....')
                 elif res.get('status_code') == 400:
-                    raise LKFException(f'Ya existe un script con este Nombre, item_id:{item_id}')
+                    raise LKFException(f'Ya existe un script con este Nombre: {script_name}, item_id:{item_id}')
                 else:
                     raise LKFException('Error updating catalog model')
         else:
@@ -172,7 +172,7 @@ class LKFModules(LKFBaseObject):
                 self.load_module_data( module, 'script', script_name, script_name, script_id)
                 self.load_item_data('script', script_name, script_name, script_id)
             elif res.get('status_code') == 400:
-                raise LKFException('Ya existe un script con este Nombre')
+                raise LKFException(f'Ya existe un script con este Nombre: {script_name}')
             else:
                 raise LKFException('Error creating script')
         if script_properties:
@@ -190,6 +190,7 @@ class LKFModules(LKFBaseObject):
             if method == 'update':
                 filter_selected = f'filters/{filter_name}'
             res.append(self.lkf_api.create_filter(catalog_id, filter_name, filter_to_search, filter_selected=filter_selected))
+        print('res',res)
         return res
 
     def install_catalog(self, module, catalog_name, catalog_model):
@@ -279,7 +280,6 @@ class LKFModules(LKFBaseObject):
                 self.load_module_data( module, 'catalog', catalog_name, catalog_full_name, catalog_id)
                 self.load_item_data('catalog', catalog_name, catalog_full_name, catalog_id, item_obj_id)
             else:
-                print('res=',res)
                 raise LKFException('Error creating catalog model', res)
         return item_info
 
@@ -327,6 +327,8 @@ class LKFModules(LKFBaseObject):
                     item_info.update(item)
                     update_query = {'_id':item['_id']}
                     self.update(update_query, item)
+                else:
+                    print('Something went wrong, we could not update the form: ', res)
         else:
             #Creating New Form
             if form_model.get('form_id'):
@@ -367,14 +369,11 @@ class LKFModules(LKFBaseObject):
         return cr.find({}, {'module':1, 'item_type':1, 'item_name':1, 'item_id':1,'item_obj_id':1})
 
     def get_module_items(self, module_name):
-        print('dos')
         cr, data = self.get_cr_data(collection='LKFModules')
         return cr.find({'module': module_name}, {'module':1, 'item_type':1, 'item_name':1, 'item_id':1}).sort([('item_type',1)])
 
     def remove_module_items(self, item_ids):
-        print('itemids', item_ids)
         cr, data = self.get_cr_data(collection='LKFModules')
-        print('cr', cr)
         return cr.remove({'item_id': {'$in': item_ids}})
 
 
