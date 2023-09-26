@@ -62,7 +62,7 @@ class Network:
         return url, method.upper()
 
     def dispatch(self, url_method={}, url='', method='', data={}, params={}, use_login=False, use_api_key=False, use_jwt=False,
-            jwt_settings_key=False, encoding='utf-8', up_file=False, count=0, format_response=True):
+            jwt_settings_key='JWT_KEY', encoding='utf-8', up_file=False, count=0, format_response=True):
         #must use the url_method or a url and method directly
         #url_method is a {} with a key url and method just like expres on urls
         #url defines the url to make the call
@@ -119,7 +119,9 @@ class Network:
             AUTHORIZATION_EMAIL_VALUE = self.settings.config.get('AUTHORIZATION_EMAIL_VALUE')
             AUTHORIZATION_TOKEN_VALUE = self.settings.config.get('AUTHORIZATION_TOKEN_VALUE')
             username = self.settings.config.get('USERNAME',AUTHORIZATION_EMAIL_VALUE)
-            api_key = self.settings.config.get('API_KEY', AUTHORIZATION_TOKEN_VALUE)
+            api_key = self.settings.config.get('API_KEY', self.settings.config.get('APIKEY'))
+            if not api_key:
+                api_key =AUTHORIZATION_TOKEN_VALUE
             headers = {
                 'Content-type': 'application/json',
                 'Authorization':'ApiKey {0}:{1}'.format(username, api_key)
@@ -181,7 +183,6 @@ class Network:
                 'Content-type': 'application/json',
                 'Authorization':'ApiKey {0}:{1}'.format(username, api_key)
             }
-
         if use_login:
             session = requests.Session()
             if use_login or (self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']) and not use_api_key):
@@ -478,7 +479,6 @@ class Network:
 
         if type(record_id) == list:
             name_full_pdf = '{}_{}'.format( name_pdf, str( ObjectId() ) )
-            print('creating pdf =',name_full_pdf)
             url = self.api_url.record['get_pdf_multi_records']['url']
             method = self.api_url.record['get_pdf_multi_records']['method']
             body.pop('answer_uri')
