@@ -18,11 +18,12 @@ MONGODB_URI = 'mongodb://%s/?replicaSet=%s&readPreference=%s'%(mongo_hosts, mong
 
 
 config = {
-    'USERNAME' : 'josepato@linkaform.com',
-    'PASS' : '654321',
+    'USERNAME' : 'your_likaform_username@here.com',
+    'PASS' : 'YOUR_PASSOWRD_HERE',
     'COLLECTION' : 'form_answer',
     'MONGODB_PORT':27017,
     'MONGODB_HOST': '',
+    'MONGODB_USER': '',
     # 'MONGODB_REPLICASET': 'linkaform_replica',
     # 'MONGO_READPREFERENCE': 'secondaryPreferred',
     'MONGODB_MAX_IDLE_TIME': 12000,
