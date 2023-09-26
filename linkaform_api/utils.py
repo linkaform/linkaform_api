@@ -543,7 +543,6 @@ class Cache(object):
 
             for no_update in no_records_updated:
                 self.thread_dict[ no_update ] = {'status_code': 400, 'error': 'Error al acutalizar el registro con multi_record, favor de reintenar'}
-
             return  self.thread_dict
 
         return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data,
