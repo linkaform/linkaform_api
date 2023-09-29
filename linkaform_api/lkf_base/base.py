@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 import sys, simplejson
+from bson import ObjectId
+
+from ..lkf_object import LKFBaseObject
 
 from linkaform_api import settings, network, utils, lkf_models
 
 
-class LKF_Base():
+class LKF_Base(LKFBaseObject):
 
     def __init__(self, settings, sys_argv=None):
         config = settings.config
@@ -58,7 +61,6 @@ class LKF_Base():
         except:
             record_to_long = False
         current_record = simplejson.loads(sys_argv[1])
-        print('current_record=========', current_record)
         if not current_record.get('answers') and current_record.get('answers_url'):
             current_record = self.read_current_record_from_txt( current_record['answers_url'] )
         if record_to_long:
@@ -79,4 +81,32 @@ class LKF_Base():
         name_downloded = self.download_pdf( file_url, is_txt=True )
         f = open( "/tmp/{}".format( name_downloded ) )
         return simplejson.loads( f.read() )
+
+
+
+    def cache_drop(self, query):
+        return self.delete(query=query)
+
+    def cache_get(self, values, **kwargs):
+        print('kwargs>>', kwargs)
+        res = self.search(values)
+        if res and res.get('_id'):
+            if kwargs.get('keep_cache'):
+                return res
+            self.cache_drop({'_id':res['_id']})
+        return res
+
+    def cache_set(self, values):
+        if values.get('_id'):
+            t_id = values.pop('_id')
+            res = self.search({'_id':t_id, '_one':True}).get('cache',{})
+            res.update(values)
+            values = res
+        else:
+            t_id = ObjectId()
+        return self.create({'_id':t_id, 'cache':values})
+
+    def cache_update(self, values):
+        print('drop cache_update....')
+        self.create({'test':1,'status':'drop'})
 
