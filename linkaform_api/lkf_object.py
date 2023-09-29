@@ -75,14 +75,14 @@ class LKFBaseObject:
             config = self.settings.config
         account_id = config.get('ACCOUNT_ID', config.get('USER',{}).get('user',{}).get('parent_info',{}).get('id'))
         dbname = 'infosync_answers_client_{}'.format(account_id)
-        self.config['MONGO_CR'] = self.config.get('MONGO_CR', {})
-        if not self.config['MONGO_CR'].get(dbname):
-            self.config['MONGO_URI'] = self.get_mongo_uri(account_id)
+        self.settings.config['MONGO_CR'] = self.settings.config.get('MONGO_CR', {})
+        if not self.settings.config['MONGO_CR'].get(dbname):
+            self.settings.config['MONGO_URI'] = self.get_mongo_uri(account_id)
 
             # mongo = MongoClient(self.config)
             mongo = connect_mongodb(dbname, uri=self.config['MONGO_URI'])
-            self.config['MONGO_CR'][dbname] = mongo
-        return self.config['MONGO_CR'][dbname]
+            self.settings.config['MONGO_CR'][dbname] = mongo
+        return self.settings.config['MONGO_CR'][dbname]
 
     def get_db_cr(self, _object=None, db_name=False, collection=False):
         if self.name:
@@ -211,21 +211,23 @@ class LKFBaseObject:
         res = cr.update_many(query, data)
         return res
 
-    def search(self, **args):
+    def search(self, query):
         cols = _one = None
         cr, data = self.get_cr_data()
-        if '_one' in list(args.keys()):
-            _one = args.pop('_one')
-        if '_columns' in list(args.keys()):
-            cols = args.pop('_columns')
+        if '_one' in list(query.keys()):
+            _one = query.pop('_one')
+        if '_columns' in list(query.keys()):
+            cols = query.pop('_columns')
         if cols:
-            res = cr.find(args, cols)
+            res = cr.find(query, cols)
         else:
-            res = cr.find(args)
+            res = cr.find(query)
         res = [ x for x in res]
         if _one:
             if res:
                 return res[0]
+            else:
+                return {}
         return res
 
     def delete(self, _object=None, query=False, is_json=False ):

@@ -84,7 +84,7 @@ class LKFModules(LKFBaseObject):
         self.get_installed_modules()
 
     def serach_module_item(self, item_info):
-        res = self.search(**item_info)
+        res = self.search(item_info)
         if res and type(res) == list and len(res) > 0:
             return res[0]
         return False
@@ -379,7 +379,6 @@ class LKFModules(LKFBaseObject):
     def remove_module_items(self, item_ids):
         cr, data = self.get_cr_data(collection='LKFModules')
         return cr.remove({'item_id': {'$in': item_ids}})
-
 
     def load_item_data(self, item_type, item_name, item_full_name, item_id, item_obj_id=None):
         self.module_data[item_type] = self.module_data.get(item_type,{})
