@@ -191,7 +191,6 @@ class LKFModules(LKFBaseObject):
             if method == 'update':
                 filter_selected = f'filters/{filter_name}'
             res.append(self.lkf_api.create_filter(catalog_id, filter_name, filter_to_search, filter_selected=filter_selected))
-        print('res',res)
         return res
 
     def install_catalog(self, module, catalog_name, catalog_model):
@@ -229,8 +228,6 @@ class LKFModules(LKFBaseObject):
                 # import simplejson
                 cm = simplejson.dumps(catalog_model, indent=4)
                 res = lkf_api.update_catalog_model(item_id, catalog_model)
-                print('res=',res)
-                print('cm=',cm)
                 if res.get('status_code') == 202:
                     if catalog_filters:
                         self.create_catalog_filters(item_id, catalog_filters, method='update')
@@ -257,9 +254,7 @@ class LKFModules(LKFBaseObject):
             if catalog_model.get('_rev'):
                 catalog_model.pop('_rev')
             catalog_full_name = catalog_model.get('name',catalog_name)
-            print('catalog_model=',simplejson.dumps(catalog_model, indent=5))
             res = lkf_api.create_catalog(catalog_model)
-            print('res=',res)
             if res.get('status_code') == 201:
                 item_obj_id = res['json']['_id']
                 catalog_id = res['json']['catalog_id']
@@ -310,8 +305,7 @@ class LKFModules(LKFBaseObject):
             item_id = item['item_id']
             current_form_version = item['item_version'],
             form_version = form_model['updated_at'],
-            if current_form_version == form_version:
-                print('the form is at its latest state, no need to update')
+            if current_form_version == form_version and False:
                 item['status'] = 'unchanged'
                 item_info.update(item)
                 pass
@@ -321,7 +315,6 @@ class LKFModules(LKFBaseObject):
                 res = lkf_api.create_form(form_model)
                 if res.get('status_code') == 201:
                     updated_at = res['json']['updated_at']['$date']
-                    print('form veriosn', form_model['updated_at'])
                     item.update({
                         'updated_by':self.get_user_data(),
                         'item_version':form_model['updated_at'],
