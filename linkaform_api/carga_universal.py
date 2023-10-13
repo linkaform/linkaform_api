@@ -408,14 +408,14 @@ class CargaUniversal:
             else:
                 #print("***************** record to create", metadata)
                 new_sets_in_row = {}
-                for g in sets_in_row:
-                    s = sets_in_row[g]
+                for g, s in sets_in_row.items():
+                    #s = sets_in_row[g]
                     len_recs = len( dict_records_copy['create'] )
                     dict_records_copy['create'].append(records[g])
                     new_sets_in_row[len_recs] = []
                     for dentro_grupo in s:
+                        new_sets_in_row[len_recs].append( len( dict_records_copy['create'] ) )
                         dict_records_copy['create'].append(records[dentro_grupo])
-                        new_sets_in_row[len_recs].append(len_recs+1)
                 metadata.update({
                     'sets_in_row': new_sets_in_row
                 })
@@ -652,8 +652,10 @@ class CargaUniversal:
             metadata_form = self.lkf_api.get_metadata(form_id=id_forma_seleccionada )
             # Necesito un diccionario que agrupe los registros que se crearán y los que están en un grupo repetitivo y pertenecen a uno principal
             group_records = {i:[] for i,r in enumerate(records) if [r[j] for j in not_groups if r[j]]}
-            grupo = 0
+            grupo = None
             for i, r in enumerate(records):
+                if grupo == None:
+                    continue
                 if [r[j] for j in not_groups if r[j]]:
                     grupo = i
                 else:
@@ -673,6 +675,7 @@ class CargaUniversal:
             dict_records_copy = {'create': [], 'update': {}}
             list_cols_for_upload = list( pos_field_dict.keys() )
             print('list_cols_for_upload =',list_cols_for_upload)
+            metadata = None
             for p, record in enumerate(records):
                 print("=========================================== >> Procesando renglon:",p)
                 if p in subgrupo_errors:
@@ -711,6 +714,12 @@ class CargaUniversal:
                     if folio_manual or (header_dict.get('folio') and header_dict['folio'] == 0):
                         metadata.update({'folio':str(record[0])})
                 if p == total_rows-1:
+                    if metadata == None:
+                        metadata = metadata_form.copy()
+                        metadata.update({'answers': answers})
+                        sets_in_row = {
+                            0: list(group_records.keys())
+                        }
                     proceso = self.crea_actualiza_record(metadata, existing_records, error_records, records, sets_in_row, dict_records_to_multi, dict_records_copy, ids_fields_no_update)
                     if proceso:
                         resultado[proceso] += 1
