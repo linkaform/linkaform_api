@@ -674,6 +674,8 @@ class Network:
             else:
                 raise ValueError('The answer must have a record_id')'''
             url = self.api_url.catalog['update_catalog_answer']['url']
+            if answer.get('_id'):
+                url += answer['_id'] +'/'
             method = self.api_url.catalog['update_catalog_answer']['method']
             r = self.dispatch(url=url, method=method, data=answer, jwt_settings_key=jwt_settings_key)
             if r['status_code'] in  (201,200,202,204):

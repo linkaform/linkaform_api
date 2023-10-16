@@ -36,7 +36,6 @@ class LKF_Base(LKFBaseObject):
         return self.delete(query=query)
 
     def cache_get(self, values, **kwargs):
-        print('kwargs>>', kwargs)
         res = self.search(values)
         if res and res.get('_id'):
             if kwargs.get('keep_cache'):
@@ -118,6 +117,41 @@ class LKF_Base(LKFBaseObject):
         record_found = self.cr.find(query, select_columns)
         return record_found.next()
 
+    def get_record_by_id(self, _id):
+        query = {
+            '_id': ObjectId(_id),
+            'deleted_at': {'$exists': False}
+        }
+        select_columns = {'folio':1,'user_id':1,'form_id':1,'answers':1,'_id':1,'connection_id':1,'created_at':1,'other_versions':1,'timezone':1}
+        record_found = self.cr.find(query, select_columns)
+        try:
+            return record_found.next()
+        except:
+            return {}
+
+    def get_record_verion_by_id(self, _id):
+        version_cr = self.net.get_collections('answer_version')
+        if not _id:
+            return []
+        query = {
+            '_id': ObjectId(_id),
+            'deleted_at': {'$exists': False}
+        }
+        select_columns = {'folio':1,'user_id':1,'form_id':1,'answers':1,'_id':1,'connection_id':1,'created_at':1,'other_versions':1,'timezone':1}
+        record_found = version_cr.find(query)
+        return record_found.next()
+
+    def get_record_last_version(self, record):
+        latest_versions = record.get('other_versions',[])
+        if latest_versions:
+            latest_versions = latest_versions[-1]
+            version_id_path = latest_versions.get('uri','').strip('/')
+            version_id = version_id_path.split('/')[-1]
+            return self.get_record_verion_by_id(version_id)
+        else:
+            return {}
+
+
     def get_date_query(self, date_from=None, date_to=None, date_field=None, date_field_id=None, field_type=None):
         res = {}
         if not date_field:
@@ -170,7 +204,6 @@ class LKF_Base(LKFBaseObject):
         settings.config["USER"] = user['user']
         settings.config["MONGODB_USER"] = 'account_{}'.format(account_id)
         return settings
-
 
     def unlist(self, arg):
         if type(arg) == list and len(arg) > 0:
