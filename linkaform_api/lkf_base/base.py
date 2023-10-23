@@ -115,7 +115,6 @@ class LKF_Base(LKFBaseObject):
         else:
             return datetime.fromtimestamp(epoch)
 
-
     def download_pdf(self, file_url, is_txt=False):
         oc_name = 'oc_{}.pdf'.format(str(bson.ObjectId()))
         if is_txt:
