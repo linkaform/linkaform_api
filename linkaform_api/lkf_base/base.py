@@ -10,7 +10,7 @@ from linkaform_api import settings, network, utils, lkf_models
 
 class LKF_Base(LKFBaseObject):
 
-    def __init__(self, settings, sys_argv=None):
+    def __init__(self, settings, sys_argv=None, use_api=False):
         config = settings.config
         self.lkf_base = {}
         self._set_connections(settings)
@@ -19,9 +19,10 @@ class LKF_Base(LKFBaseObject):
         if sys_argv:
             self.argv = sys_argv
             self.data = simplejson.loads( sys_argv[2] )
-            config['JWT_KEY'] = self.data["jwt"].split(' ')[1]
-            config['USER_JWT_KEY'] = self.data["jwt"].split(' ')[1]
-            settings.config.update(config)
+            if not use_api:
+                config['JWT_KEY'] = self.data["jwt"].split(' ')[1]
+                config['USER_JWT_KEY'] = self.data["jwt"].split(' ')[1]
+                settings.config.update(config)
             self.current_record = self.get_record(sys_argv)
             self._set_connections(settings)
 
@@ -60,12 +61,60 @@ class LKF_Base(LKFBaseObject):
     def console_run(self):
         print(f"python { self.argv[0].split('/')[-1]} '{ self.argv[1]}' '{ self.argv[2]}'")
 
+    def date_from_str(self, value):
+        def get_value(value, date_format):
+            try:
+                return datetime.strptime(value, date_format)
+            except:
+                raise('Not a valid date')
+        if len(value) == 10:
+            #Date
+            value = get_value(value, '%Y-%m-%d')
+        elif len(value) == 19:
+            value = get_value(value, '%Y-%m-%d %H:%M:%S')
+        elif len(value) == 16:
+            value = get_value(value, '%Y-%m-%d %H:%M')
+        elif len(value) == 8:
+            value = get_value(value, '%Y-%m-%d %H:%M')
+        else:
+            raise('Not a valid length of a date')
+        return value
+
     def date_to_week(self, date_from):
         year_week = ""
         if date_from:
             week_from = datetime.strptime(date_from, '%Y-%m-%d')
             year_week = week_from.strftime('%Y%W')
         return year_week
+
+    def date_2_epoch(self, date_str):
+        date_obj = self.date_from_str(date_str)
+        return date_obj.timestamp()
+
+    def date_operation(self, date_value, operator, qty, unit, date_format=None):
+        if type(date_value) == str:
+            epoch = self.date_2_epoch(date_value)
+        else:
+            epoch = date_obj.timestamp()
+        if unit in ('second', 'seconds'):
+            seconds = qty 
+        if unit in ('minutes', 'minutes'):
+            seconds = qty * 60
+        if unit in ('hour', 'hours'):
+            seconds = qty * 60 * 60
+        if unit in ('day', 'days'):
+            seconds = qty * 60 * 60 * 24
+        if unit in ('week', 'weeks'):
+            seconds = qty * 60 * 60 * 24 + 7
+        if operator == '+' or operator == 'add':
+            epoch += seconds
+        if operator == '-' or operator == 'subtract':
+            epoch -= seconds
+        if date_format:
+            return datetime.fromtimestamp(epoch).strftime(date_format)
+        else:
+            return datetime.fromtimestamp(epoch)
+
 
     def download_pdf(self, file_url, is_txt=False):
         oc_name = 'oc_{}.pdf'.format(str(bson.ObjectId()))
@@ -150,7 +199,6 @@ class LKF_Base(LKFBaseObject):
             return self.get_record_verion_by_id(version_id)
         else:
             return {}
-
 
     def get_date_query(self, date_from=None, date_to=None, date_field=None, date_field_id=None, field_type=None):
         res = {}
