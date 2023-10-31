@@ -411,11 +411,22 @@ class Network:
     ### Database Connection
     ###
 
+    def get_mongo_passowrd(self):
+        if not self.settings.config.get('MONGODB_PASSWORD'):
+            # db_pass = self.db_password()
+            response = self.dispatch(self.api_url.globals['db_password'], use_api_key=True)
+            if response['status_code'] == 201:
+                self.settings.config['MONGODB_PASSWORD'] = response['json']['mongo_password']
+                return True
+            else:
+                return False
+        return True
 
     def get_mongo_uri(self,db_name):
         param_url = '?authSource={0}'.format(db_name)
-
         user = self.settings.config['MONGODB_USER']
+        if not self.settings.config.get('MONGODB_PASSWORD'):
+            self.get_mongo_passowrd()
         password = self.settings.config['MONGODB_PASSWORD']
         mongo_hosts = self.settings.config['MONGODB_HOST']
 
@@ -430,12 +441,11 @@ class Network:
 
         MONGODB_URI = 'mongodb://{0}:{1}@{2}/{3}'.format(
             quote_plus(user), quote_plus(password), mongo_hosts, param_url)
-        #print 'MONGODB_URI', MONGODB_URI
         return MONGODB_URI
 
     def get_user_connection(self):
         connection = {}
-        if self.settings.config.has_key('ACCOUNT_ID'):
+        if self.settings.config.get('ACCOUNT_ID'):
             user_id = self.settings.config['ACCOUNT_ID']
         else:
             user_id = self.settings.config['USER_ID']
@@ -444,16 +454,16 @@ class Network:
 
     def get_infosync_connection(self, db_name="infosync"):
         connection = {}
-        # if self.settings.config.has_key('ACCOUNT_ID'):
+        # if self.settings.config.get('ACCOUNT_ID'):
         #     user_id = self.settings.config['ACCOUNT_ID']
         # else:
         #     user_id = self.settings.config['USER_ID']
-        if self.settings.config.has_key('MONGODB_URI'):
+        if self.settings.config.get('MONGODB_URI'):
             connection['client'] = MongoClient(self.settings.config['MONGODB_URI'])
         else:
             mongo_uri = self.get_mongo_uri(db_name)
             connection['client'] = MongoClient(mongo_uri)
-        
+        connection['authsource'] ='admin'
         connection['db'] = connection['client'][db_name]
         return connection
 
