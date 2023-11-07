@@ -51,7 +51,6 @@ class LKFBaseObject:
             }
         return user
 
-
     def get_mongo_uri(self, account_id):
         dbname = 'infosync_answers_client_{}'.format(account_id)
         alias = 'client_{}'.format(account_id)
