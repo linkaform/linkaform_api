@@ -381,10 +381,6 @@ class LKF_Base(LKFBaseObject):
 
 #####
 
-
-
-
-
 class LKF_Report(LKF_Base):
 
 

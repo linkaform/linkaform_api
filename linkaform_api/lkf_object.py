@@ -17,6 +17,7 @@ from .mongo_util import connect_mongodb
 
 #### LKF Object
 class LKFBaseObject:
+    
     def __init__(self, *, id: str, created_by: UserData, settings: dict,  object: str = None ):
         self.id = id
         self.created_by = created_by
