@@ -526,6 +526,16 @@ class Network:
     ### Database Connection
     ###
 
+    def get_mongo_passowrd(self):
+        if not self.settings.config.get('MONGODB_PASSWORD'):
+            # db_pass = self.db_password()
+            response = self.dispatch(self.api_url.globals['db_password'], use_api_key=True)
+            if response['status_code'] == 201:
+                self.settings.config['MONGODB_PASSWORD'] = response['json']['mongo_password']
+                return True
+            else:
+                return False
+        return True
 
     def get_mongo_passowrd(self):
         if not self.settings.config.get('MONGODB_PASSWORD'):
