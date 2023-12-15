@@ -316,6 +316,8 @@ class CargaUniversal:
                             if id_field_catalog in view_fields:
                                 dict_record_catalog_to_save.update({id_field_catalog: content_catalog})
                             elif id_field_catalog in catalog_fields:
+                                if type(content_catalog) == list and content_catalog and type(content_catalog[0]) == dict and content_catalog[0].get('file_url'):
+                                    content_catalog = content_catalog[0]
                                 dict_record_catalog_to_save.update({id_field_catalog: [content_catalog]})
                         if cont_cat['group']:
                             group_id = cont_cat.get('group').get('group_id')
