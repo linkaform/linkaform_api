@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys, simplejson
+import sys, simplejson, arrow
 from datetime import datetime, date
 from bson import ObjectId
 
@@ -404,3 +404,40 @@ class LKF_Report(LKF_Base):
             res['json'][x] = self.json[x]
         return res
 
+    def get_period_dates(self, period):
+        now = arrow.utcnow()
+        start_date = None
+        end_date = None
+        if period == 'today':
+            start_date = now.floor('day')
+            end_date = now.shift(days=+1).floor('day')
+        elif period == 'yesterday':
+            now = now.shift(days=-1)
+            start_date = now.floor('day')
+            end_date = now.shift(days=+1).floor('day')
+        elif period == 'this_week':
+            start_date = now.floor('week')
+            end_date = now.ceil('week').shift(days=+1).floor('day')
+        elif period == 'last_week':
+            start_date = now.shift(weeks=-1)
+            start_date = start_date.floor('week')
+            end_date = start_date.ceil('week').shift(days=+1).floor('day')
+        elif period == 'last_fifteen_days':
+            start_date = now.shift(weeks=-2)
+            start_date = start_date.floor('day')
+            end_date = now.shift(days=+1).floor('day')
+        elif period == 'this_month':
+            start_date = now.floor('month')
+            end_date = now.ceil('month').shift(days=+1).floor('day')
+        elif period == 'last_month':
+            start_date = now.floor('month')
+            end_date = start_date.shift(days=-1)
+            start_date = end_date.floor('month').shift(days=+1).floor('day')
+        elif period == 'this_year':
+            start_date = now.replace(day=1, month=1, year=now.year).floor('day')
+            end_date = now.shift(days=+1).floor('day')
+        elif period == 'last_year':
+            start_date = now.replace(day=1, month=1, year=now.year-1).floor('day')
+            end_date = now.replace(day=31, month=12, year=now.year-1).ceil('day').shift(days=+1).floor('day')
+
+        return start_date, end_date

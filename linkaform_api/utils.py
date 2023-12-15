@@ -881,11 +881,19 @@ class Cache(object):
             list_to_response.append(answers_data)
         return list_to_response
 
-    def search_catalog(self, catalog_id, mango_query, jwt_settings_key=False):
-        print('jwt_settings_key=',jwt_settings_key)
+    def search_catalog(self, catalog_id, mango_query=None, jwt_settings_key=False):
+        if not mango_query:
+            mango_query = {
+               "selector": {
+                  "_id": {
+                     "$gt": None
+                     } 
+                },
+                "limit":10000,
+                "skip":0
+            }
         url = self.api_url.catalog['get_record_by_folio']['url']
         method = self.api_url.catalog['get_record_by_folio']['method']
-        print('method', method)
         data_for_post = {
             'catalog_id':catalog_id,
             'mango':mango_query
