@@ -38,7 +38,7 @@ class LKF_Base(LKFBaseObject):
         return True
 
     def do_records_close(self, form, folio, status_id=None):
-        res = self.is_record_close(form, folio)
+        res = self.is_record_close(form, folio, status_id=status_id)
         if not res:
             res = self.record_close(form, folio, 
                         status_id= self.get_key_id(status_id),
@@ -308,7 +308,7 @@ class LKF_Base(LKFBaseObject):
         match_query = {'deleted_at': {'$exists': False}}
         match_query.update(self.get_query_by('form_id', form))
         match_query.update(self.get_query_by('folio', folio))
-        match_query.update(self.get_query_by(f'answers.{self.get_key_id()}',self.get_value()))
+        match_query.update(self.get_query_by(f'answers.{self.get_key_id(key_id=status_id)}',self.get_value()))
         res = self.cr.find_one(match_query)
         if res:
             return res
@@ -324,9 +324,9 @@ class LKF_Base(LKFBaseObject):
         if not status_id:
             status_id = self.get_key_id()
         if value: 
-            value = {'$set':self.get_answer_value(value)}
+            value = {'$set':self.get_answer_value(key_id=status_id, value=value)}
         else:
-            value = {'$set':self.get_answer_value(status_id)}
+            value = {'$set':self.get_answer_value(key_id=status_id)}
         return self.set_record(form, folio, status_id=status_id, value=value )
 
     def set_record(self, form, folio, status_id=None, value=None ):
