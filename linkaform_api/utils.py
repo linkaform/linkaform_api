@@ -87,6 +87,30 @@ class Cache(object):
 
         return record
 
+    def create_folder(self, folder_type, folder_name, jwt_settings_key=False):
+        """
+        Create any item folder, it could be on the forms list, catalog list, 
+        script list or report list
+        Args:
+            folder_type (str): valid options are form, catalog, script or report
+            folder_name(str): Any valid string, the / character will be consider as a folder route or path
+        """
+        if folder_type == 'form':
+            url = self.api_url.item['create_folder']
+        elif folder_type == 'catalog':
+            url = self.api_url.catalog['create_folder']
+        elif folder_type == 'script':
+            url = self.api_url.script['create_folder']
+        elif folder_type == 'report':
+            url = self.api_url.report['create_folder']
+        else:
+            raise('{} is not a valid folder type, available options are: form, catalog, script or report')
+
+        print('url', url)
+        print('form_name', folder_name)
+
+        return self.network.dispatch(url, data={'name':folder_name}, jwt_settings_key=jwt_settings_key)
+
     def ftp_upload(self, server, username, password, file_name, file_path):
         import ftplib
         session = ftplib.FTP(server, username, password)
@@ -478,6 +502,16 @@ class Cache(object):
                 #print('value', answer)
                 return {}
         return {}
+
+    def move_item(self, parent_id, items, jwt_settings_key=False):
+        """
+        Moves one item or items inside other item. Moving items inside a folder
+        Args:
+            parent_id (str): Folder id to move to
+            items (list): List of folder ids
+        """
+        url = self.api_url.item['move_item']
+        return self.network.dispatch(url, data={'items':items, 'parent':parent_id}, jwt_settings_key=jwt_settings_key)
 
     def thread_function_dict(self, record, data, type_update, jwt_settings_key):
         #if record not in self.thread_dict.keys():
@@ -1215,7 +1249,11 @@ class Cache(object):
     def xml_to_json(self, xml_data):
         #TODO AGUAS CON LOS ENTEROS
         # Create an ElementTree object from the XML data
-        tree = ET.ElementTree(ET.fromstring(xml_data))
+        try:
+            tree = ET.ElementTree(ET.fromstring(xml_data))
+        except Exception as e:
+            print("Warning: Couldn't read file error: {}, returning an empty json ".format(e))
+            return {}
         # Function to recursively convert XML elements to JSON
         def element_to_json(element):
             data = {}

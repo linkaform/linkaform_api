@@ -15,6 +15,7 @@ class Api_url:
         self.globals = self.get_global_url()
         self.groups = self.get_groups_url()
         self.record = self.get_records_url()
+        self.report = self.get_report()
         self.script = self.get_script()
         self.users = self.get_users_url()
         # AIRFLOW
@@ -34,6 +35,7 @@ class Api_url:
     def get_catalog_url(self):
         return  {
             'catalog_id_fields': {'url': self.dest_url + '/api/infosync/catalog_model/send_catalog/', 'method':'GET'},
+            'create_folder': {'url': self.dest_url + '/api/infosync/catalog_folder/', 'method':'POST'},
             'catalog_answer_patch_multi': {'url': self.dest_url + '/api/infosync/catalog_answers/update_catalogs/', 'method': 'PATCH'},
             'create_catalog': {'url': self.dest_url + '/api/infosync/catalog_model/', 'method':'POST'},
             'get_catalog_filters': {'url': self.dest_url + '/api/infosync/catalog/get_catalog_filters/?catalog_id=', 'method': 'GET'},
@@ -63,6 +65,7 @@ class Api_url:
     def get_forms_url(self):
         return {
             'all_forms': {'url': self.dest_url + '/api/infosync/item/', 'method':'GET'},
+            'create_folder': {'url': self.dest_url + '/api/infosync/folder/', 'method':'POST'},
             'create_form': {'url': self.dest_url + '/api/infosync/form_data/', 'method':'POST'},
             'download_form_data': {'url': self.dest_url + '/api/infosync/form_data/download/', 'method':'GET'},
             'form_answer': {'url': self.dest_url + '/api/infosync/form_answer/', 'method':'GET'},
@@ -100,6 +103,7 @@ class Api_url:
         return {
             'delete_item': {'url': self.dest_url + '/api/infosync/item/{}/', 'method':'DELETE'},
             'get_item': {'url': self.dest_url + '/api/infosync/item/?id={}', 'method':'GET'},
+            'move_item': {'url': self.dest_url + '/api/infosync/item/move/', 'method':'POST'},
         }
 
     def get_records_url(self):
@@ -116,8 +120,14 @@ class Api_url:
             'get_form_records_filter': {'url': self.dest_url + '/api/infosync/form_answer/?filter_id={}&deleted=false&archived=false&limit={}&offset=0', 'method': 'GET'}
         }
 
+    def get_report(self):
+        return  {
+            'create_folder': {'url': self.dest_url + '/api/infosync/report_folder/', 'method':'POST'},
+        }
+
     def get_script(self):
         return  {
+            'create_folder': {'url': self.dest_url + '/api/infosync/script_folder/', 'method':'POST'},
             'run_script': {'url': self.dest_url + '/api/infosync/scripts/run/', 'method':'POST'},
             'upload_script': {'url': self.dest_url + '/api/infosync/upload_script/', 'method': 'POST'},
             'update_script': {'url': self.dest_url + '/api/infosync/scripts/{}/', 'method': 'PATCH'}
