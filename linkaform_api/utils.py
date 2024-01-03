@@ -96,7 +96,7 @@ class Cache(object):
             folder_name(str): Any valid string, the / character will be consider as a folder route or path
         """
         if folder_type == 'form':
-            url = self.api_url.item['create_folder']
+            url = self.api_url.form['create_folder']
         elif folder_type == 'catalog':
             url = self.api_url.catalog['create_folder']
         elif folder_type == 'script':
@@ -1245,6 +1245,17 @@ class Cache(object):
     """
     ADDONS
     """
+
+    def unlink_device(self, user_id, jwt_settings_key=False):
+        post_json = self.api_url.globals['unlink_device']
+        url = post_json['url']
+        method = post_json['method']
+        body = {
+            "user_id": user_id,
+            "unlink_all":True
+        }
+        response = self.network.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
+        return response        
 
     def xml_to_json(self, xml_data):
         #TODO AGUAS CON LOS ENTEROS
