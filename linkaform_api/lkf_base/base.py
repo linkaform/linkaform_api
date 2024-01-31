@@ -2,6 +2,7 @@
 import sys, simplejson, arrow
 from datetime import datetime, date
 from bson import ObjectId
+import importlib
 
 from ..lkf_object import LKFBaseObject
 
@@ -14,21 +15,51 @@ class LKF_Base(LKFBaseObject):
         config = settings.config
         self.lkf_base = {}
         self._set_connections(settings)
-        self.current_record = {}
-        self.close_status = 'close'
+        self.current_record =  simplejson.loads( sys_argv[1] )
         self.open_status = 'open'
+        self.close_status = 'close'
         self.open_status = 'new'
         self.status_id = '0000000000000000000aaaaa'
-        settings = self.update_settings(settings)
+        self.settings = self.update_settings(settings)
+        self.f = {}
         if sys_argv:
             self.argv = sys_argv
             self.data = simplejson.loads( sys_argv[2] )
             if not use_api:
-                config['JWT_KEY'] = self.data["jwt"].split(' ')[1]
-                config['USER_JWT_KEY'] = self.data["jwt"].split(' ')[1]
+                config['JWT_KEY'] = self.data.get("jwt",'').split(' ')[1]
+                config['USER_JWT_KEY'] = self.data.get("jwt",'').split(' ')[1]
                 settings.config.update(config)
+            self.answers = self.current_record.get('answers',{})
             self.current_record = self.get_current_record(sys_argv)
+            self.folio = self.current_record.get('folio',{})
+            self.form_id = self.current_record.get('form_id',{})
+            self.record_user_id = self.current_record.get('user_id')
+            if self.current_record.get('_id'):
+                if type(self.current_record['_id']) == dict:
+                    self.record_id = self.current_record['_id'].get('$oid') \
+                        if self.current_record['_id'].get('$oid') else self.current_record['_id']
+                else:
+                    self.record_id = self.current_record['_id']
             self._set_connections(settings)
+
+    # def _do_inherits(self):
+    #     print('========================= inherit')
+    #     opt = dir(self)
+    #     if '_inherit' in opt:
+    #         print('inherit3333', self._inherit)
+    #         inherits = self._inherit.split(',')
+    #         print('inherits22', inherits)
+    #         for module in inherits:
+    #             print('ya module',module)
+    #             forms = importlib.import_module(f'lkf_addons.addons.{module}.{module}_utils')
+    #             class_ = getattr(forms, 'Employee')
+    #             print('fir', dir(class_))
+    #             print('ya class_=====================>>>>',class_)
+    #             print('ya forms=====================>>>>',self.settings)
+    #             print('ya forms',forms.Employee(self.settings))
+    #             print('ya forms=====================>>>>',self)
+    #             return forms.Employee(self.settings)
+    #     return self
 
     def _set_connections(self, settings):
         self.lkf_api = utils.Cache(settings)
@@ -171,6 +202,27 @@ class LKF_Base(LKFBaseObject):
         else:
             return value
 
+    def get_record_form_fields(self, form_id=None):
+        if not form_id:
+            form_id = self.form_id
+        fields_inventory_flow = self.lkf_api.get_form_id_fields( form_id )
+        if not fields_inventory_flow:
+            return {}
+        else:
+            fields = fields_inventory_flow[0]['fields']
+
+            # Obtengo solo los índices que necesito de cada campo
+            info_fields = [{k:n[k] for k in ('label','field_type','field_id','groups_fields','group','options','catalog_fields','catalog') if k in n} for n in fields]
+
+            fields_to_new_record = {}
+            for field in info_fields:
+                if field['field_type'] == 'catalog':
+                    fields_to_new_record[ field['field_id'] ] = field['field_type']
+                if not field.get('catalog'):
+                    fields_to_new_record[ field['field_id'] ] = field['field_type']
+            #print('fields_to_new_record = ',fields_to_new_record)
+        return fields_to_new_record
+
     def get_related_records(self, query):
         records = self.cr.aggregate(query)
         return [r for r in records ]
@@ -184,7 +236,7 @@ class LKF_Base(LKFBaseObject):
         if not current_record.get('answers') and current_record.get('answers_url'):
             current_record = self.read_current_record_from_txt( current_record['answers_url'] )
         if record_to_long:
-            current_record = self.get_record_from_db( current_record.get('folio'), current_record.get('folio') )
+            current_record = self.get_record_from_db( current_record.get('form_id'), current_record.get('folio') )
         return current_record
 
     def get_key_id(self, key_id=None):
@@ -351,7 +403,7 @@ class LKF_Base(LKFBaseObject):
 
     def unlist(self, arg):
         if type(arg) == list and len(arg) > 0:
-            return unlist(arg[0])
+            return self.unlist(arg[0])
         return arg
 
     def valid_date(self, value):
@@ -385,7 +437,6 @@ class LKF_Report(LKF_Base):
 
 
     def __init__(self, settings, sys_argv=None, use_api=False):
-        print('INIT LKF_Report....')
         super().__init__(settings, sys_argv=sys_argv, use_api=use_api)
         self.json = {
             # "firstElement":{

@@ -18,12 +18,12 @@ from .base_models import UserData
 
 
 
-class LKFException(BaseException):
-    def __init__(self, message, res=None):
-        self.message = message + 'tset'
+# class self.LKFException(BaseException):
+#     def __init__(self, message, res=None):
+#         self.message = message + 'tset'
 
-    def LKFException(self, msg):
-        return BaseException(msg)
+#     def self.LKFException(self, msg):
+#         return BaseException(msg)
 
 class LKFModulesModel(BaseModel, LKFBaseObject):
     created_by: UserData
@@ -233,7 +233,7 @@ class LKFModules(LKFBaseObject):
         if item:
             #Creating New FormExist, lest update it!!!
             self.update_parent_id(parent_id, item)
-            item_id = item['item_id']
+            item_id = int(item['item_id'])
             item_info.update({
                 '_id': item['_id'],
                 'item_id': item_id, 
@@ -248,6 +248,7 @@ class LKFModules(LKFBaseObject):
                 print(f'the catalog is at its latest state {catalog_version}, {catalog_item_revision}vs no need to update')
                 pass
             else:
+                self.update_parent_id(parent_id, item)
                 catalog_model.update({'catalog_id':item_id})
                 #update form
                 # import simplejson
@@ -268,9 +269,9 @@ class LKFModules(LKFBaseObject):
 
                 elif res.get('status_code') == 404:
                     item = None
-                    raise LKFException('While updating item_id: {} with name {}, was not found on the database for an update.....'.format(item_id, catalog_name))
+                    raise self.LKFException('While updating item_id: {} with name {}, was not found on the database for an update.....'.format(item_id, catalog_name))
                 else:
-                    raise LKFException('Error updating catalog model', res)
+                    raise self.LKFException(f'Error updating catalog model {catalog_name}, item_id: {item_id}, response: {res}, check if item exist.')
 
         else:
             #Creating New Catalog
@@ -301,13 +302,14 @@ class LKFModules(LKFBaseObject):
                     'item_version':catalog_model['updated_at'],
                     'local_path': local_path,
                 }
+                print('parent_id=', parent_id)
                 self.update_parent_id(parent_id, item_info)
                 item_info.update({'parent_id':parent_id})    
                 self.create(item_info)
                 self.load_module_data( module, 'catalog', catalog_name, catalog_full_name, catalog_id)
                 self.load_item_data('catalog', catalog_name, catalog_full_name, catalog_id, item_obj_id)
             else:
-                raise LKFException('Error creating catalog model', res)
+                raise self.LKFException('Error creating catalog model', res)
         return item_info
 
     def install_forms(self, module, form_name, form_model, local_path=""):
@@ -326,7 +328,6 @@ class LKFModules(LKFBaseObject):
             }
         item = self.serach_module_item(item_info)
         if item:
-            print('updateing form')
             #Creating New FormExist, lest update it!!!
             item_id = item['item_id']
             current_form_version = item['item_version'],
@@ -337,13 +338,10 @@ class LKFModules(LKFBaseObject):
                 print('nothgin new')
                 pass
             else:
-                print('aqui va....')
                 self.update_parent_id(parent_id, item)
                 form_model.update({'form_id':item_id})
                 #update form
-                print('aqu es donde se tartda')
                 res = lkf_api.create_form(form_model)
-                print('ua regresp////')
                 if res.get('status_code') == 201:
                     updated_at = res['json']['updated_at']['$date']
                     item.update({
@@ -357,7 +355,8 @@ class LKFModules(LKFBaseObject):
                     update_query = {'_id':item['_id']}
                     self.update(update_query, item)
                 else:
-                    print('Something went wrong, we could not update the form: ', res)
+                    print('form_model=',form_model)
+                    print('Something went wrong, we could not update the form:', res)
         else:
             #Creating New Form
             if form_model.get('form_id'):
@@ -392,7 +391,6 @@ class LKFModules(LKFBaseObject):
 
     def install_script(self, module, script_path, image=None, script_properties=None, local_path=""):
         parent_id = None
-        print('local_path', local_path)
         if local_path:
             folder = self.create_folder(module, 'script', local_path)
             parent_id = folder.get('item_id')
@@ -408,7 +406,6 @@ class LKFModules(LKFBaseObject):
                 'item_name':script_name,
             }
         item = self.serach_module_item(item_info)
-        print('script_path', script_path)
         script_version = lkf_api.get_md5hash(script_path)
         if item:
             item_id = int(item['item_id'])
@@ -436,11 +433,11 @@ class LKFModules(LKFBaseObject):
                     self.update(update_query, item)
                 elif res.get('status_code') == 404:
                     item = None
-                    raise LKFException('Not found.....',res.get('status_code'))
+                    raise self.LKFException('Not found.....',res.get('status_code'))
                 elif res.get('status_code') == 400:
-                    raise LKFException(f'Ya existe un script con este Nombre: {script_name}, item_id:{item_id}')
+                    raise self.LKFException(f'Ya existe un script con este Nombre: {script_name}, item_id:{item_id}')
                 else:
-                    raise LKFException('Error updating catalog model')
+                    raise self.LKFException('Error updating catalog model')
         else:
             print('Creating script: ', script_name)
             #Creating New Script
@@ -465,9 +462,9 @@ class LKFModules(LKFBaseObject):
                 self.load_module_data( module, 'script', script_name, script_name, script_id)
                 self.load_item_data('script', script_name, script_name, script_id)
             elif res.get('status_code') == 400:
-                raise LKFException(f'Ya existe un script con este Nombre: {script_name}')
+                raise self.LKFException(f'Ya existe un script con este Nombre: {script_name}')
             else:
-                raise LKFException('Error creating script')
+                raise self.LKFException('Error creating script')
         if script_properties:
             self.set_script_properties(item_info['item_id'], script_properties)
         return item_info
@@ -495,7 +492,6 @@ class LKFModules(LKFBaseObject):
     def update_parent_id(self, parent_id, item_obj):
         if parent_id != item_obj.get('parent_id'):
             item_id = item_obj['item_id']
-            print('item_id', item_id)
             move_res = self.lkf_api.move_item(parent_id, [item_id,])
             if item_obj.get('_id'):
                 update_query = {'_id':item_obj['_id']}
@@ -503,10 +499,10 @@ class LKFModules(LKFBaseObject):
                     item_obj.update({'parent_id':parent_id})
                     self.update(update_query, item_obj)
                 else:
-                    LKFException('Error moving {}  called {}: {}'.format(item_obj['item_name'], move_res))
+                    self.LKFException('Error moving {}  called {}: {}'.format(item_obj['item_name'], move_res))
             else:
                 if move_res.get('status_code') != 202:
-                    LKFException('Error moving NEW item {}  called {}: {}'.format(item_obj['item_name'], move_res))
+                    self.LKFException('Error moving NEW item {}  called {}: {}'.format(item_obj['item_name'], move_res))
         return {'status_code':200}
 
     def read_template_file(self, file_path, file_name, file_data=None):
@@ -516,11 +512,10 @@ class LKFModules(LKFBaseObject):
         template = env.get_template(file_name)
         # Load and parse the JSON data
         # Render the template with JSON data
-        print('self.module_data', self.module_data)
         try:
             output = template.render(self.module_data)
         except exceptions.UndefinedError as e:
-            raise LKFException('Falta de instalar un modulo', e)
+            self.LKFException('Falta de instalar un modulo: ' + e)
         # Print or use the rendered output
         json_file = self.lkf_api.xml_to_json(output)
         return json_file

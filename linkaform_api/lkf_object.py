@@ -14,8 +14,8 @@ from .mongo_util import connect_mongodb
 #Flask Models
 # from flask_pymongo import PyMongo
 
-
 #### LKF Object
+
 class LKFBaseObject:
     
     def __init__(self, *, id: str, created_by: UserData, settings: dict,  object: str = None ):
@@ -26,7 +26,8 @@ class LKFBaseObject:
         self.settings = settings
         self.config = settings.config
 
-
+    def LKFException(self, msg):
+        raise BaseException(msg)
 
     # resource_id: Optional[int]
     # username: Optional[str]
