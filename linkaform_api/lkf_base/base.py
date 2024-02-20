@@ -12,6 +12,7 @@ from linkaform_api import settings, network, utils, lkf_models
 class LKF_Base(LKFBaseObject):
 
     def __init__(self, settings, sys_argv=None, use_api=False):
+        self.folio = self.record_id = self.answers = self.form_id = self.record_user_id = self.current_record = None
         config = settings.config
         self.lkf_base = {}
         self._set_connections(settings)
@@ -34,32 +35,16 @@ class LKF_Base(LKFBaseObject):
             self.folio = self.current_record.get('folio',{})
             self.form_id = self.current_record.get('form_id',{})
             self.record_user_id = self.current_record.get('user_id')
+            print('current_record', self.current_record)
             if self.current_record.get('_id'):
                 if type(self.current_record['_id']) == dict:
                     self.record_id = self.current_record['_id'].get('$oid') \
                         if self.current_record['_id'].get('$oid') else self.current_record['_id']
                 else:
                     self.record_id = self.current_record['_id']
+            if not self.record_id and self.current_record.get('connection_record_id'):
+                self.record_id = self.current_record.get('connection_record_id',{}).get('$oid')
             self._set_connections(settings)
-
-    # def _do_inherits(self):
-    #     print('========================= inherit')
-    #     opt = dir(self)
-    #     if '_inherit' in opt:
-    #         print('inherit3333', self._inherit)
-    #         inherits = self._inherit.split(',')
-    #         print('inherits22', inherits)
-    #         for module in inherits:
-    #             print('ya module',module)
-    #             forms = importlib.import_module(f'lkf_addons.addons.{module}.{module}_utils')
-    #             class_ = getattr(forms, 'Employee')
-    #             print('fir', dir(class_))
-    #             print('ya class_=====================>>>>',class_)
-    #             print('ya forms=====================>>>>',self.settings)
-    #             print('ya forms',forms.Employee(self.settings))
-    #             print('ya forms=====================>>>>',self)
-    #             return forms.Employee(self.settings)
-    #     return self
 
     def _set_connections(self, settings):
         self.lkf_api = utils.Cache(settings)
