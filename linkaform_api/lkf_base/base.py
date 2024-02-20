@@ -274,7 +274,10 @@ class LKF_Base(LKFBaseObject):
             match_query.update(query_answers)
 
         record_found = self.cr.find(match_query, select_columns)
-        return record_found.next()
+        try:
+            return record_found.next()
+        except:
+            return {}
 
     def get_record_by_id(self, _id):
         query = {
@@ -298,7 +301,10 @@ class LKF_Base(LKFBaseObject):
         }
         select_columns = {'folio':1,'user_id':1,'form_id':1,'answers':1,'_id':1,'connection_id':1,'created_at':1,'other_versions':1,'timezone':1}
         record_found = version_cr.find(query)
-        return record_found.next()
+        try:
+            return record_found.next()
+        except:
+            return {}
 
     def get_record_last_version(self, record):
         latest_versions = record.get('other_versions',[])
