@@ -35,7 +35,6 @@ class LKF_Base(LKFBaseObject):
             self.folio = self.current_record.get('folio',{})
             self.form_id = self.current_record.get('form_id',{})
             self.record_user_id = self.current_record.get('user_id')
-            print('current_record', self.current_record)
             if self.current_record.get('_id'):
                 if type(self.current_record['_id']) == dict:
                     self.record_id = self.current_record['_id'].get('$oid') \
@@ -379,6 +378,23 @@ class LKF_Base(LKFBaseObject):
         update_db = self.cr.update_many(match_query, value)
         return update_db.raw_result
 
+    def search_4_key(self, data, search_key):
+        if data.get(search_key):
+            return data[search_key]
+        res = None
+        for key, value in data.items():
+            if type(data[key]) == dict:
+               res = self.search_4_key(data[key], search_key)
+            if type(data[key]) == list:
+               for x in data[key]:
+                  if type(x) == dict:
+                     res = self.search_4_key(x, search_key)
+            if key == search_key:
+               return value
+            if res:
+                break
+        return res
+        
     def update_settings(self, settings):
         lkf_api = utils.Cache(settings)
         APIKEY = settings.config.get('APIKEY', settings.config.get('API_KEY', ))

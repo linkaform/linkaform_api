@@ -355,7 +355,6 @@ class LKFModules(LKFBaseObject):
                     update_query = {'_id':item['_id']}
                     self.update(update_query, item)
                 else:
-                    print('form_model=',form_model)
                     print('Something went wrong, we could not update the form:', res)
         else:
             #Creating New Form
