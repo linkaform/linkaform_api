@@ -363,6 +363,7 @@ class LKFModules(LKFBaseObject):
                 form_model.pop('form_id')
             res = lkf_api.create_form(form_model)
             import simplejson
+            print('form_model', form_model)
             form_full_name = form_model['name']
             if res.get('status_code') == 201:
                 form_id = res['json']['form_id']
@@ -515,7 +516,7 @@ class LKFModules(LKFBaseObject):
         try:
             output = template.render(self.module_data)
         except exceptions.UndefinedError as e:
-            self.LKFException('Falta de instalar un modulo: ' + e)
+            self.LKFException(f'Falta de instalar un modulo con path: {file_path} y nombre : {file_name} con error:  ' + str(e))
         # Print or use the rendered output
         json_file = self.lkf_api.xml_to_json(output)
         return json_file
