@@ -101,7 +101,7 @@ class LKF_Base(LKFBaseObject):
         res = self.search(values)
         return res
 
-    def cache_set(self, values):
+    def cache_set(self, values, **kwargs):
         if values.get('_id'):
             t_id = values.pop('_id')
             res = self.search({'_id':t_id, '_one':True}).get('cache',{})
@@ -109,7 +109,7 @@ class LKF_Base(LKFBaseObject):
             values = res
         else:
             t_id = ObjectId()
-        return self.create({'_id':t_id, 'cache':values})
+        return self.create({'_id':t_id, 'cache':values, 'kwargs':kwargs})
 
     def cache_update(self, values):
         self.create({'test':1,'status':'drop'})
@@ -277,7 +277,10 @@ class LKF_Base(LKFBaseObject):
             match_query.update(query_answers)
 
         record_found = self.cr.find(match_query, select_columns)
-        return record_found.next()
+        try:
+            return record_found.next()
+        except:
+            return {}
 
     def get_record_by_folio(self, folio, form_id, select_columns=[]):
         select_columns = self.get_selected_columns(select_columns)
