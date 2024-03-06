@@ -421,12 +421,15 @@ class Network:
         errors_json = []
         res = []
         for index, answer in enumerate(answers):
-            #print('answers', answer)
-            if answer.get('_id') and answer['_id']:
-                record_id = answer.pop('_id')
+            if answer.get('deleted_objects'):
+                print('deleting objects...')
+                url = self.api_url.record['form_answer_patch']['url'] 
             else:
-                raise ValueError('The answer must have a record_id')
-            url = self.api_url.record['form_answer_patch']['url'] +  str(record_id) + '/'
+                if answer.get('_id') and answer['_id']:
+                    record_id = answer.pop('_id')
+                    url = self.api_url.record['form_answer_patch']['url'] +  str(record_id) + '/'
+                else:
+                    raise ValueError('The answer must have a record_id')
             method = self.api_url.record['form_answer_patch']['method']
             r = self.dispatch(url=url, method=method, data=answer, jwt_settings_key=jwt_settings_key)
             #r = self.dispatch(api_url['catalog']['set_catalog_answer'], data=answer)
