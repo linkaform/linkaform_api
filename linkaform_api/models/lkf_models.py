@@ -363,7 +363,6 @@ class LKFModules(LKFBaseObject):
                 form_model.pop('form_id')
             res = lkf_api.create_form(form_model)
             import simplejson
-            print('form_model', form_model)
             form_full_name = form_model['name']
             if res.get('status_code') == 201:
                 form_id = res['json']['form_id']
