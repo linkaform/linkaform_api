@@ -514,7 +514,7 @@ class LKFModules(LKFBaseObject):
         try:
             output = template.render(self.module_data)
         except exceptions.UndefinedError as e:
-            self.LKFException('Falta de instalar un modulo: ' + e)
+            self.LKFException(f'Falta de instalar un modulo con path: {file_path} y nombre : {file_name} con error:  ' + str(e))
         # Print or use the rendered output
         json_file = self.lkf_api.xml_to_json(output)
         return json_file

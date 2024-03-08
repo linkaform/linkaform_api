@@ -45,6 +45,9 @@ class Cache(object):
             return response['data']
         return response
 
+    def delete_form_records(self, delete_record_ids, jwt_settings_key=False):
+        return self.patch_record(data, jwt_settings_key=jwt_settings_key)
+
     def assigne_user_records(self, user_id, record_id_list, send_email=False,
         send_push_notification=False, previos_user_id=False, jwt_settings_key=False):
         url_method = self.api_url.record['assigne_user']

@@ -14,7 +14,6 @@ from linkaform_api import settings, network, utils, lkf_models
 class LKF_Base(LKFBaseObject):
 
     def __init__(self, settings, sys_argv=None, use_api=False):
-        self.folio = self.record_id = self.answers = self.form_id = self.record_user_id = self.current_record = None
         config = settings.config
         self.lkf_base = {}
         self._set_connections(settings)
@@ -43,9 +42,29 @@ class LKF_Base(LKFBaseObject):
                         if self.current_record['_id'].get('$oid') else self.current_record['_id']
                 else:
                     self.record_id = self.current_record['_id']
-            if not self.record_id and self.current_record.get('connection_record_id'):
-                self.record_id = self.current_record.get('connection_record_id',{}).get('$oid')
+            else:
+                self.record_id = None
+                self.record_id = None
             self._set_connections(settings)
+
+    # def _do_inherits(self):
+    #     print('========================= inherit')
+    #     opt = dir(self)
+    #     if '_inherit' in opt:
+    #         print('inherit3333', self._inherit)
+    #         inherits = self._inherit.split(',')
+    #         print('inherits22', inherits)
+    #         for module in inherits:
+    #             print('ya module',module)
+    #             forms = importlib.import_module(f'lkf_addons.addons.{module}.{module}_utils')
+    #             class_ = getattr(forms, 'Employee')
+    #             print('fir', dir(class_))
+    #             print('ya class_=====================>>>>',class_)
+    #             print('ya forms=====================>>>>',self.settings)
+    #             print('ya forms',forms.Employee(self.settings))
+    #             print('ya forms=====================>>>>',self)
+    #             return forms.Employee(self.settings)
+    #     return self
 
     def _set_connections(self, settings):
         self.lkf_api = utils.Cache(settings)
@@ -230,11 +249,14 @@ class LKF_Base(LKFBaseObject):
             key_id = self.status_id
         return key_id
 
+    def get_query_by(self, key, value):
+        update = {key: value}
+        if type(value) == list:
+            update = {key: {'$in': value}}
+        return update
+
     def get_records(self, form_id=None, folio=None, query_answers={}, select_columns=[]):
-        if select_columns:
-            select_columns = {key:1 for key in select_columns}
-        else:
-            select_columns = {'folio':1,'user_id':1,'form_id':1,'answers':1,'_id':1,'connection_id':1,'created_at':1,'other_versions':1,'timezone':1}
+        select_columns = self.get_selected_columns(select_columns)
         match_query = {'deleted_at': {'$exists': False}}
     
         if form_id:
@@ -246,10 +268,7 @@ class LKF_Base(LKFBaseObject):
         return self.cr.find(match_query, select_columns)
 
     def get_record_from_db(self, form_id=None, folio=None, query_answers={}, select_columns=[]):
-        if select_columns:
-            select_columns = {key:1 for key in select_columns}
-        else:
-            select_columns = {'folio':1,'user_id':1,'form_id':1,'answers':1,'_id':1,'connection_id':1,'created_at':1,'other_versions':1,'timezone':1}
+        select_columns = self.get_selected_columns(select_columns)
         match_query = {'deleted_at': {'$exists': False}}
     
         if form_id:
@@ -265,19 +284,36 @@ class LKF_Base(LKFBaseObject):
         except:
             return {}
 
-    def get_record_by_id(self, _id):
+    def get_record_by_folio(self, folio, form_id, select_columns=[]):
+        select_columns = self.get_selected_columns(select_columns)
         query = {
-            '_id': ObjectId(_id),
+            'folio': folio,
             'deleted_at': {'$exists': False}
         }
-        select_columns = {'folio':1,'user_id':1,'form_id':1,'answers':1,'_id':1,'connection_id':1,'created_at':1,'other_versions':1,'timezone':1}
+        if form_id:
+            query.update({'form_id':form_id})
+        print('query', query)
+        print('query', self.cr)
         record_found = self.cr.find(query, select_columns)
         try:
             return record_found.next()
         except:
             return {}
 
-    def get_record_verion_by_id(self, _id):
+    def get_record_by_id(self, _id,  select_columns=[]):
+        select_columns = self.get_selected_columns(select_columns)
+        query = {
+            '_id': ObjectId(_id),
+            'deleted_at': {'$exists': False}
+        }
+        record_found = self.cr.find(query, select_columns)
+        try:
+            return record_found.next()
+        except:
+            return {}
+
+    def get_record_verion_by_id(self, _id, select_columns=[]):
+        select_columns = self.get_selected_columns(select_columns)
         version_cr = self.net.get_collections('answer_version')
         if not _id:
             return []
@@ -285,7 +321,6 @@ class LKF_Base(LKFBaseObject):
             '_id': ObjectId(_id),
             'deleted_at': {'$exists': False}
         }
-        select_columns = {'folio':1,'user_id':1,'form_id':1,'answers':1,'_id':1,'connection_id':1,'created_at':1,'other_versions':1,'timezone':1}
         record_found = version_cr.find(query)
         try:
             return record_found.next()
@@ -302,11 +337,12 @@ class LKF_Base(LKFBaseObject):
         else:
             return {}
 
-    def get_query_by(self, key, value):
-        update = {key: value}
-        if type(value) == list:
-            update = {key: {'$in': value}}
-        return update
+    def get_selected_columns(self, select_columns):
+        if select_columns:
+            select_columns = {key:1 for key in select_columns}
+        else:
+            select_columns = {'folio':1,'user_id':1,'form_id':1,'answers':1,'_id':1,'connection_id':1,'created_at':1,'other_versions':1,'timezone':1}
+        return select_columns
 
     def get_value(self, get_value=None):
         if not get_value:
@@ -396,7 +432,7 @@ class LKF_Base(LKFBaseObject):
             if res:
                 break
         return res
-        
+
     def update_settings(self, settings):
         lkf_api = utils.Cache(settings)
         APIKEY = settings.config.get('APIKEY', settings.config.get('API_KEY', ))
@@ -451,6 +487,7 @@ class LKF_Report(LKF_Base):
 
 
     def __init__(self, settings, sys_argv=None, use_api=False):
+        print('INIT LKF_Report....')
         super().__init__(settings, sys_argv=sys_argv, use_api=use_api)
         self.json = {
             # "firstElement":{
