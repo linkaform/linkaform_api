@@ -3,6 +3,8 @@ import sys, simplejson, arrow
 from datetime import datetime, date
 from bson import ObjectId
 import importlib
+from datetime import datetime
+from pytz import timezone
 
 from ..lkf_object import LKFBaseObject
 
@@ -437,7 +439,12 @@ class LKF_Base(LKFBaseObject):
             raise('Not a valid length of a date')
         return value
 
-
+    def get_today_format(self):
+        today = datetime.now()
+        today = today.astimezone(timezone('America/Monterrey'))
+        str_today = datetime.strftime(today, '%Y-%m-%d')
+        today = datetime.strptime( '{} 00:00:00'.format( str_today ), '%Y-%m-%d %H:%M:%S')
+        return today
 #####
 
 class LKF_Report(LKF_Base):
