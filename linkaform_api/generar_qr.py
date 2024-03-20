@@ -48,5 +48,5 @@ class LKF_QR:
         img.save( complete_path )
         upload_data = { 'form_id': form_id, 'field_id': img_field_id}
         respuesta_carga_qr = self.upload_qr(complete_path, name_to_save,  upload_data)
-        print 'respuesta_carga_qr=',respuesta_carga_qr
+        print( 'respuesta_carga_qr=',respuesta_carga_qr)
         return respuesta_carga_qr

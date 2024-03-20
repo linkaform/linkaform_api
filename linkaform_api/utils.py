@@ -90,6 +90,24 @@ class Cache(object):
 
         return record
 
+    def create_catalog(self, catalog_model, jwt_settings_key=False):
+        url = self.api_url.catalog['create_catalog']['url']
+        method = self.api_url.catalog['create_catalog']['method']
+        return self.network.dispatch(url=url, method=method, data=catalog_model, use_api_key=False, jwt_settings_key=jwt_settings_key)
+
+    def create_filter(self, catalog_id, filter_name, filter_to_search, filter_selected=None, jwt_settings_key=False):
+        url = self.api_url.catalog['create_filter']['url']
+        method = self.api_url.catalog['create_filter']['method']
+        data_for_post = {
+            "catalog_id": catalog_id,
+            "filter": filter_to_search,
+            "filter_name": filter_name,
+            "filter_selected":filter_selected,
+            "pageSize": 20
+        }
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post, jwt_settings_key=jwt_settings_key)
+        return response
+
     def create_folder(self, folder_type, folder_name, jwt_settings_key=False):
         """
         Create any item folder, it could be on the forms list, catalog list, 
@@ -113,6 +131,28 @@ class Cache(object):
         print('form_name', folder_name)
 
         return self.network.dispatch(url, data={'name':folder_name}, jwt_settings_key=jwt_settings_key)
+
+    def create_form(self, data, jwt_settings_key=False):
+        url = '{}'.format(self.api_url.form['create_form']['url'])
+        method = self.api_url.form['create_form']['method']
+        return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+
+    def create_report(self, data, jwt_settings_key=False):
+        url = '{}'.format(self.api_url.report['create_report']['url'])
+        method = self.api_url.form['create_form']['method']
+        print(' data', data)
+        return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+
+    def create_user(self, data, jwt_settings_key=False):
+        #TODO UPDATE SELF.ITESM
+        #Returns all the connections
+        # {"first_name":"new","last_name":null,
+        # "username":null,"email":"new@new.com",
+        # "password":"123456","password2":"123456","position":"111","phone":1,"permissions":["add_form"]}
+        url = self.api_url.users['create_user']['url']
+        method = self.api_url.users['create_user']['method']
+        user = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+        return user
 
     def ftp_upload(self, server, username, password, file_name, file_path):
         import ftplib
@@ -319,17 +359,6 @@ class Cache(object):
         user = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
         objects = user['data']
         return objects
-
-    def create_user(self, data, jwt_settings_key=False):
-        #TODO UPDATE SELF.ITESM
-        #Returns all the connections
-        # {"first_name":"new","last_name":null,
-        # "username":null,"email":"new@new.com",
-        # "password":"123456","password2":"123456","position":"111","phone":1,"permissions":["add_form"]}
-        url = self.api_url.users['create_user']['url']
-        method = self.api_url.users['create_user']['method']
-        user = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
-        return user
 
     def get_licences(self, jwt_settings_key=False):
         url = self.api_url.users['get_licenses']['url']
@@ -737,11 +766,6 @@ class Cache(object):
     """
     Formas
     """
-    def create_form(self, data, jwt_settings_key=False):
-        url = '{}'.format(self.api_url.form['create_form']['url'])
-        method = self.api_url.form['create_form']['method']
-        return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
-
     def download_form(self, form_id, jwt_settings_key=False):
         url = '{}{}/'.format(self.api_url.form['download_form_data']['url'], form_id)
         method = self.api_url.form['download_form_data']['method']
@@ -758,12 +782,6 @@ class Cache(object):
     """
     GROUPS
     """
-    def create_group(self, data, jwt_settings_key=False):
-        post_json = self.api_url.groups['create_group']
-        response = self.network.dispatch(url=post_json['url'], method=post_json['method'], data=data, jwt_settings_key=jwt_settings_key)
-
-        return response
-
     def delete_group(self, group_id, jwt_settings_key=False):
         post_json = self.api_url.groups['delete_group']
         url = post_json['url'].format(group_id)
@@ -851,10 +869,6 @@ class Cache(object):
     """
     Catalogos
     """
-    def create_catalog(self, catalog_model, jwt_settings_key=False):
-        url = self.api_url.catalog['create_catalog']['url']
-        method = self.api_url.catalog['create_catalog']['method']
-        return self.network.dispatch(url=url, method=method, data=catalog_model, use_api_key=False, jwt_settings_key=jwt_settings_key)
 
     def update_catalog_model(self, catalog_id, catalog_model, jwt_settings_key=False):
         url = self.api_url.catalog['update_catalog_model']['url'].format(catalog_id)
@@ -904,7 +918,8 @@ class Cache(object):
     def post_catalog_answers_list(self, answers, test=False, jwt_settings_key=False ):
         return self.network.post_catalog_answers_list(answers, jwt_settings_key=jwt_settings_key)
 
-    def prepare_response_find(self, response):
+    def prepare_response_find(self, response, **kwargs):
+        limit = kwargs.get('limit')
         list_data = response.get('json',{}).get('objects',[])
         list_to_response = []
         for d in list_data:
@@ -915,10 +930,24 @@ class Cache(object):
                 'created_at':d.get('created_at',''),
                 'updated_at':d.get('updated_at',''),
                 })
+            if limit and limit == 1:
+                return answers_data
             list_to_response.append(answers_data)
         return list_to_response
 
-    def search_catalog(self, catalog_id, mango_query=None, jwt_settings_key=False):
+    def search_catalog_answers(self, catalog_id, answers={}, jwt_settings_key=False, **kwargs):
+        limit =  kwargs.get('limit', 10000)
+        skip =  kwargs.get('skip', 0)
+        mango_query = {
+               "selector": {'answers':answers},
+                "limit":limit,
+                "skip":skip
+            }
+        return self.search_catalog(catalog_id, mango_query=mango_query, jwt_settings_key=jwt_settings_key, **kwargs)
+
+    def search_catalog(self, catalog_id, mango_query={}, jwt_settings_key=False, **kwargs):
+        limit =  kwargs.get('limit', 10000)
+        skip =  kwargs.get('skip', 0)
         if not mango_query:
             mango_query = {
                "selector": {
@@ -926,8 +955,8 @@ class Cache(object):
                      "$gt": None
                      } 
                 },
-                "limit":10000,
-                "skip":0
+                "limit":limit,
+                "skip":skip
             }
         url = self.api_url.catalog['get_record_by_folio']['url']
         method = self.api_url.catalog['get_record_by_folio']['method']
@@ -935,10 +964,9 @@ class Cache(object):
             'catalog_id':catalog_id,
             'mango':mango_query
             }
-
         response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post, jwt_settings_key=jwt_settings_key)
         if response['status_code'] == 200:
-            return self.prepare_response_find(response)
+            return self.prepare_response_find(response, **kwargs)
         if response['status_code'] == 440:
             if response.get('json'):
                 return response['json'].get('error')
@@ -1026,18 +1054,6 @@ class Cache(object):
         response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
         return response
 
-    def create_filter(self, catalog_id, filter_name, filter_to_search, filter_selected=None, jwt_settings_key=False):
-        url = self.api_url.catalog['create_filter']['url']
-        method = self.api_url.catalog['create_filter']['method']
-        data_for_post = {
-            "catalog_id": catalog_id,
-            "filter": filter_to_search,
-            "filter_name": filter_name,
-            "filter_selected":filter_selected,
-            "pageSize": 20
-        }
-        response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data_for_post, jwt_settings_key=jwt_settings_key)
-        return response
 
     def delete_filter(self, catalog_id, filter_name, jwt_settings_key=False):
         url = self.api_url.catalog['delete_filter']['url']

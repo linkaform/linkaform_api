@@ -20,7 +20,7 @@ class LKF_Base(LKFBaseObject):
         self.close_status = 'close'
         self.open_status = 'new'
         self.status_id = '0000000000000000000aaaaa'
-        self.settings = self.update_settings(settings)
+        self.settings = self.update_settings(settings, use_api=use_api)
         self.f = {}
         if sys_argv:
             self.argv = sys_argv
@@ -431,11 +431,12 @@ class LKF_Base(LKFBaseObject):
                 break
         return res
 
-    def update_settings(self, settings):
+    def update_settings(self, settings, use_api=False):
         lkf_api = utils.Cache(settings)
         APIKEY = settings.config.get('APIKEY', settings.config.get('API_KEY', ))
         user = lkf_api.get_jwt(api_key=APIKEY, get_user=True)
-        settings.config["JWT_KEY"] = user.get('jwt')
+        if use_api:
+            settings.config["JWT_KEY"] = user.get('jwt')
         settings.config["APIKEY_JWT_KEY"] = user.get('jwt')
         account_id = user['user']['parent_info']['id']
         settings.config["USER_ID"] = user['user']['id']

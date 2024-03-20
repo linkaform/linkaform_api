@@ -103,7 +103,7 @@ class LKFModules(LKFBaseObject):
             res.append(self.lkf_api.create_filter(catalog_id, filter_name, filter_to_search, filter_selected=filter_selected))
         return res
 
-    def create_folder(self, module, folder_type, folder_name):
+    def create_folder(self, module, folder_type, folder_name, **kwargs):
         folder_path = ''
         parent_id = None
         for f_name in folder_name.split('/'):
@@ -118,7 +118,7 @@ class LKFModules(LKFBaseObject):
                 item_name = folder['item_name']
                 status_code = 200
                 if parent_id:
-                    self.update_parent_id(parent_id, folder)
+                    self.update_parent_id(parent_id, folder, **kwargs)
                 parent_id = folder['item_id']
             else:
                 res = self.lkf_api.create_folder(folder_type, f_name)
@@ -134,8 +134,8 @@ class LKFModules(LKFBaseObject):
                         'module': module,
                         'item_id': item_id,
                         'item_type': folder_type + '_folder',
-                        'item_name':item_name,
                         'item_full_name': item_name,
+                        'item_name': item_name,
                         'load_data': False,
                         'load_demo': False,
                         'local_path': folder_name,
@@ -204,7 +204,7 @@ class LKFModules(LKFBaseObject):
                     self.module_data[module][item_type][item_name]['item_obj_id'] = item_obj_id
         return True
 
-    def install_catalog(self, module, catalog_name, catalog_model, local_path=""):
+    def install_catalog(self, module, catalog_name, catalog_model, local_path="", **kwargs):
         """
         Installs catalog on LKFModule database
 
@@ -232,7 +232,7 @@ class LKFModules(LKFBaseObject):
             catalog_filters = catalog_model.pop('filters')
         if item:
             #Creating New FormExist, lest update it!!!
-            self.update_parent_id(parent_id, item)
+            self.update_parent_id(parent_id, item, **kwargs)
             item_id = int(item['item_id'])
             item_info.update({
                 '_id': item['_id'],
@@ -248,7 +248,7 @@ class LKFModules(LKFBaseObject):
                 print(f'the catalog is at its latest state {catalog_version}, {catalog_item_revision}vs no need to update')
                 pass
             else:
-                self.update_parent_id(parent_id, item)
+                self.update_parent_id(parent_id, item, **kwargs)
                 catalog_model.update({'catalog_id':item_id})
                 #update form
                 # import simplejson
@@ -302,8 +302,7 @@ class LKFModules(LKFBaseObject):
                     'item_version':catalog_model['updated_at'],
                     'local_path': local_path,
                 }
-                print('parent_id=', parent_id)
-                self.update_parent_id(parent_id, item_info)
+                self.update_parent_id(parent_id, item_info, **kwargs)
                 item_info.update({'parent_id':parent_id})    
                 self.create(item_info)
                 self.load_module_data( module, 'catalog', catalog_name, catalog_full_name, catalog_id)
@@ -312,7 +311,7 @@ class LKFModules(LKFBaseObject):
                 raise self.LKFException('Error creating catalog model', res)
         return item_info
 
-    def install_forms(self, module, form_name, form_model, local_path=""):
+    def install_forms(self, module, form_name, form_model, local_path="", **kwargs):
         parent_id = None
         if local_path:
             folder = self.create_folder(module, 'form', local_path)
@@ -338,7 +337,7 @@ class LKFModules(LKFBaseObject):
                 print('nothgin new')
                 pass
             else:
-                self.update_parent_id(parent_id, item)
+                self.update_parent_id(parent_id, item, **kwargs)
                 form_model.update({'form_id':item_id})
                 #update form
                 res = lkf_api.create_form(form_model)
@@ -378,7 +377,7 @@ class LKFModules(LKFBaseObject):
                     'item_version':form_model['updated_at'],
                     'status':'create'
                 }
-                self.update_parent_id(parent_id, item_info)
+                self.update_parent_id(parent_id, item_info, **kwargs)
                 item_info.update({'parent_id':parent_id})   
                 self.create(item_info)
                 self.load_module_data( module, 'form', form_name, form_full_name, form_id)
@@ -388,10 +387,12 @@ class LKFModules(LKFBaseObject):
                 return res
         return item_info
 
-    def install_script(self, module, script_path, image=None, script_properties=None, local_path=""):
+    def install_script(self, module, script_path, image=None, script_properties=None, local_path="", **kwargs):
         parent_id = None
+        item_type = kwargs.get('item_type', 'script')
+        folder_type = kwargs.get('folder_type', 'script')
         if local_path:
-            folder = self.create_folder(module, 'script', local_path)
+            folder = self.create_folder(module, folder_type, local_path)
             parent_id = folder.get('item_id')
         lkf_api = self.lkf_api
         user = self.get_user_data()
@@ -401,7 +402,7 @@ class LKFModules(LKFBaseObject):
                 # 'created_by' : user,
                 'module': module,
                 # 'name': 'como lo ponomes',
-                'item_type': 'script',
+                'item_type': item_type,
                 'item_name':script_name,
             }
         item = self.serach_module_item(item_info)
@@ -411,13 +412,13 @@ class LKFModules(LKFBaseObject):
             script_item_version = item['item_version']
             if script_version == script_item_version:
                 item_info.update(item)
-                self.update_parent_id(parent_id, item)
+                self.update_parent_id(parent_id, item, **kwargs)
                 pass
             else:
                 #update form
                 print('Updating script: ', script_name)
                 print('Updating item_id: ', item_id)
-                self.update_parent_id(parent_id, item)
+                self.update_parent_id(parent_id, item, **kwargs)
                 res = lkf_api.post_upload_script(script_path, script_id=int(item_id), image=image)
                 if res.get('status_code') == 200:
                     updated_at = int(time.time())
@@ -450,15 +451,15 @@ class LKFModules(LKFBaseObject):
                     'updated_at':int(time.time()),
                     'module': module,
                     'item_id': script_id,
-                    'item_type': 'script',
+                    'item_type': item_type,
                     'item_name':script_name,
                     'item_full_name':script_path,
                     'item_version':script_version,
                 }
-                self.update_parent_id(parent_id, item_info)
+                self.update_parent_id(parent_id, item_info, **kwargs)
                 item_info.update({'parent_id':parent_id})   
                 self.create(item_info)
-                self.load_module_data( module, 'script', script_name, script_name, script_id)
+                self.load_module_data( module, item_type, script_name, script_name, script_id)
                 self.load_item_data('script', script_name, script_name, script_id)
             elif res.get('status_code') == 400:
                 raise self.LKFException(f'Ya existe un script con este Nombre: {script_name}')
@@ -468,8 +469,83 @@ class LKFModules(LKFBaseObject):
             self.set_script_properties(item_info['item_id'], script_properties)
         return item_info
   
-    def item_id(self, catalog_name, item_type, info=None):
-        res = self.module_data[item_type].get(catalog_name)
+    def install_report(self, module, report_name, report_path, report_model, local_path="", **kwargs):
+        parent_id = None
+        if local_path:
+            folder = self.create_folder(module, 'report', local_path)
+            parent_id = folder.get('item_id')
+        lkf_api = self.lkf_api
+        user = self.get_user_data()
+        item_info = {
+                # 'created_by' : user,
+                'module': module,
+                # 'name': 'como lo ponomes',
+                'item_type': 'report',
+                'item_name':report_name,
+            }
+        item = self.serach_module_item(item_info)
+        if item:
+            #Creating New reportExist, lest update it!!!
+            item_id = item['item_id']
+            current_report_version = item['item_version'],
+            report_version = report_model['updated_at'],
+            if current_report_version == report_version and False:
+                item['status'] = 'unchanged'
+                item_info.update(item)
+                print('nothgin new')
+                pass
+            else:
+                self.update_parent_id(parent_id, item, **kwargs)
+                report_model.update({'report_id':item_id})
+                #update report
+                res = lkf_api.create_report(report_model)
+                if res.get('status_code') == 201:
+                    updated_at = res['json']['updated_at']['$date']
+                    item.update({
+                        'updated_by':self.get_user_data(),
+                        'item_version':report_model['updated_at'],
+                        'updated_at':updated_at,
+                        'status':'update',
+                        'parent_id':parent_id
+                        })
+                    item_info.update(item)
+                    update_query = {'_id':item['_id']}
+                    self.update(update_query, item)
+                else:
+                    print('Something went wrong, we could not update the report:', res)
+        else:
+            #Creating New report
+            print('report_model2', report_model)
+            res = lkf_api.create_report(report_model )
+            # print('res', res)
+            report_full_name = report_model['name']
+            if res.get('status_code') == 201:
+                report_id = res['json']['report_id']
+                item_info = {
+                    'created_by' : self.get_user_data(),
+                    'updated_by' : self.get_user_data(),
+                    'created_at':int(time.time()),
+                    'updated_at':int(time.time()),
+                    'module': module,
+                    'item_id': report_id,
+                    'item_type': 'report',
+                    'item_name':report_name,
+                    'item_full_name':report_full_name,
+                    'item_version':report_model['updated_at'],
+                    'status':'create'
+                }
+                self.update_parent_id(parent_id, item_info, **kwargs)
+                item_info.update({'parent_id':parent_id})   
+                self.create(item_info)
+                self.load_module_data( module, 'report', report_name, report_full_name, report_id)
+                self.load_item_data('report', report_name, report_full_name, report_id)
+            else:
+                # self.bad_request(report_model)
+                return res
+        return item_info
+
+    def item_id(self, item_name, item_type, info=None):
+        res = self.module_data[item_type].get(item_name)
         if info:
             return res.get(info)
         else:
@@ -487,9 +563,9 @@ class LKFModules(LKFBaseObject):
     def set_script_properties(self, script_id, properties):
         res = self.lkf_api.update_script(script_id, properties)
 
-
-    def update_parent_id(self, parent_id, item_obj):
-        if parent_id != item_obj.get('parent_id'):
+    def update_parent_id(self, parent_id, item_obj, **kwargs):
+        force = kwargs.get('force')
+        if parent_id != item_obj.get('parent_id') or force:
             item_id = item_obj['item_id']
             move_res = self.lkf_api.move_item(parent_id, [item_id,])
             if item_obj.get('_id'):
@@ -518,7 +594,6 @@ class LKFModules(LKFBaseObject):
         # Print or use the rendered output
         json_file = self.lkf_api.xml_to_json(output)
         return json_file
-
 
     def remove_module_items(self, item_ids):
         cr, data = self.get_cr_data(collection='LKFModules')

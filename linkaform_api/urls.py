@@ -124,6 +124,7 @@ class Api_url:
     def get_report(self):
         return  {
             'create_folder': {'url': self.dest_url + '/api/infosync/report_folder/', 'method':'POST'},
+            'create_report': {'url': self.dest_url + '/api/infosync/report/', 'method':'POST'},
         }
 
     def get_script(self):

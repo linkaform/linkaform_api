@@ -171,7 +171,6 @@ class Network:
         JWT = self.settings.config['JWT_KEY']
         if jwt_settings_key:
             JWT = self.settings.config[jwt_settings_key]
-
         if use_jwt and not use_api_key:
             headers = {'Authorization':'Bearer {0}'.format(JWT)}
             if not up_file:
