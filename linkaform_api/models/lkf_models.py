@@ -485,10 +485,10 @@ class LKFModules(LKFBaseObject):
             }
         item = self.serach_module_item(item_info)
         if item:
-            #Creating New reportExist, lest update it!!!
+            #Creating New reportExist, last update it!!!
             item_id = item['item_id']
             current_report_version = item['item_version'],
-            report_version = report_model['updated_at'],
+            report_version = report_model.get('updated_at'),
             if current_report_version == report_version and False:
                 item['status'] = 'unchanged'
                 item_info.update(item)
@@ -496,14 +496,14 @@ class LKFModules(LKFBaseObject):
                 pass
             else:
                 self.update_parent_id(parent_id, item, **kwargs)
-                report_model.update({'report_id':item_id})
+                report_model.update({'id':item_id})
                 #update report
-                res = lkf_api.create_report(report_model)
-                if res.get('status_code') == 201:
-                    updated_at = res['json']['updated_at']['$date']
+                res = lkf_api.update_report(item_id, report_model)
+                if res.get('status_code') == 202:
+                    updated_at = None
                     item.update({
                         'updated_by':self.get_user_data(),
-                        'item_version':report_model['updated_at'],
+                        'item_version':report_model.get('updated_at'),
                         'updated_at':updated_at,
                         'status':'update',
                         'parent_id':parent_id
@@ -515,12 +515,10 @@ class LKFModules(LKFBaseObject):
                     print('Something went wrong, we could not update the report:', res)
         else:
             #Creating New report
-            print('report_model2', report_model)
             res = lkf_api.create_report(report_model )
-            # print('res', res)
             report_full_name = report_model['name']
             if res.get('status_code') == 201:
-                report_id = res['json']['report_id']
+                report_id = res['json']['id']
                 item_info = {
                     'created_by' : self.get_user_data(),
                     'updated_by' : self.get_user_data(),
@@ -531,12 +529,13 @@ class LKFModules(LKFBaseObject):
                     'item_type': 'report',
                     'item_name':report_name,
                     'item_full_name':report_full_name,
-                    'item_version':report_model['updated_at'],
+                    'item_version':report_model.get('updated_at'),
                     'status':'create'
                 }
+                print('parent_id', parent_id)
                 self.update_parent_id(parent_id, item_info, **kwargs)
-                item_info.update({'parent_id':parent_id})   
                 self.create(item_info)
+                item_info.update({'parent_id':parent_id})   
                 self.load_module_data( module, 'report', report_name, report_full_name, report_id)
                 self.load_item_data('report', report_name, report_full_name, report_id)
             else:
@@ -574,10 +573,10 @@ class LKFModules(LKFBaseObject):
                     item_obj.update({'parent_id':parent_id})
                     self.update(update_query, item_obj)
                 else:
-                    self.LKFException('Error moving {}  called {}: {}'.format(item_obj['item_name'], move_res))
+                    self.LKFException('Error moving {}  called {}.'.format(item_obj['item_name'], move_res))
             else:
                 if move_res.get('status_code') != 202:
-                    self.LKFException('Error moving NEW item {}  called {}: {}'.format(item_obj['item_name'], move_res))
+                    self.LKFException('Error moving NEW item {}  called: {}'.format(item_obj['item_name'], move_res ))
         return {'status_code':200}
 
     def read_template_file(self, file_path, file_name, file_data=None):

@@ -488,7 +488,6 @@ class LKF_Report(LKF_Base):
 
 
     def __init__(self, settings, sys_argv=None, use_api=False):
-        print('INIT LKF_Report....')
         super().__init__(settings, sys_argv=sys_argv, use_api=use_api)
         self.json = {
             # "firstElement":{

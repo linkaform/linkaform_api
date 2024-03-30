@@ -663,6 +663,11 @@ class Cache(object):
         }
         return self.network.dispatch(url=url, method=method, data=data_script, up_file=script_file_dir, jwt_settings_key=jwt_settings_key)
 
+    def update_report(self, report_id, properites, jwt_settings_key=False):
+        url = self.api_url.report['update_report']['url'].format(report_id)
+        method = self.api_url.report['update_report']['method']
+        return self.network.dispatch(url=url, method=method, data=properites, jwt_settings_key=jwt_settings_key)
+
     def update_script(self, script_id, properites, jwt_settings_key=False):
         url = self.api_url.script['update_script']['url'].format(script_id)
         method = self.api_url.script['update_script']['method']
@@ -1317,13 +1322,10 @@ class Cache(object):
                                 if not child_data:
                                     data[child.tag] = ''
                                 for key, value in child_data.items():
-                                    # print('item...=', child.tag)
                                     if key == 'item':
-                                        # print('chjild tabg22333', child.tag)
                                         data[tv(child.tag)] = data.get(child.tag, [])
                                         data[tv(child.tag)] = value
                                     else:
-                                        # print('chjild tabg4444', child.tag)
                                         data[tv(child.tag)] = data.get(child.tag, {})
                                         ch_data = get_same_properites(child.tag, res)
                                         data[tv(child.tag)] = transform_dict_values(ch_data)
