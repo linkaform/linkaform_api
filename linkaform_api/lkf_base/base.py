@@ -73,6 +73,45 @@ class LKF_Base(LKFBaseObject):
         self.lkm = lkf_models.LKFModules(settings)
         return True
 
+    def _labels(self, data={}):
+        if not data:
+            data=self.answers
+        res = {}
+        _f = {v:k for k, v in self.f.items()}
+        if type(data) in (str, int, float):
+            return data
+        for key, value in data.items():
+            label = _f.get(key,key)
+            if type(value) == dict:
+                res.update(self._labels(data=value))
+            elif type(value) == list:
+                list_res = []
+                for l in value:
+                    list_res.append(self._labels(l))
+                res.update({label:list_res})
+            else:
+                res[label] = value
+        return res
+
+    def _lables_to_ids(self, data={}):
+        if not data:
+            data=self.answers
+        res = {}
+        if type(data) in (str, int, float):
+            return data
+        for key, value in data.items():
+            label = self.f.get(key,key)
+            if type(value) == dict:
+                res.update(self._labels(data=value))
+            elif type(value) == list:
+                list_res = []
+                for l in value:
+                    list_res.append(self._labels(l))
+                res.update({label:list_res})
+            else:
+                res[label] = value
+        return res
+
     def do_records_close(self, form, folio, status_id=None):
         res = self.is_record_close(form, folio, status_id=status_id)
         if not res:
@@ -501,9 +540,9 @@ class LKF_Report(LKF_Base):
         } 
 
     def report_print(self):
-        res = {'json':{}}
+        res = {"json":{}}
         for x in self.json:
-            res['json'][x] = self.json[x]
+            res["json"][x] = self.json[x]
         return res
 
     def get_period_dates(self, period):
