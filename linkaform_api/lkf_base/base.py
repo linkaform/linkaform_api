@@ -36,14 +36,15 @@ class LKF_Base(LKFBaseObject):
             self.folio = self.current_record.get('folio',{})
             self.form_id = self.current_record.get('form_id',{})
             self.record_user_id = self.current_record.get('user_id')
-            if self.current_record.get('_id'):
-                if type(self.current_record['_id']) == dict:
+            if self.current_record.get('_id') or self.current_record.get('record_id'):
+                if self.current_record.get('record_id'):
+                    self.record_id = self.current_record['record_id']
+                elif type(self.current_record['_id']) == dict:
                     self.record_id = self.current_record['_id'].get('$oid') \
                         if self.current_record['_id'].get('$oid') else self.current_record['_id']
                 else:
                     self.record_id = self.current_record['_id']
             else:
-                self.record_id = None
                 self.record_id = None
             self._set_connections(settings)
 

@@ -3,6 +3,7 @@
 
 #Python Imports
 import time, simplejson
+from bson import ObjectId
 from pydantic import BaseModel, validator, StrictBool, AnyUrl
 from typing import (
     Deque, Optional, Union, List
@@ -350,6 +351,8 @@ class LKFModules(LKFBaseObject):
                         'status':'update',
                         'parent_id':parent_id
                         })
+                    if not item.get('item_obj_id'):
+                        item.update({'item_obj_id': str(ObjectId())})
                     item_info.update(item)
                     update_query = {'_id':item['_id']}
                     self.update(update_query, item)
@@ -359,11 +362,12 @@ class LKFModules(LKFBaseObject):
             #Creating New Form
             if form_model.get('form_id'):
                 form_model.pop('form_id')
+            # print('form_model', form_model)
             res = lkf_api.create_form(form_model)
-            import simplejson
             form_full_name = form_model['name']
             if res.get('status_code') == 201:
                 form_id = res['json']['form_id']
+                item_obj_id = str(ObjectId())
                 item_info = {
                     'created_by' : self.get_user_data(),
                     'updated_by' : self.get_user_data(),
@@ -371,6 +375,7 @@ class LKFModules(LKFBaseObject):
                     'updated_at':int(time.time()),
                     'module': module,
                     'item_id': form_id,
+                    'item_obj_id': item_obj_id,
                     'item_type': 'form',
                     'item_name':form_name,
                     'item_full_name':form_full_name,
@@ -381,7 +386,7 @@ class LKFModules(LKFBaseObject):
                 item_info.update({'parent_id':parent_id})   
                 self.create(item_info)
                 self.load_module_data( module, 'form', form_name, form_full_name, form_id)
-                self.load_item_data('form', form_name, form_full_name, form_id)
+                self.load_item_data('form', form_name, form_full_name, form_id, item_obj_id)
             else:
                 # self.bad_request(form_model)
                 return res

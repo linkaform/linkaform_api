@@ -140,7 +140,6 @@ class Cache(object):
     def create_report(self, data, jwt_settings_key=False):
         url = '{}'.format(self.api_url.report['create_report']['url'])
         method = self.api_url.form['create_form']['method']
-        print(' data', data)
         return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
 
     def create_user(self, data, jwt_settings_key=False):
@@ -470,10 +469,7 @@ class Cache(object):
             options = element['options']
             default = False
             best_guess = (0,0)
-            #print('options', options)
             for opt in options:
-                #print('opt', opt['value'])
-                #print('opt type', type(opt['value']))
                 if answer == opt['value']:
                     return opt['value']
                 if answer.lower().replace(' ', '_') == opt['value']:
