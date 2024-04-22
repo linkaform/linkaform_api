@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys, simplejson, arrow
+import sys, simplejson, arrow, time
 from datetime import datetime, date
 from bson import ObjectId
 import importlib
@@ -144,6 +144,7 @@ class LKF_Base(LKFBaseObject):
         return res
 
     def cache_set(self, values, **kwargs):
+        created_at = datetime.today().strftime('%Y-%m-%dT%H:%M:%S')
         if values.get('_id'):
             t_id = values.pop('_id')
             res = self.search({'_id':t_id, '_one':True}).get('cache',{})
@@ -151,7 +152,12 @@ class LKF_Base(LKFBaseObject):
             values = res
         else:
             t_id = ObjectId()
-        return self.create({'_id':t_id, 'cache':values, 'kwargs':kwargs})
+        return self.create({
+            '_id':t_id, 
+            'timestamp':int(time.time()), 
+            'created_at': created_at, 
+            'cache':values, 
+            'kwargs':kwargs})
 
     def cache_update(self, values):
         self.create({'test':1,'status':'drop'})
@@ -423,6 +429,16 @@ class LKF_Base(LKFBaseObject):
             }
             })
         return res
+
+    def object_id(self):
+        #Asegura que no exista el object_id en la base de datos
+        cant = 1
+        idx = 0
+        while cant > 0:
+            new_id = ObjectId()
+            res = self.cr.find({"_id":new_id})
+            cant = res.count()
+        return str(new_id)
 
     def is_record_close(self, form, folio, status_id=None ):
         match_query = {'deleted_at': {'$exists': False}}
