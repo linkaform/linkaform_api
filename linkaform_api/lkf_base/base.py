@@ -195,6 +195,17 @@ class LKF_Base(LKFBaseObject):
         date_obj = self.date_from_str(date_str)
         return date_obj.timestamp()
 
+    def date_2_str(self, value):
+        res=None
+        try:
+            res = datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            try:
+                res = datetime.strptime(value, '%Y-%m-%dT%H:%M:%S')
+            except ValueError:
+                res = datetime.strptime(value, '%Y-%m-%d')
+        return res
+        
     def date_operation(self, date_value, operator, qty, unit, date_format=None):
         if type(date_value) == str:
             epoch = self.date_2_epoch(date_value)
@@ -493,14 +504,18 @@ class LKF_Base(LKFBaseObject):
         lkf_api = utils.Cache(settings)
         APIKEY = settings.config.get('APIKEY', settings.config.get('API_KEY', ))
         user = lkf_api.get_jwt(api_key=APIKEY, get_user=True)
-        if use_api:
-            settings.config["JWT_KEY"] = user.get('jwt')
-        settings.config["APIKEY_JWT_KEY"] = user.get('jwt')
-        account_id = user['user']['parent_info']['id']
-        settings.config["USER_ID"] = user['user']['id']
-        settings.config["ACCOUNT_ID"] = account_id
-        settings.config["USER"] = user['user']
-        settings.config["MONGODB_USER"] = 'account_{}'.format(account_id)
+        try:
+            if use_api:
+                settings.config["JWT_KEY"] = user.get('jwt')
+            settings.config["APIKEY_JWT_KEY"] = user.get('jwt')
+            account_id = user['user']['parent_info']['id']
+            settings.config["USER_ID"] = user['user']['id']
+            settings.config["ACCOUNT_ID"] = account_id
+            settings.config["USER"] = user['user']
+            settings.config["MONGODB_USER"] = 'account_{}'.format(account_id)
+            self.user = user['user']
+        except Exception as e:
+            self.LKFException('Error al cargar sus settings favor de revisar settings', e)
         return settings
 
     def unlist(self, arg):
