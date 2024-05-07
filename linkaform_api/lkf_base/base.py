@@ -17,7 +17,6 @@ class LKF_Base(LKFBaseObject):
         config = settings.config
         self.lkf_base = {}
         self._set_connections(settings)
-        self.current_record =  simplejson.loads( sys_argv[1] )
         self.open_status = 'open'
         self.close_status = 'close'
         self.open_status = 'new'
@@ -25,6 +24,7 @@ class LKF_Base(LKFBaseObject):
         self.settings = self.update_settings(settings, use_api=use_api)
         self.f = {}
         if sys_argv:
+            self.current_record =  simplejson.loads( sys_argv[1] )
             self.argv = sys_argv
             self.data = simplejson.loads( sys_argv[2] )
             if not use_api:
@@ -71,6 +71,7 @@ class LKF_Base(LKFBaseObject):
         self.lkf_api = utils.Cache(settings)
         self.net = network.Network(settings)
         self.cr = self.net.get_collections()
+        self.cr_wkf = self.net.get_collections('workflow_log')
         self.lkm = lkf_models.LKFModules(settings)
         return True
 
@@ -515,6 +516,38 @@ class LKF_Base(LKFBaseObject):
         else:
             raise('Not a valid length of a date')
         return value
+
+    def wf_create_relation(self, resp_create_record):
+        if resp_create_record.get('status_code') == 201:
+            # print('... creando workflow')
+            record_created_id = resp_create_record.get('json', {}).get('id')
+            record_created_folio = resp_create_record.get('json', {}).get('folio')
+            self.wf_set_relation(record_created_id, record_created_folio, resp_create_record.get('data',''))
+
+    def wf_set_relation(self, record_id_child, folio_child, data_response):
+        name_script = self.data.get('name', '')
+        child = {
+            'created_at': datetime.utcnow(),
+            'folio': self.current_record['folio'],
+            'form_id': self.current_record['form_id'],
+            'name': f"Script {name_script}",
+            # 'record_id': ObjectId(record_id_father),
+            # 'record_request_id': ObjectId(record_id_father),
+            'record_id': ObjectId(self.record_id),
+            'record_request_id': ObjectId(self.record_id),
+            'record_response_content': data_response,
+            'record_response_code': 201,
+            'record_success': True,
+            'record_status': 'created',
+            "workflow_rule" : 2,
+            "workflow_rule_name" : "Create Record",
+            "workflow_sucess" : True,
+            'workflow_record_folio': folio_child,
+            'workflow_record_id': ObjectId(record_id_child),
+            'workflow_response_content': data_response
+        }
+        res_cr = self.cr_wkf.insert_one(child)
+        # print('res_cr', res_cr)
 
     def get_today_format(self):
         today = datetime.now()
