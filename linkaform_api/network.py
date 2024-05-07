@@ -161,7 +161,6 @@ class Network:
                 response['data'] = r_data['json']
             else:
                 response['data'] = r_data
-
         return response
 
     def do_post(self, url, data, use_login=False, use_api_key=False, use_jwt=False, jwt_settings_key=False, encoding='utf-8',
@@ -528,18 +527,11 @@ class Network:
     ### Database Connection
     ###
 
-    def get_mongo_passowrd(self):
-        if not self.settings.config.get('MONGODB_PASSWORD'):
-            # db_pass = self.db_password()
-            response = self.dispatch(self.api_url.globals['db_password'], use_api_key=True)
-            if response['status_code'] == 201:
-                self.settings.config['MONGODB_PASSWORD'] = response['json']['mongo_password']
-                return True
-            else:
-                return False
-        return True
 
     def get_mongo_passowrd(self):
+        return self.get_mongo_password()
+
+    def get_mongo_password(self):
         if not self.settings.config.get('MONGODB_PASSWORD'):
             # db_pass = self.db_password()
             response = self.dispatch(self.api_url.globals['db_password'], use_api_key=True)
@@ -547,6 +539,9 @@ class Network:
                 self.settings.config['MONGODB_PASSWORD'] = response['json']['mongo_password']
                 return True
             else:
+                msg = 'Could not get database password, please check your account_settings, '
+                msg += ' and make sure you APIKEY parameter is correctly setup '
+                raise BaseException(msg)
                 return False
         return True
 
@@ -554,7 +549,7 @@ class Network:
         param_url = '?authSource={0}'.format(db_name)
         user = self.settings.config['MONGODB_USER']
         if not self.settings.config.get('MONGODB_PASSWORD'):
-            self.get_mongo_passowrd()
+            self.get_mongo_password()
         password = self.settings.config['MONGODB_PASSWORD']
         mongo_hosts = self.settings.config['MONGODB_HOST']
 
