@@ -9,7 +9,7 @@ from typing import (
     Deque, Optional, Union, List
 )
 
-from jinja2 import Environment, FileSystemLoader, exceptions
+from jinja2 import Environment, FileSystemLoader, exceptions, select_autoescape
 from datetime import datetime
 
 #LinkaForm Imports
@@ -558,12 +558,6 @@ class LKFModules(LKFBaseObject):
     def script_id(self, script_name, info=None):
         return self.item_id(script_name, 'script', info=info)
 
-    def serach_module_item(self, item_info):
-        res = self.search(item_info)
-        if res and type(res) == list and len(res) > 0:
-            return res[0]
-        return False
-
     def set_script_properties(self, script_id, properties):
         res = self.lkf_api.update_script(script_id, properties)
 
@@ -588,7 +582,13 @@ class LKFModules(LKFBaseObject):
 
     def read_template_file(self, file_path, file_name, file_data=None):
         # Create a Jinja2 environment
-        env = Environment(loader=FileSystemLoader(f'{file_path}'))
+        # file_path = '/srv/scripts/addons/modules/base/items/forms/Base/_tmp/'
+        env = Environment(
+                loader=FileSystemLoader(f'{file_path}'), 
+                autoescape=select_autoescape(
+                            enabled_extensions=('html', 'xml'),
+                            default_for_string=True,)
+              )
         # Load the template
         template = env.get_template(file_name)
         # Load and parse the JSON data
@@ -598,6 +598,7 @@ class LKFModules(LKFBaseObject):
         except exceptions.UndefinedError as e:
             self.LKFException(f'Falta de instalar un modulo con path: {file_path} y nombre : {file_name} con error:  ' + str(e))
         # Print or use the rendered output
+        return output
         json_file = self.lkf_api.xml_to_json(output)
         return json_file
 

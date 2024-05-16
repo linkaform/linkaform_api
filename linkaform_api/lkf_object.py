@@ -4,6 +4,8 @@
 #python libs
 from bson import ObjectId
 from hashlib import sha1, md5
+import subprocess
+
 # from pymongo import MongoClient
 
 # from . import settings 
@@ -14,9 +16,32 @@ from .mongo_util import connect_mongodb
 #Flask Models
 # from flask_pymongo import PyMongo
 
-#### LKF Object
+##### LKF Object
 
-class LKFBaseObject:
+class LKFBase:
+
+
+    def search_modules(self, path):
+        #cmd = ['ls', '-d', '/srv/scripts/addons/modules/*/']
+        cmd = ['ls', '-d', '{}/*/'.format(path)]
+        cmd = ['find', path , '-maxdepth', '1', '-type', 'd']
+        process = subprocess.Popen(args=cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE)
+        output, error = process.communicate()
+        res = []
+        output = output.split(b'\n')
+        for x in output:
+            x = x.decode('utf-8')
+            x = x.replace(path,'').strip('/')
+            if x.find('.') == 0 or x.find('_') ==0:
+                continue
+            if x:
+                res.append(x)
+        return res
+
+
+class LKFBaseObject(LKFBase):
     
     def __init__(self, *, id: str, created_by: UserData, settings: dict,  object: str = None ):
         self.id = id
@@ -230,6 +255,12 @@ class LKFBaseObject:
             else:
                 return {}
         return res
+
+    def serach_module_item(self, item_info):
+        res = self.search(item_info)
+        if res and type(res) == list and len(res) > 0:
+            return res[0]
+        return False
 
     def delete(self, _object=None, query=False, is_json=False ):
         cr, data = self.get_cr_data(_object, is_json=False)
