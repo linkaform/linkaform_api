@@ -412,7 +412,7 @@ class LKFModules(LKFBaseObject):
             }
         item = self.serach_module_item(item_info)
         script_version = lkf_api.get_md5hash(script_path)
-        if item:
+        if item and script_version:
             item_id = int(item['item_id'])
             script_item_version = item['item_version']
             if script_version == script_item_version:
@@ -461,11 +461,11 @@ class LKFModules(LKFBaseObject):
                     'item_full_name':script_path,
                     'item_version':script_version,
                 }
-                self.update_parent_id(parent_id, item_info, **kwargs)
                 item_info.update({'parent_id':parent_id})   
                 self.create(item_info)
                 self.load_module_data( module, item_type, script_name, script_name, script_id)
                 self.load_item_data('script', script_name, script_name, script_id)
+                self.update_parent_id(parent_id, item_info, **kwargs)
             elif res.get('status_code') == 400:
                 raise self.LKFException(f'Ya existe un script con este Nombre: {script_name}')
             else:
@@ -497,6 +497,7 @@ class LKFModules(LKFBaseObject):
             if current_report_version == report_version and False:
                 item['status'] = 'unchanged'
                 item_info.update(item)
+                self.update_parent_id(parent_id, item, **kwargs)
                 print('nothgin new')
                 pass
             else:
