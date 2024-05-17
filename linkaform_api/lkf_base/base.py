@@ -46,6 +46,11 @@ class LKF_Base(LKFBaseObject):
                     self.record_id = self.current_record['_id']
             else:
                 self.record_id = None
+            if not self.record_id:
+                conneciont_id = self.current_record.get('connection_record_id')
+                if type(conneciont_id) == dict:
+                    conneciont_id = conneciont_id.get('$oid')
+                self.record_id = conneciont_id
             self._set_connections(settings)
 
     # def _do_inherits(self):
