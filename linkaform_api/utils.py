@@ -670,7 +670,10 @@ class Cache(object):
         return self.network.dispatch(url=url, method=method, data=properites, jwt_settings_key=jwt_settings_key)
 
     def get_md5hash(self, file_name):
-        md5 = hashlib.md5(open(file_name,'rb').read()).hexdigest()
+        try:
+            md5 = hashlib.md5(open(file_name,'rb').read()).hexdigest()
+        except FileNotFoundError:
+            md5 = None
         return md5
 
     def post_upload_tmp(self, data, up_file, jwt_settings_key=False):
