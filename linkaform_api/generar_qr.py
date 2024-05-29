@@ -4,8 +4,7 @@
 #####
 import qrcode, os
 from PIL import Image
-import settings, utils
-#from ambientalistik_settings import *
+from linkaform_api import settings, utils
 
 class LKF_QR:
     def __init__(self, settings={}):

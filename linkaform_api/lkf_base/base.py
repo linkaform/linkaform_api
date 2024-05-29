@@ -22,7 +22,7 @@ class LKF_Base(LKFBaseObject):
         self.open_status = 'new'
         self.status_id = '0000000000000000000aaaaa'
         self.settings = self.update_settings(settings, use_api=use_api)
-        self.f = {}
+        self.f = {} #all fields accrose modules
         if sys_argv:
             self.current_record =  simplejson.loads( sys_argv[1] )
             self.argv = sys_argv
@@ -30,7 +30,9 @@ class LKF_Base(LKFBaseObject):
             if not use_api:
                 config['JWT_KEY'] = self.data.get("jwt",'').split(' ')[1]
                 config['USER_JWT_KEY'] = self.data.get("jwt",'').split(' ')[1]
-                settings.config.update(config)
+                self.settings.config.update(config)
+            if config.get('JWT_KEY'):
+                self.user = self.decode_jwt()
             self.answers = self.current_record.get('answers',{})
             self.current_record = self.get_current_record(sys_argv)
             self.folio = self.current_record.get('folio',{})
@@ -250,6 +252,30 @@ class LKF_Base(LKFBaseObject):
         wget.download(file_url, '/tmp/{}'.format(file_name))
         return file_name
 
+    def format_cr_result(self, cr_result):
+        res = []
+        for x in cr_result:
+            x['_id'] = str(x.get('_id',""))
+            if x.get('created_at'):
+                x['created_at'] = self.get_date_str(x['created_at'])
+            if x.get('updated_at'):
+                x['updated_at'] = self.get_date_str(x['updated_at'])
+            res.append(x)
+        return res
+
+    def get_answer(self, key):
+        """
+        Return the value of a given objectId with recursive search.
+        Ex. get_answer('664f81a23e59756b3c62ff5a.663bd36eb19b7fb7d9e97ccb')
+        """
+        keys = key.split('.')
+        d = self.answers
+        for k in keys:
+            d = d.get(k)
+            if d is None:
+                return None
+        return d
+
     def get_answer_value(self, key_id=None, value=None):
         if not key_id:
             key_id = self.get_key_id()
@@ -447,16 +473,6 @@ class LKF_Base(LKFBaseObject):
             })
         return res
 
-    def object_id(self):
-        #Asegura que no exista el object_id en la base de datos
-        cant = 1
-        idx = 0
-        while cant > 0:
-            new_id = ObjectId()
-            res = self.cr.find({"_id":new_id})
-            cant = res.count()
-        return str(new_id)
-
     def is_record_close(self, form, folio, status_id=None ):
         match_query = {'deleted_at': {'$exists': False}}
         match_query.update(self.get_query_by('form_id', form))
@@ -467,6 +483,30 @@ class LKF_Base(LKFBaseObject):
             return res
         else:
             return False
+
+    def object_id(self):
+        #Asegura que no exista el object_id en la base de datos
+        cant = 1
+        idx = 0
+        while cant > 0:
+            new_id = ObjectId()
+            res = self.cr.find({"_id":new_id})
+            cant = res.count()
+        return str(new_id)
+
+    def proyect_format(self, field_dict, **kwargs):
+        """
+        Return a project format for a field_name:ObjectId dictorionary 
+        """
+        project = {
+                '_id': 1,
+                'folio': "$folio",
+                'created_at': "$created_at",
+                'updated_at': "$updated_at",
+        }
+        for x in list(field_dict.keys()):
+            project.update({x: f"$answers.{field_dict[x]}"})
+        return project
 
     def read_current_record_from_txt(self, file_url):
         name_downloded = self.download_pdf( file_url, is_txt=True )
