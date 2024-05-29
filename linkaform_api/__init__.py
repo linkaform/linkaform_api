@@ -8,5 +8,7 @@ from .lkf_object import LKFBaseObject
 from .settings import *
 from .models import lkf_models
 from .lkf_base import base
+from .config import *
+from .generar_qr import *
 import sys
 sys.path.append('/srv/scripts/addons/config/')
