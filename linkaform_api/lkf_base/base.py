@@ -239,16 +239,16 @@ class LKF_Base(LKFBaseObject):
             return datetime.fromtimestamp(epoch)
 
     def download_pdf(self, file_url, is_txt=False):
-        oc_name = 'oc_{}.pdf'.format(str(bson.ObjectId()))
+        oc_name = 'oc_{}.pdf'.format(str(ObjectId()))
         if is_txt:
-            oc_name = 'file_{}.txt'.format(str(bson.ObjectId()))
+            oc_name = 'file_{}.txt'.format(str(ObjectId()))
         wget.download(file_url, '/tmp/{}'.format(oc_name))
         return oc_name
 
     def download_file(self, file_url, is_txt=False):
-        file_name = 'file_{}.pdf'.format(str(bson.ObjectId()))
+        file_name = 'file_{}.pdf'.format(str(ObjectId()))
         if is_txt:
-            file_name = 'file_{}.txt'.format(str(bson.ObjectId()))
+            file_name = 'file_{}.txt'.format(str(ObjectId()))
         wget.download(file_url, '/tmp/{}'.format(file_name))
         return file_name
 
