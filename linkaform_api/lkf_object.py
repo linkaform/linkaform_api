@@ -4,7 +4,7 @@
 #python libs
 from bson import ObjectId
 from hashlib import sha1, md5
-import subprocess, jwt
+import subprocess, jwt, simplejson
 
 # from pymongo import MongoClient
 
@@ -52,7 +52,7 @@ class LKFBaseObject(LKFBase):
         self.config = settings.config
 
     def LKFException(self, msg):
-        raise BaseException(msg)
+        raise Exception(simplejson.dumps(msg))
 
     # resource_id: Optional[int]
     # username: Optional[str]
@@ -69,10 +69,14 @@ class LKFBaseObject(LKFBase):
 
     def decode_jwt(self):
         token = self.settings.config['JWT_KEY']
-        # privKeyFile = open('/usr/local/lib/python3.7/site-packages/linkaform_api/config/jwt_key.pub','r')
-        # pub_key = privKeyFile.read()
-        # jwt_data = jwt.decode(token, pub_key, algorithms='RS256')
-        jwt_data = {'info':'todo'}
+        import sys
+        version = sys.version
+        if version[:4] == '3.10':
+            privKeyFile = open('/usr/local/lib/python3.10/site-packages/linkaform_api/config/jwt_key.pub','r')
+        else:
+            privKeyFile = open('/usr/local/lib/python3.7/site-packages/linkaform_api/config/jwt_key.pub','r')
+        pub_key = privKeyFile.read()
+        jwt_data = jwt.decode(token, pub_key, algorithms='RS256')
         return jwt_data
 
     def get_user_data(self):
