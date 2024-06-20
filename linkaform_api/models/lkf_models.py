@@ -440,7 +440,8 @@ class LKFModules(LKFBaseObject):
                     item = None
                     raise self.LKFException('Not found.....',res.get('status_code'))
                 elif res.get('status_code') == 400:
-                    raise self.LKFException(f'Ya existe un script con este Nombre: {script_name}, item_id:{item_id}')
+                    error = res.get('data',{}),get('error')
+                    raise self.LKFException(f'Ya existe un script con este Nombre: {script_name}, item_id:{item_id}. Error {error}')
                 else:
                     raise self.LKFException('Error updating catalog model')
         else:
