@@ -252,7 +252,7 @@ class LKF_Base(LKFBaseObject):
         wget.download(file_url, '/tmp/{}'.format(file_name))
         return file_name
 
-    def format_cr_result(self, cr_result):
+    def format_cr_result(self, cr_result, get_one=False):
         res = []
         for x in cr_result:
             x['_id'] = str(x.get('_id',""))
@@ -261,6 +261,8 @@ class LKF_Base(LKFBaseObject):
             if x.get('updated_at'):
                 x['updated_at'] = self.get_date_str(x['updated_at'])
             res.append(x)
+        if get_one:
+            res = res[0]
         return res
 
     def get_answer(self, key):
@@ -433,11 +435,6 @@ class LKF_Base(LKFBaseObject):
             select_columns = {'folio':1,'user_id':1,'form_id':1,'answers':1,'_id':1,'connection_id':1,'created_at':1,'other_versions':1,'timezone':1}
         return select_columns
 
-    def get_value(self, get_value=None):
-        if not get_value:
-            get_value = self.close_status
-        return get_value
-
     def get_date_query(self, date_from=None, date_to=None, date_field=None, date_field_id=None, field_type=None):
         res = {}
         if not date_field:
@@ -472,6 +469,18 @@ class LKF_Base(LKFBaseObject):
             }
             })
         return res
+
+    def get_today_format(self):
+        today = datetime.now()
+        today = today.astimezone(timezone('America/Monterrey'))
+        str_today = datetime.strftime(today, '%Y-%m-%d')
+        today = datetime.strptime( '{} 00:00:00'.format( str_today ), '%Y-%m-%d %H:%M:%S')
+        return today
+
+    def get_value(self, get_value=None):
+        if not get_value:
+            get_value = self.close_status
+        return get_value
 
     def is_record_close(self, form, folio, status_id=None ):
         match_query = {'deleted_at': {'$exists': False}}
@@ -600,6 +609,15 @@ class LKF_Base(LKFBaseObject):
             record_created_folio = resp_create_record.get('json', {}).get('folio')
             self.wf_set_relation(record_created_id, record_created_folio, resp_create_record.get('data',''))
 
+    def today_str(self, tz_name='America/Monterrey', date_format='date'):
+        today = datetime.now()
+        today = today.astimezone(timezone(tz_name))
+        if date_format == 'datetime':
+            str_today = datetime.strftime(today, '%Y-%m-%d %H:%M:%S')
+        else:
+            str_today = datetime.strftime(today, '%Y-%m-%d')
+        return str_today
+
     def wf_set_relation(self, record_id_child, folio_child, data_response):
         name_script = self.data.get('name', '')
         child = {
@@ -625,12 +643,6 @@ class LKF_Base(LKFBaseObject):
         res_cr = self.cr_wkf.insert_one(child)
         # print('res_cr', res_cr)
 
-    def get_today_format(self):
-        today = datetime.now()
-        today = today.astimezone(timezone('America/Monterrey'))
-        str_today = datetime.strftime(today, '%Y-%m-%d')
-        today = datetime.strptime( '{} 00:00:00'.format( str_today ), '%Y-%m-%d %H:%M:%S')
-        return today
 #####
 
 class LKF_Report(LKF_Base):
