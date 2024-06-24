@@ -261,8 +261,10 @@ class LKF_Base(LKFBaseObject):
             if x.get('updated_at'):
                 x['updated_at'] = self.get_date_str(x['updated_at'])
             res.append(x)
-        if get_one:
+        if get_one and res:
             res = res[0]
+        elif get_one and not res:
+            res = {}
         return res
 
     def get_answer(self, key):

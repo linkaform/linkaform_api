@@ -52,7 +52,23 @@ class LKFBaseObject(LKFBase):
         self.config = settings.config
 
     def LKFException(self, msg):
-        raise Exception(simplejson.dumps(msg))
+        title_default = "Something needs to be checked!!!"
+        type_default  = "warning"
+        icon_default = "fa-circle-exclamation"
+        msg_dict = {}
+        if isinstance(msg, str):
+            msg = {'msg':msg}
+
+        msg_dict['title'] = msg.get('title', title_default)
+        msg_dict['msg'] = msg.get('msg', "Something went wrong")
+        msg_dict['icon'] = msg.get('icon', title_default)
+        msg_dict['type'] = msg.get('type', title_default)
+
+        error_format = {
+            "status":400,
+            "msg":msg_dict
+        }
+        raise Exception(simplejson.dumps(error_format))
 
     # resource_id: Optional[int]
     # username: Optional[str]
@@ -71,10 +87,7 @@ class LKFBaseObject(LKFBase):
         token = self.settings.config['JWT_KEY']
         import sys
         version = sys.version
-        if version[:4] == '3.10':
-            privKeyFile = open('/usr/local/lib/python3.10/site-packages/linkaform_api/config/jwt_key.pub','r')
-        else:
-            privKeyFile = open('/usr/local/lib/python3.7/site-packages/linkaform_api/config/jwt_key.pub','r')
+        privKeyFile = open('/etc/ssl/certs/lkf_jwt_key.pub','r')
         pub_key = privKeyFile.read()
         jwt_data = jwt.decode(token, pub_key, algorithms='RS256')
         return jwt_data
