@@ -4,7 +4,7 @@
 #python libs
 from bson import ObjectId
 from hashlib import sha1, md5
-import subprocess, jwt, simplejson
+import subprocess, jwt, simplejson, sys
 
 # from pymongo import MongoClient
 
@@ -61,14 +61,22 @@ class LKFBaseObject(LKFBase):
 
         msg_dict['title'] = msg.get('title', title_default)
         msg_dict['msg'] = msg.get('msg', "Something went wrong")
-        msg_dict['icon'] = msg.get('icon', title_default)
-        msg_dict['type'] = msg.get('type', title_default)
+        msg_dict['icon'] = msg.get('icon', icon_default)
+        msg_dict['type'] = msg.get('type', type_default)
 
         error_format = {
             "status":400,
             "msg":msg_dict
         }
         raise Exception(simplejson.dumps(error_format))
+
+    def HttpResponse(self, data, indent=False, **kwargs):
+        if kwargs.get('test'):
+            return True
+        if indent:
+            sys.stdout.write(simplejson.dumps(data, indent=indent))
+        else:
+            sys.stdout.write(simplejson.dumps(data))
 
     # resource_id: Optional[int]
     # username: Optional[str]

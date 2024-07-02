@@ -252,7 +252,7 @@ class LKF_Base(LKFBaseObject):
         wget.download(file_url, '/tmp/{}'.format(file_name))
         return file_name
 
-    def format_cr_result(self, cr_result, get_one=False):
+    def format_cr(self, cr_result, get_one=False):
         res = []
         for x in cr_result:
             x['_id'] = str(x.get('_id',""))
@@ -266,6 +266,9 @@ class LKF_Base(LKFBaseObject):
         elif get_one and not res:
             res = {}
         return res
+
+    def format_cr_result(self, cr_result, get_one=False):
+        return self.format_cr(cr_result, get_one=get_one)
 
     def get_answer(self, key):
         """
