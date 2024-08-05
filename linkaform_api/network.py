@@ -418,6 +418,7 @@ class Network:
         POST_CORRECTLY=0
         errors_json = []
         res = []
+        record_id = ''
         for index, answer in enumerate(answers):
             if answer.get('deleted_objects'):
                 print('deleting objects...')
@@ -459,7 +460,6 @@ class Network:
                 counter = counter +1
 
     def try_get_pdf_multi_record(self, cr_downloads, name_pdf_record, number_try=0):
-        print('number_try to check pdf =',number_try)
         pdf_in_mongo = cr_downloads.find_one({'name': name_pdf_record, '$or':[{'status': 'done'},{'path': {'$regex': '.zip$'}}]}, {'path':1, 'status':1})
         if pdf_in_mongo:
             return pdf_in_mongo
@@ -497,13 +497,11 @@ class Network:
                 'send_url': send_url
             })
         response = self.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
-        print('********************* response =',response)
         if type(record_id) == list and response.get('status_code',0) == 202:
             cr_downloads = self.get_collections( collection='download_history' )
             # db.download_history.findOne({name:'1234567' , 'status':'done'}, {path:1, status:1})
             #pdf_in_mongo = cr_downloads.find_one({'name': name_full_pdf, 'status': 'done'}, {'path':1, 'status':1})
             pdf_in_mongo = self.try_get_pdf_multi_record(cr_downloads, name_full_pdf)
-            print('.................. pdf_in_mongo =',pdf_in_mongo)
             return pdf_in_mongo
 
         if upload_data:

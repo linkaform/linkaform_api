@@ -144,5 +144,5 @@ class Api_url:
             'create_user': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'POST'},
             'get_form_users' :{'url': self.dest_url + '/api/infosync/item/{0}/get_users/?limit=0', 'method':'GET'},
             'updated_users' :{'url': self.dest_url + '/api/infosync/user_admin/?limit=0&updated_at__gte={}', 'method':'GET'},
-            'get_licenses': {'url': self.dest_url + '/api/infosync/licenses/?limit=0', 'method': 'GET'}
+            'get_licenses': {'url': self.dest_url + '/api/infosync/licenses/?limit=0', 'method': 'GET'},
         }

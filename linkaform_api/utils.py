@@ -127,8 +127,6 @@ class Cache(object):
         else:
             raise('{} is not a valid folder type, available options are: form, catalog, script or report')
 
-        print('url', url)
-        print('form_name', folder_name)
 
         return self.network.dispatch(url, data={'name':folder_name}, jwt_settings_key=jwt_settings_key)
 
@@ -551,9 +549,11 @@ class Cache(object):
         #logging.info("Finishing with code"%(record, res))
 
     def patch_multi_record(self, answers, form_id, folios=[], record_id=[], jwt_settings_key=False, threading=False):
+        print('record_id', record_id)
         if not answers or not (folios or record_id):
             return {}
         data = {'all_responses': True}
+        data = {'type': {'selected': True}}
         data['answers'] = answers
         data['form_id'] = form_id
         type_update = 'records'
