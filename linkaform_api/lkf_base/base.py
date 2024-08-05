@@ -82,21 +82,35 @@ class LKF_Base(LKFBaseObject):
         self.lkm = lkf_models.LKFModules(settings)
         return True
 
-    def _labels(self, data={}):
+    def _labels_list(self, data=[], ids_label_dct={}):
+        res = []
+        for d in data:
+            if type(d) == list:
+                res.append(self._labels_list(d, ids_label_dct=ids_label_dct))
+            else:
+                res.append(self._labels(d, ids_label_dct=ids_label_dct))
+        return res
+
+    def _labels(self, data={}, ids_label_dct={}):
+        if not ids_label_dct:
+            ids_label_dct = self.f
         if not data:
             data=self.answers
+        _f = {v:k for k, v in ids_label_dct.items()}
         res = {}
-        _f = {v:k for k, v in self.f.items()}
         if type(data) in (str, int, float):
             return data
         for key, value in data.items():
             label = _f.get(key,key)
             if type(value) == dict:
-                res.update(self._labels(data=value))
+                res.update(self._labels(data=value, ids_label_dct=ids_label_dct))
             elif type(value) == list:
                 list_res = []
                 for l in value:
-                    list_res.append(self._labels(l))
+                    if type(l) == list:
+                        list_res.append(self._labels_list(data=l, ids_label_dct=ids_label_dct))
+                    else:
+                        list_res.append(self._labels(data=l, ids_label_dct=ids_label_dct))
                 res.update({label:list_res})
             else:
                 res[label] = value
@@ -270,6 +284,12 @@ class LKF_Base(LKFBaseObject):
     def format_cr_result(self, cr_result, get_one=False):
         return self.format_cr(cr_result, get_one=get_one)
 
+    def format_select(self, value):
+        if value:
+            value = value.replace('_', ' ')
+            value = value.title()
+        return value
+
     def get_answer(self, key):
         """
         Return the value of a given objectId with recursive search.
@@ -380,7 +400,7 @@ class LKF_Base(LKFBaseObject):
         except:
             return {}
 
-    def get_record_by_folio(self, folio, form_id, select_columns=[]):
+    def get_record_by_folio(self, folio, form_id, select_columns={}, limit=None):
         select_columns = self.get_selected_columns(select_columns)
         query = {
             'folio': folio,
@@ -388,8 +408,6 @@ class LKF_Base(LKFBaseObject):
         }
         if form_id:
             query.update({'form_id':form_id})
-        print('query', query)
-        print('query', self.cr)
         record_found = self.cr.find(query, select_columns)
         try:
             return record_found.next()
