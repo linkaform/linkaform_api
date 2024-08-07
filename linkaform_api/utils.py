@@ -90,6 +90,36 @@ class Cache(object):
 
         return record
 
+    def catalog_view(self, catalog_id, form_id, options={}, parent_catalog_id=None, jwt_settings_key=False):
+        ''' Obtiene las vistas de los catalogos en un froma
+        catalog_id: id del catalogo
+        form_id: id de la foma
+        options: Objetco con startkey, endkey y group_level
+        parent_catalog_id: id del catalogo dependiente si llegase a existir
+        '''
+        if not options:
+            options = {
+                'startkey': [],
+                'endkey': [],
+                'group_level': 1,
+            }
+        url = self.api_url.catalog['catalog_view']['url']
+        method = self.api_url.catalog['catalog_view']['method']
+        data = {
+            "catalog_id": catalog_id,
+            "form_id": form_id,
+            "options": options,
+            "parent_catalog_id":parent_catalog_id,
+        }
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, data=data, jwt_settings_key=jwt_settings_key)
+        data = response.get('data',{})
+        try:
+            data = simplejson.loads(data)
+        except:
+            data = {}
+        rows = data.get('rows',[])
+        return rows      
+
     def create_catalog(self, catalog_model, jwt_settings_key=False):
         url = self.api_url.catalog['create_catalog']['url']
         method = self.api_url.catalog['create_catalog']['method']
