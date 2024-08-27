@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys, simplejson, arrow, time
+import sys, simplejson, arrow, time, pyexcel
 from datetime import datetime, date
 from bson import ObjectId
 import importlib
@@ -79,6 +79,7 @@ class LKF_Base(LKFBaseObject):
         self.net = network.Network(settings)
         self.cr = self.net.get_collections()
         self.cr_wkf = self.net.get_collections('workflow_log')
+        self.cr_version = self.net.get_collections('answer_version')
         self.lkm = lkf_models.LKFModules(settings)
         return True
 
@@ -183,6 +184,18 @@ class LKF_Base(LKFBaseObject):
 
     def cache_update(self, values):
         self.create({'test':1,'status':'drop'})
+
+    def check_keys_and_missing(self, key_list, dictionary):
+        """
+        Verifica si todos los elementos de key_list existen como claves en dictionary
+        y devuelve los elementos que faltan.
+
+        :param key_list: Lista de strings a verificar.
+        :param dictionary: Diccionario en el cual se realizará la verificación.
+        :return: Una lista que contiene los elementos faltantes.
+        """
+        missing_keys = [key for key in key_list if key not in dictionary]
+        return missing_keys
 
     def console_run(self):
         print(f"python { self.argv[0].split('/')[-1]} '{ self.argv[1]}' '{ self.argv[2]}'")
@@ -360,6 +373,15 @@ class LKF_Base(LKFBaseObject):
             current_record = self.get_record_from_db( current_record.get('form_id'), current_record.get('folio') )
         return current_record
 
+    def get_prev_version(self, versions, select_columns=[]):
+        last_version = versions[-1]['uri']
+        id_last_version = last_version.split('/')[-2]
+        select_columns = self.get_selected_columns(select_columns)
+        record_last_version = self.cr_version.find_one({ '_id': ObjectId( id_last_version ), 'form_id': self.form_id }, select_columns)
+        if not record_last_version:
+            return {}
+        return record_last_version
+
     def get_key_id(self, key_id=None):
         if not key_id:
             key_id = self.status_id
@@ -516,6 +538,22 @@ class LKF_Base(LKFBaseObject):
         else:
             return False
 
+    def list_to_str(self, list_to_proccess, separator=', ', show_empty=False):
+        str_return = ''
+        if show_empty:
+            str_return += separator.join([a for a in list_to_proccess])
+        else:
+            str_return += separator.join([a for a in list_to_proccess if a])
+        return str_return
+
+    def make_header_dict(self, header):
+        ### Return the directory with
+        ### the column name : column number
+        header_dict = {}
+        for position in range(len(header)):
+            header_dict[ str( header[ position ] ).lower().replace(' ' ,'_') ] = position
+        return header_dict
+
     def object_id(self):
         #Asegura que no exista el object_id en la base de datos
         cant = 1
@@ -548,6 +586,12 @@ class LKF_Base(LKFBaseObject):
         name_downloded = self.download_pdf( file_url, is_txt=True )
         f = open( "/tmp/{}".format( name_downloded ) )
         return simplejson.loads( f.read() )
+
+    def read_file(self, file_url):
+        sheet = pyexcel.get_sheet(url = file_url)
+        all_records = sheet.array
+        header = all_records.pop(0)
+        return header, all_records
 
     def record_close(self, form, folio, status_id=None, value=None ):
         if not status_id:
