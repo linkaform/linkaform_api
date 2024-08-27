@@ -309,7 +309,7 @@ class LKFModules(LKFBaseObject):
                 self.load_module_data( module, 'catalog', catalog_name, catalog_full_name, catalog_id)
                 self.load_item_data('catalog', catalog_name, catalog_full_name, catalog_id, item_obj_id)
             else:
-                raise self.LKFException('Error creating catalog model', res)
+                raise self.LKFException({"msg": f"Error creating catalog model {res}"})
         return item_info
 
     def install_forms(self, module, form_name, form_model, local_path="", **kwargs):
@@ -415,6 +415,7 @@ class LKFModules(LKFBaseObject):
         if item and script_version:
             item_id = int(item['item_id'])
             script_item_version = item['item_version']
+            #TODO search on local env
             if script_version == script_item_version:
                 item_info.update(item)
                 self.update_parent_id(parent_id, item, **kwargs)

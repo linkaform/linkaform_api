@@ -103,6 +103,7 @@ class Cache(object):
                 'endkey': [],
                 'group_level': 1,
             }
+        group_level = options['group_level']
         url = self.api_url.catalog['catalog_view']['url']
         method = self.api_url.catalog['catalog_view']['method']
         data = {
@@ -118,6 +119,7 @@ class Cache(object):
         except:
             data = {}
         rows = data.get('rows',[])
+        rows = [r.get('key')[group_level-1] for r in rows]
         return rows      
 
     def create_catalog(self, catalog_model, jwt_settings_key=False):
