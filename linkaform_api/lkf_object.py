@@ -51,7 +51,7 @@ class LKFBaseObject(LKFBase):
         self.settings = settings
         self.config = settings.config
 
-    def LKFException(self, msg):
+    def LKFException(self, msg, dict_error={}):
         title_default = "Something needs to be checked!!!"
         type_default  = "warning"
         icon_default = "fa-circle-exclamation"
@@ -66,8 +66,13 @@ class LKFBaseObject(LKFBase):
 
         error_format = {
             "status":400,
-            "msg":msg_dict
+            "msg":msg_dict,
+            'error': []
         }
+
+        if dict_error:
+            error_format.update(dict_error)
+
         raise Exception(simplejson.dumps(error_format))
 
     def HttpResponse(self, data, indent=False, **kwargs):
