@@ -563,6 +563,7 @@ class LKF_Base(LKFBaseObject):
             res = self.cr.find({"_id":new_id})
             cant = res.count()
         return str(new_id)
+        
 
     def proyect_format(self, field_dict, **kwargs):
         """
@@ -575,7 +576,10 @@ class LKF_Base(LKFBaseObject):
                 'updated_at': "$updated_at",
         }
         for x in list(field_dict.keys()):
-            project.update({x: f"$answers.{field_dict[x]}"})
+            if type(field_dict[x]) == str:
+                project.update({x: f"$answers.{field_dict[x]}"})
+            elif type(field_dict[x]) == dict:
+                project.update({x: {list(field_dict[x].keys())[0]: f"$answers.{list(field_dict[x].values())[0]}"}})
         return project
 
     def read_current_record_from_txt(self, file_url):
