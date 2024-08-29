@@ -83,47 +83,39 @@ class LKF_Base(LKFBaseObject):
         self.lkm = lkf_models.LKFModules(settings)
         return True
 
-    def _labels_list(self, data=[], ids_label_dct={}):
+    def _labels_list(self, data=[], ids_label_dct={}, from_self=False):
         res = []
         for d in data:
             if type(d) == list:
-                res.append(self._labels_list(d, ids_label_dct=ids_label_dct))
+                res.append(self._labels_list(d, ids_label_dct=ids_label_dct, from_self=True))
             else:
-                res.append(self._labels(d, ids_label_dct=ids_label_dct))
+                res.append(self._labels(d, ids_label_dct=ids_label_dct, from_self=True))
         return res
 
-    def _labels(self, data={}, ids_label_dct={}):
+    def _labels(self, data={}, ids_label_dct={}, from_self=False):
         if not ids_label_dct:
             ids_label_dct = self.f
-        if not data:
+        if not data and not from_self:
             data=self.answers
-        print('data=',data)
         # print('ids_label_dct=',ids_label_dct)
         _f = {v:k for k, v in ids_label_dct.items()}
         res = {}
         if type(data) in (str, int, float):
             return data
         for key, value in data.items():
-            print('key=', key)
-            print('value=', value)
-            print('value=', type(value))
             label = _f.get(key,key)
             if type(value) == dict:
-                print('----------------')
-                res.update(self._labels(data=value, ids_label_dct=ids_label_dct))
+                res.update(self._labels(data=value, ids_label_dct=ids_label_dct, from_self=True))
             elif type(value) == list:
                 list_res = []
                 for l in value:
                     if type(l) == list:
-                        list_res.append(self._labels_list(data=l, ids_label_dct=ids_label_dct))
+                        list_res.append(self._labels_list(data=l, ids_label_dct=ids_label_dct, from_self=True))
                     else:
-                        print('11111111111111111111')
-                        print('l=',l)
                         if l:
-                            list_res.append(self._labels(data=l, ids_label_dct=ids_label_dct))
+                            list_res.append(self._labels(data=l, ids_label_dct=ids_label_dct, from_self=True))
                 res.update({label:list_res})
             else:
-                print('el else.....')
                 res[label] = value
         return res
 
