@@ -56,6 +56,10 @@ class LKFBaseObject(LKFBase):
         type_default  = "warning"
         icon_default = "fa-circle-exclamation"
         msg_dict = {}
+
+        if '"msg":' in msg:
+            raise Exception(msg)
+
         if isinstance(msg, str):
             msg = {'msg':msg}
 
@@ -66,8 +70,7 @@ class LKFBaseObject(LKFBase):
 
         error_format = {
             "status":400,
-            "msg":msg_dict,
-            'error': []
+            "msg":msg_dict
         }
 
         if dict_error:
