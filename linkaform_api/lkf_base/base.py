@@ -628,6 +628,18 @@ class LKF_Base(LKFBaseObject):
                 break
         return res
 
+    def share_item(self, share_to, item_share, perm, can_delete=False, filter_name=None):
+        data_to_share = {
+            "owner": share_to,
+            "file_shared": item_share,
+            "perm": perm,
+            "can_delete_records": can_delete
+        }
+        if filter_name:
+            data_to_share["filter_name"] = filter_name
+        res_shared = self.lkf_api.share_catalog(data_to_share)
+        return res_shared
+
     def update_settings(self, settings, use_api=False):
         lkf_api = utils.Cache(settings)
         APIKEY = settings.config.get('APIKEY', settings.config.get('API_KEY', ))
