@@ -114,6 +114,12 @@ class LKFModules(LKFBaseObject):
                 'item_name':f_name,
             }
             folder = self.serach_module_item(folder_info)
+            if not folder and kwargs.get('depends_on'):
+                for depend_module in kwargs['depends_on']:
+                    folder_info['module'] = depend_module
+                    folder = self.serach_module_item(folder_info)
+                    if folder:
+                        break
             if folder:
                 item_id = folder['item_id']
                 item_name = folder['item_name']
@@ -151,7 +157,7 @@ class LKFModules(LKFBaseObject):
             folder_path += item_name
         return {'status_code':status_code, 'item_name':item_name, 'item_id': item_id}
 
-    def fetch_installed_modules(self, item=None):
+    def fetch_installed_modules(self, item=None, x=None):
         cr, data = self.get_cr_data(collection='LKFModules')
         if item:
             return cr.find({'item_type': item}, {'module':1, 'item_type':1, 'item_name':1, 'item_id':1,'item_obj_id':1})
@@ -216,7 +222,7 @@ class LKFModules(LKFBaseObject):
         """
         parent_id = None
         if local_path:
-            folder = self.create_folder(module, 'catalog', local_path)
+            folder = self.create_folder(module, 'catalog', local_path, **kwargs)
             parent_id = folder.get('item_id')
         catalog_filters = []
         lkf_api = self.lkf_api
@@ -441,8 +447,7 @@ class LKFModules(LKFBaseObject):
                     item = None
                     raise self.LKFException('Not found.....',res.get('status_code'))
                 elif res.get('status_code') == 400:
-                    error = res.get('data',{}),get('error')
-                    raise self.LKFException(f'Ya existe un script con este Nombre: {script_name}, item_id:{item_id}. Error {error}')
+                    raise self.LKFException(f"Ya existe un script con este Nombre: {script_name}, item_id:{item_id}. Error {res['data']}")
                 else:
                     raise self.LKFException('Error updating catalog model')
         else:
