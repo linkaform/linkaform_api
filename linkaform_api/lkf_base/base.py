@@ -13,7 +13,7 @@ from linkaform_api import settings, network, utils, lkf_models
 
 class LKF_Base(LKFBaseObject):
 
-    def __init__(self, settings, sys_argv=None, use_api=False):
+    def __init__(self, settings, sys_argv=None, use_api=False, **kwargs):
         config = settings.config
         self.lkf_base = {}
         self._set_connections(settings)
@@ -22,7 +22,7 @@ class LKF_Base(LKFBaseObject):
         self.open_status = 'new'
         self.status_id = '0000000000000000000aaaaa'
         self.settings = self.update_settings(settings, use_api=use_api)
-        self.f = {} #all fields accrose modules
+        self.f = kwargs.get('f', {})
         if sys_argv:
             self.current_record =  simplejson.loads( sys_argv[1] )
             self.argv = sys_argv
@@ -281,15 +281,20 @@ class LKF_Base(LKFBaseObject):
         wget.download(file_url, '/tmp/{}'.format(file_name))
         return file_name
 
-    def format_cr(self, cr_result, get_one=False):
+    def format_cr(self, cr_result, get_one=False, labels={}, **kwargs):
         res = []
         for x in cr_result:
-            x['_id'] = str(x.get('_id',""))
+            if x.get('_id'):
+                if type(x['_id']) == dict:
+                    print('x',x)
+                    x.update({k:v for k,v in x.pop('_id').items()})
+                else:
+                    x['_id'] = str(x.get('_id',""))
             if x.get('created_at'):
                 x['created_at'] = self.get_date_str(x['created_at'])
             if x.get('updated_at'):
                 x['updated_at'] = self.get_date_str(x['updated_at'])
-            res.append(x)
+            res.append(self._labels(x))
         if get_one and res:
             res = res[0]
         elif get_one and not res:
@@ -556,6 +561,12 @@ class LKF_Base(LKFBaseObject):
             header_dict[ str( header[ position ] ).lower().replace(' ' ,'_') ] = position
         return header_dict
 
+    def match_query_by_type(self, data):
+        if type(data) == list:
+            return {'$in':data}
+        else:
+            return data
+
     def object_id(self):
         #Asegura que no exista el object_id en la base de datos
         cant = 1
@@ -566,8 +577,7 @@ class LKF_Base(LKFBaseObject):
             cant = res.count()
         return str(new_id)
         
-
-    def proyect_format(self, field_dict, **kwargs):
+    def project_format(self, field_dict, **kwargs):
         """
         Return a project format for a field_name:ObjectId dictorionary 
         """
