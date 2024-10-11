@@ -1090,7 +1090,6 @@ class Cache(object):
         response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
         return response
 
-
     def delete_filter(self, catalog_id, filter_name, jwt_settings_key=False):
         url = self.api_url.catalog['delete_filter']['url']
         method = self.api_url.catalog['delete_filter']['method']
