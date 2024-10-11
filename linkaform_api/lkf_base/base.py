@@ -15,6 +15,8 @@ class LKF_Base(LKFBaseObject):
 
     def __init__(self, settings, sys_argv=None, use_api=False, **kwargs):
         config = settings.config
+        self.sys_argv = sys_argv
+        self.use_api = use_api
         self.lkf_base = {}
         self._set_connections(settings)
         self.open_status = 'open'
@@ -343,30 +345,40 @@ class LKF_Base(LKFBaseObject):
         else:
             return value
 
-    def get_record_form_fields(self, form_id=None):
-        if not form_id:
-            form_id = self.form_id
-        fields_inventory_flow = self.lkf_api.get_form_id_fields( form_id )
-        if not fields_inventory_flow:
-            return {}
-        else:
-            fields = fields_inventory_flow[0]['fields']
+    def get_date_query(self, date_from=None, date_to=None, date_field=None, date_field_id=None, field_type=None):
+        res = {}
+        if not date_field:
+            date_field = 'created_at'
+        if date_field_id:
+            date_field = 'answers.{}'.format(date_field_id)
 
-            # Obtengo solo los índices que necesito de cada campo
-            info_fields = [{k:n[k] for k in ('label','field_type','field_id','groups_fields','group','options','catalog_fields','catalog') if k in n} for n in fields]
+            if field_type == 'int':
+                date_from = int(date_from)
+                date_to = int(date_to)
+            else:
+                date_from = self.get_date_str(date_from)
+                date_to = self.get_date_str(date_to)
+        if date_from and date_to:
+            res.update({
+            date_field: {
+            '$gte':date_from,
+            '$lte':date_to,
+            }
+            })
+        elif date_from and not date_to:
+            res.update({
+            date_field: {
+            '$gte':date_from
+            }
+            })
 
-            fields_to_new_record = {}
-            for field in info_fields:
-                if field['field_type'] == 'catalog':
-                    fields_to_new_record[ field['field_id'] ] = field['field_type']
-                if not field.get('catalog'):
-                    fields_to_new_record[ field['field_id'] ] = field['field_type']
-            #print('fields_to_new_record = ',fields_to_new_record)
-        return fields_to_new_record
-
-    def get_related_records(self, query):
-        records = self.cr.aggregate(query)
-        return [r for r in records ]
+        elif not date_from and date_to:
+            res.update({
+            date_field: {
+            '$lte':date_to
+            }
+            })
+        return res
 
     def get_current_record(self, sys_argv):
         try:
@@ -393,6 +405,12 @@ class LKF_Base(LKFBaseObject):
         if not key_id:
             key_id = self.status_id
         return key_id
+
+    def getNum(self, data, key):
+        res = data.get(key)
+        if not res:
+            res = 0
+        return res
 
     def get_query_by(self, key, value):
         update = {key: value}
@@ -480,47 +498,37 @@ class LKF_Base(LKFBaseObject):
         else:
             return {}
 
+    def get_record_form_fields(self, form_id=None):
+        if not form_id:
+            form_id = self.form_id
+        fields_inventory_flow = self.lkf_api.get_form_id_fields( form_id )
+        if not fields_inventory_flow:
+            return {}
+        else:
+            fields = fields_inventory_flow[0]['fields']
+
+            # Obtengo solo los índices que necesito de cada campo
+            info_fields = [{k:n[k] for k in ('label','field_type','field_id','groups_fields','group','options','catalog_fields','catalog') if k in n} for n in fields]
+
+            fields_to_new_record = {}
+            for field in info_fields:
+                if field['field_type'] == 'catalog':
+                    fields_to_new_record[ field['field_id'] ] = field['field_type']
+                if not field.get('catalog'):
+                    fields_to_new_record[ field['field_id'] ] = field['field_type']
+            #print('fields_to_new_record = ',fields_to_new_record)
+        return fields_to_new_record
+
+    def get_related_records(self, query):
+        records = self.cr.aggregate(query)
+        return [r for r in records ]
+
     def get_selected_columns(self, select_columns):
         if select_columns:
             select_columns = {key:1 for key in select_columns}
         else:
             select_columns = {'folio':1,'user_id':1,'form_id':1,'answers':1,'_id':1,'connection_id':1,'created_at':1,'other_versions':1,'timezone':1}
         return select_columns
-
-    def get_date_query(self, date_from=None, date_to=None, date_field=None, date_field_id=None, field_type=None):
-        res = {}
-        if not date_field:
-            date_field = 'created_at'
-        if date_field_id:
-            date_field = 'answers.{}'.format(date_field_id)
-
-            if field_type == 'int':
-                date_from = int(date_from)
-                date_to = int(date_to)
-            else:
-                date_from = self.get_date_str(date_from)
-                date_to = self.get_date_str(date_to)
-        if date_from and date_to:
-            res.update({
-            date_field: {
-            '$gte':date_from,
-            '$lte':date_to,
-            }
-            })
-        elif date_from and not date_to:
-            res.update({
-            date_field: {
-            '$gte':date_from
-            }
-            })
-
-        elif not date_from and date_to:
-            res.update({
-            date_field: {
-            '$lte':date_to
-            }
-            })
-        return res
 
     def get_today_format(self):
         today = datetime.now()
