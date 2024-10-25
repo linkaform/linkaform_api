@@ -8,7 +8,7 @@ from pytz import timezone
 
 from ..lkf_object import LKFBaseObject
 
-from linkaform_api import settings, network, utils, lkf_models
+from linkaform_api import settings, network, utils, lkf_models, upload_file
 
 
 class LKF_Base(LKFBaseObject):
@@ -78,6 +78,7 @@ class LKF_Base(LKFBaseObject):
 
     def _set_connections(self, settings):
         self.lkf_api = utils.Cache(settings)
+        self.upfile = upload_file.LoadFile(settings)
         self.net = network.Network(settings)
         self.cr = self.net.get_collections()
         self.cr_wkf = self.net.get_collections('workflow_log')
@@ -288,7 +289,6 @@ class LKF_Base(LKFBaseObject):
         for x in cr_result:
             if x.get('_id'):
                 if type(x['_id']) == dict:
-                    print('x',x)
                     x.update({k:v for k,v in x.pop('_id').items()})
                 else:
                     x['_id'] = str(x.get('_id',""))
