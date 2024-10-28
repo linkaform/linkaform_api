@@ -25,6 +25,9 @@ class LKF_Base(LKFBaseObject):
         self.status_id = '0000000000000000000aaaaa'
         self.settings = self.update_settings(settings, use_api=use_api)
         self.f = kwargs.get('f', {})
+        self.GET_CONFIG = {}
+        self.kwargs = kwargs
+        self.kwargs['MODULES'] = self.kwargs.get('MODULES',[])
         if sys_argv:
             self.current_record =  simplejson.loads( sys_argv[1] )
             self.argv = sys_argv
@@ -595,6 +598,7 @@ class LKF_Base(LKFBaseObject):
                 'created_at': "$created_at",
                 'updated_at': "$updated_at",
         }
+
         for x in list(field_dict.keys()):
             if type(field_dict[x]) == str:
                 project.update({x: f"$answers.{field_dict[x]}"})
@@ -751,8 +755,8 @@ class LKF_Base(LKFBaseObject):
 class LKF_Report(LKF_Base):
 
 
-    def __init__(self, settings, sys_argv=None, use_api=False):
-        super().__init__(settings, sys_argv=sys_argv, use_api=use_api)
+    def __init__(self, settings, sys_argv=None, use_api=False, **kwargs):
+        super().__init__(settings, sys_argv=sys_argv, use_api=use_api, **kwargs)
         self.json = {
             # "firstElement":{
             #     "data": [],
