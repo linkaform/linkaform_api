@@ -665,19 +665,21 @@ class LKF_Base(LKFBaseObject):
     def update_settings(self, settings, use_api=False):
         lkf_api = utils.Cache(settings)
         APIKEY = settings.config.get('APIKEY', settings.config.get('API_KEY', ))
-        user = lkf_api.get_jwt(api_key=APIKEY, get_user=True)
-        try:
-            if use_api:
-                settings.config["JWT_KEY"] = user.get('jwt')
-            settings.config["APIKEY_JWT_KEY"] = user.get('jwt')
-            account_id = user['user']['parent_info']['id']
-            settings.config["USER_ID"] = user['user']['id']
-            settings.config["ACCOUNT_ID"] = account_id
-            settings.config["USER"] = user['user']
-            settings.config["MONGODB_USER"] = 'account_{}'.format(account_id)
-            self.user = user['user']
-        except Exception as e:
-            self.LKFException('Error al cargar sus settings favor de revisar settings', e)
+        if not settings.config.get("SESSION"):
+            user = lkf_api.get_jwt(api_key=APIKEY, get_user=True)
+            try:
+                if use_api:
+                    settings.config["JWT_KEY"] = user.get('jwt')
+                settings.config["APIKEY_JWT_KEY"] = user.get('jwt')
+                account_id = user['user']['parent_info']['id']
+                settings.config["USER_ID"] = user['user']['id']
+                settings.config["ACCOUNT_ID"] = account_id
+                settings.config["USER"] = user['user']
+                settings.config["MONGODB_USER"] = 'account_{}'.format(account_id)
+                self.user = user['user']
+                settings.config["SESSION"] = True
+            except Exception as e:
+                self.LKFException('Error al cargar sus settings favor de revisar settings', e)
         return settings
 
     def unlist(self, arg):
