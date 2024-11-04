@@ -43,6 +43,7 @@ class LKFBase:
 
 class LKFBaseObject(LKFBase):
     
+
     def __init__(self, *, id: str, created_by: UserData, settings: dict,  object: str = None ):
         self.id = id
         self.created_by = created_by
@@ -268,14 +269,10 @@ class LKFBaseObject(LKFBase):
         # print('data', data)
         return res
 
-    def update(self, query, data, replace=False):
+    def update(self, query, data, upsert=True):
         cr, cr_data = self.get_cr_data()
-        if replace:
-            data = data
-        else:
-            data = {"$set":data}
-
-        res = cr.update_many(query, data)
+        data = {"$set":data}
+        res = cr.update_many(query, data, upsert=upsert)
         return res
 
     def search(self, query):
