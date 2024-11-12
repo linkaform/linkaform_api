@@ -314,8 +314,6 @@ class Cache(object):
     def get_user_twilio_creds(self, use_api_key=False, jwt_settings_key=False):
         post_json = self.api_url.get_users_url()['twilio_creds']
         url = post_json['url']
-        self.settings.config['USERNAME'] = username
-        self.settings.config['API_KEY'] = api_key
         return self.network.dispatch(url=url, method=post_json['method'], use_api_key=use_api_key,  jwt_settings_key=jwt_settings_key)
 
     def get_user_by_email(self, user_email, jwt_settings_key=False):
