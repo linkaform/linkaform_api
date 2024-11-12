@@ -139,6 +139,7 @@ class Api_url:
 
     def get_users_url(self):
         return  {
+            'twilio_creds': {'url': self.dest_url + '/api/infosync/user_admin/twilio_creds/', 'method':'GET'},
             'all_users': {'url': self.dest_url + '/api/infosync/user_admin/?limit=0', 'method':'GET'},
             'user_id_by_email': {'url': self.dest_url + '/api/infosync/user/?email__contains={0}', 'method':'GET'},
             'user_by_id': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'GET'},

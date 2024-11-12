@@ -16,6 +16,9 @@ import pyexcel
 import xml.etree.ElementTree as ET
 import xml.dom.minidom
 import hashlib
+from twilio.rest import Client
+
+
 
 
 # from ..models import LKFException
@@ -307,6 +310,13 @@ class Cache(object):
         all_connections = self.network.dispatch(self.api_url.connections['all_connections'], jwt_settings_key=jwt_settings_key)
         objects = all_connections['data']
         return objects
+
+    def get_user_twilio_creds(self, use_api_key=False, jwt_settings_key=False):
+        post_json = self.api_url.get_users_url()['twilio_creds']
+        url = post_json['url']
+        self.settings.config['USERNAME'] = username
+        self.settings.config['API_KEY'] = api_key
+        return self.network.dispatch(url=url, method=post_json['method'], use_api_key=use_api_key,  jwt_settings_key=jwt_settings_key)
 
     def get_user_by_email(self, user_email, jwt_settings_key=False):
         post_json = self.api_url.get_users_url()['user_id_by_email']
@@ -1175,6 +1185,28 @@ class Cache(object):
             new_rec = self.record_etl(db_cr_to, catalog_map, rec)
             r = db_cr_to.save(new_rec)
         return True
+
+    def send_sms(self, phone_to, body, use_api_key=False, jwt_settings_key=False):
+        twilio_creds = self.get_user_twilio_creds(use_api_key=use_api_key, jwt_settings_key=jwt_settings_key)
+        if twilio_creds.get('status_code') == 201:
+            twilio_creds = twilio_creds['json']
+        else:
+            Exception({"msg":"Error al obtener credecniales de Twilio"})
+
+        api_key_sid = twilio_creds['api_key_sid']
+        api_key_secret = twilio_creds['api_key_secret']
+        account_sid = twilio_creds['twilio_sid']
+        phone_twilio = twilio_creds['phone']
+        client = Client(api_key_sid, api_key_secret, account_sid)
+        try:
+            response = client.messages.create(
+                from_=phone_twilio,
+                body=body,
+                to=phone_to,
+            )
+        except Exception as e:
+            return 'Error sending sms error: ', e
+        return response
 
     def sync_catalogs(self, catalog_from_id, catlog_to_id, query, catalog_map):
         cdb_obj = couch_util.Couch_utils(self.settings)
