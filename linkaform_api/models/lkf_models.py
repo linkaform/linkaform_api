@@ -557,12 +557,13 @@ class LKFModules(LKFBaseObject):
         return item_info
 
     def item_id(self, item_name, item_type, info=None):
-        res = self.module_data[item_type].get(item_name)
+        res = self.module_data[item_type].get(item_name,{})
         if info:
             try:
                 return int(res.get(info))
             except:
-                self.LKFException(f'Can not find id or info for item type: {item_type} with name: {item_name}.')
+                print('Warning: '+ f'Can not find id or info for item type: {item_type} with name: {item_name}.')
+                return {}
         else:
             return res
 
