@@ -37,6 +37,7 @@ class Cache(object):
         self.api_url = urls.Api_url(settings)
         self.network = network.Network(self.settings)
         self.couch = couch_util.Couch_utils(self.settings)
+        self.lkf_object = lkf_object.LKFBaseObject(id='', created_by={}, settings=self.settings)
         self.thread_dict = {}
 
     def delete_inbox_records(self, delete_records, jwt_settings_key=False):
@@ -1206,8 +1207,7 @@ class Cache(object):
             "status": "pendiente",
             "created_at": datetime.now(),
         }
-
-        message_record = lkf_object.LKFBaseObject.create(_object=message_data, is_json=True, collection="messages")
+        message_record = self.lkf_object.create(_object=message_data, is_json=True, collection="messages")
         message_id = message_record.get('_id')
         
         try:
@@ -1222,14 +1222,14 @@ class Cache(object):
                 "twilio_message_sid": response.sid,
                 "updated_at": datetime.now()
             }
-            lkf_object.LKFBaseObject.update({"_id": message_id}, status_update)
+            self.lkf_object.update({"_id": message_id}, status_update, collection="messages")
         except Exception as e:
             status_update = {
                 "status": "error",
                 "error_message": str(e),
                 "updated_at": datetime.now()
             }
-            lkf_object.LKFBaseObject.update({"_id": message_id}, status_update)
+            self.lkf_object.update({"_id": message_id}, status_update,collection="messages")
             return 'Error sending sms error: ', e
         return response
 
