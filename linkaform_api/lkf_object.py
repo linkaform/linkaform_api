@@ -158,11 +158,29 @@ class LKFBaseObject(LKFBase):
                 collection = self.name
             else:
                 collection = _object.__class__.__name__
-                if collection == 'NoneType':
-                    raise 'Error setting up collection name'
+            
+            if not collection or collection == 'NoneType':
+                raise 'Error setting up collection name'
         # mongo = PyMongo(settings)
+        # pacosotto
         mongo =  self.__conect_db()
-        conn = eval('mongo.{}'.format(collection))
+        # if collection in mongo.list_collection_names():
+        #     print('Lista de colecciones')
+        #     print(mongo.list_collection_names())
+
+        try:
+            conn = eval('mongo.{}'.format(collection))
+
+            print(f'Collection {collection} found...')
+            # documents = list(conn.find())
+            # if documents:
+            #     print("Documents in collection:")
+            #     for doc in documents:
+            #         print(doc)
+            # else:
+            #     print(f"No documents found in {collection}.")
+        except KeyError:
+            raise ValueError(f"Collection {collection} not found in the database.")
             #conn = self.lkf_obj
         #TODO Create database indexes
         # return self.lkf_obj['account_{}'.format(self.created_by.account_id)]
@@ -273,11 +291,24 @@ class LKFBaseObject(LKFBase):
         return res
 
     def update(self, query, data, upsert=True, collection=False):
+        if not collection:
+            print("Error: La colección no está definida correctamente.")
+            return
         cr, cr_data = self.get_cr_data(collection=collection)
-        print('collection', collection)
-        print('cr', cr)
+        # print('collection', collection)
+        # print('cr', cr)
+        # print('cr_data', cr_data)
+        print('////////////////data_sms_uptdate', data)
         data = {"$set":data}
         res = cr.update_many(query, data, upsert=upsert)
+
+        if res.modified_count > 0:
+            print(f"Actualización exitosa: {res.modified_count} documentos modificados.")
+        elif res.upserted_id is not None:
+            print("Se realizó un upsert (inserción) con éxito.")
+        else:
+            print("No se realizaron modificaciones.")
+
         return res
 
     def search(self, query, collection=False):
