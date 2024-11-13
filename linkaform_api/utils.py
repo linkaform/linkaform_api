@@ -9,7 +9,7 @@ from math import ceil
 from copy import deepcopy
 #import concurrent.futures
 #from forms import Form
-from linkaform_api import network
+from linkaform_api import network, lkf_object
 from linkaform_api  import couch_util
 from datetime import datetime
 import pyexcel
@@ -1195,14 +1195,41 @@ class Cache(object):
         api_key_secret = twilio_creds['api_key_secret']
         account_sid = twilio_creds['twilio_sid']
         phone_twilio = twilio_creds['phone']
+
+        account_sid = 'colocarlacorrecta'
+
         client = Client(api_key_sid, api_key_secret, account_sid)
+        
+        message_data = {
+            "phone_to": phone_to,
+            "body": body,
+            "status": "pendiente",
+            "created_at": datetime.now(),
+        }
+
+        message_record = lkf_object.LKFBaseObject.create(_object=message_data, is_json=True, collection="messages")
+        message_id = message_record.get('_id')
+        
         try:
             response = client.messages.create(
                 from_=phone_twilio,
                 body=body,
                 to=phone_to,
             )
+
+            status_update = {
+                "status": "enviado",
+                "twilio_message_sid": response.sid,
+                "updated_at": datetime.now()
+            }
+            lkf_object.LKFBaseObject.update({"_id": message_id}, status_update)
         except Exception as e:
+            status_update = {
+                "status": "error",
+                "error_message": str(e),
+                "updated_at": datetime.now()
+            }
+            lkf_object.LKFBaseObject.update({"_id": message_id}, status_update)
             return 'Error sending sms error: ', e
         return response
 
