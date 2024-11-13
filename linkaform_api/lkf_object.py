@@ -153,10 +153,13 @@ class LKFBaseObject(LKFBase):
         return self.settings.config['MONGO_CR'][dbname]
 
     def get_db_cr(self, _object=None, db_name=False, collection=False):
-        if self.name:
-            collection = self.name
-        else:
-            collection = _object.__class__.__name__
+        if not collection:
+            if hasattr(self, 'name'):
+                collection = self.name
+            else:
+                collection = _object.__class__.__name__
+                if collection == 'NoneType':
+                    raise 'Error setting up collection name'
         # mongo = PyMongo(settings)
         mongo =  self.__conect_db()
         conn = eval('mongo.{}'.format(collection))
@@ -236,7 +239,7 @@ class LKFBaseObject(LKFBase):
         return cr, data
 
     def create(self, _object, is_json=True, collection=False):
-        cr, data = self.get_cr_data(_object, is_json=is_json)
+        cr, data = self.get_cr_data(_object, is_json=is_json, collection=collection)
         if type(data) == dict:
             res = {}
             # data['_id'] = data.get('_id',data.get('id',None))
@@ -269,15 +272,17 @@ class LKFBaseObject(LKFBase):
         # print('data', data)
         return res
 
-    def update(self, query, data, upsert=True):
-        cr, cr_data = self.get_cr_data()
+    def update(self, query, data, upsert=True, collection=False):
+        cr, cr_data = self.get_cr_data(collection=collection)
+        print('collection', collection)
+        print('cr', cr)
         data = {"$set":data}
         res = cr.update_many(query, data, upsert=upsert)
         return res
 
-    def search(self, query):
+    def search(self, query, collection=False):
         cols = _one = None
-        cr, data = self.get_cr_data()
+        cr, data = self.get_cr_data(collection=collection)
         if '_one' in list(query.keys()):
             _one = query.pop('_one')
         if '_columns' in list(query.keys()):
