@@ -1197,8 +1197,6 @@ class Cache(object):
         account_sid = twilio_creds['twilio_sid']
         phone_twilio = twilio_creds['phone']
 
-        account_sid = 'colocarlacorrecta'
-
         client = Client(api_key_sid, api_key_secret, account_sid)
         
         message_data = {
@@ -1224,12 +1222,24 @@ class Cache(object):
             }
             self.lkf_object.update({"_id": message_id}, status_update, collection="messages")
         except Exception as e:
+            error_message = str(e)
+
+            cleaned_message = error_message.replace("\x1b[31m", "").replace("\x1b[49m", "") \
+                                            .replace("\x1b[37m", "").replace("\x1b[49m", "") \
+                                            .replace("\x1b[36m", "").replace("\x1b[34m", "") \
+                                            .replace("\x1b[0m", "")
+
+            cleaned_message = cleaned_message.replace('\n', ' ').strip()
+
+            if 'TwilioRestException' in cleaned_message:
+                cleaned_message = cleaned_message.split('TwilioRestException')[0]
+
             status_update = {
                 "status": "error",
-                "error_message": str(e),
+                "error_message": cleaned_message,
                 "updated_at": datetime.now()
             }
-            self.lkf_object.update({"_id": message_id}, status_update,collection="messages")
+            self.lkf_object.update({"_id": message_id}, status_update, collection="messages")
             return 'Error sending sms error: ', e
         return response
 
