@@ -1197,8 +1197,6 @@ class Cache(object):
         account_sid = twilio_creds['twilio_sid']
         phone_twilio = twilio_creds['phone']
 
-        account_sid = 'cambiaralacorrecta'
-
         client = Client(api_key_sid, api_key_secret, account_sid)
         
         message_data = {

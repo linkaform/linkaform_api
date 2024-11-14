@@ -171,7 +171,7 @@ class LKFBaseObject(LKFBase):
         try:
             conn = eval('mongo.{}'.format(collection))
 
-            print(f'Collection {collection} found...')
+            # print(f'Collection {collection} found...')
             # documents = list(conn.find())
             # if documents:
             #     print("Documents in collection:")
@@ -298,16 +298,16 @@ class LKFBaseObject(LKFBase):
         # print('collection', collection)
         # print('cr', cr)
         # print('cr_data', cr_data)
-        print('////////////////data_sms_uptdate', data)
+        # print('////////////////data_sms_uptdate', data)
         data = {"$set":data}
         res = cr.update_many(query, data, upsert=upsert)
-
-        if res.modified_count > 0:
-            print(f"Actualización exitosa: {res.modified_count} documentos modificados.")
-        elif res.upserted_id is not None:
-            print("Se realizó un upsert (inserción) con éxito.")
-        else:
-            print("No se realizaron modificaciones.")
+        #Comprobar si se actualizo correctamente
+        # if res.modified_count > 0:
+        #     print(f"Actualización exitosa: {res.modified_count} documentos modificados.")
+        # elif res.upserted_id is not None:
+        #     print("Se realizó un upsert (inserción) con éxito.")
+        # else:
+        #     print("No se realizaron modificaciones.")
 
         return res
 
