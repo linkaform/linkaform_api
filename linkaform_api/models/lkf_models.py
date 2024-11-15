@@ -81,6 +81,7 @@ class LKFModules(LKFBaseObject):
         self.name =  __class__.__name__
         self.lkf_api = Cache(settings)
         self.module_data = {'form':{},'catalog':{},'script':{}} 
+        self.moduled_loaded = False
         #Inicializa la variable module_data para saber que modulos estan instalados
         self.get_installed_modules()
 
@@ -178,17 +179,19 @@ class LKFModules(LKFBaseObject):
         return cr.find({'item_obj_id': item_obj_id, 'item_type':item_type}, {'item_name':1,'item_full_name':1})
 
     def get_installed_modules(self):
-        for x in self.fetch_installed_modules():
-            module = x.get('module') 
-            item_type = x.get('item_type','') 
-            item_name = x.get('item_name','') 
-            item_full_name = x.get('item_full_name',item_name) 
-            item_id = x.get('item_id') 
-            item_obj_id = x.get('item_obj_id') 
-            if module:
-                self.load_module_data(module, item_type, item_name, item_full_name, item_id, item_obj_id)
-            if item_type:
-                self.load_item_data(item_type, item_name, item_full_name, item_id, item_obj_id)
+        if not self.moduled_loaded:
+            for x in self.fetch_installed_modules():
+                module = x.get('module') 
+                item_type = x.get('item_type','') 
+                item_name = x.get('item_name','') 
+                item_full_name = x.get('item_full_name',item_name) 
+                item_id = x.get('item_id') 
+                item_obj_id = x.get('item_obj_id') 
+                if module:
+                    self.load_module_data(module, item_type, item_name, item_full_name, item_id, item_obj_id)
+                if item_type:
+                    self.load_item_data(item_type, item_name, item_full_name, item_id, item_obj_id)
+            self.moduled_loaded = True
         return True
 
     def load_item_data(self, item_type, item_name, item_full_name, item_id, item_obj_id=None):

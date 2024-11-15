@@ -291,9 +291,9 @@ class LKFBaseObject(LKFBase):
         return res
 
     def update(self, query, data, upsert=True, collection=False):
-        if not collection:
-            print("Error: La colección no está definida correctamente.")
-            return
+        # if not collection:
+        #     print("Error: La colección no está definida correctamente.")
+        #     return
         cr, cr_data = self.get_cr_data(collection=collection)
         # print('collection', collection)
         # print('cr', cr)
