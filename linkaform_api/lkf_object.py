@@ -10,7 +10,7 @@ import subprocess, jwt, simplejson, sys
 
 # from . import settings 
 from .models.base_models import UserData
-from .mongo_util import connect_mongodb
+from .mongo_util import connect_mongodb, mongo_client
 
 # from  import UserData
 #Flask Models
@@ -129,11 +129,11 @@ class LKFBaseObject(LKFBase):
         user_pass = sha1(encode_alias).hexdigest()
         authSource = 'admin'
         uri = 'mongodb://{}:{}@{}/{}'.format(
-        mongo_user,
-        user_pass,
-        self.config['MONGODB_HOST'],
-        dbname,
-        )
+            mongo_user,
+            user_pass,
+            self.config['MONGODB_HOST'],
+            dbname,
+            )
         return uri
 
     def __conect_db(self):
@@ -185,6 +185,10 @@ class LKFBaseObject(LKFBase):
         #TODO Create database indexes
         # return self.lkf_obj['account_{}'.format(self.created_by.account_id)]
         return conn
+
+    def get_mongo_client(self):
+        client = mongo_client(uri=self.settings.config['MONGO_URI'])
+        return client
 
     def _edit_record(self, cr, data):
         try:

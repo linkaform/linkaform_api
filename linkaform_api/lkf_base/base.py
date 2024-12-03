@@ -14,7 +14,10 @@ from linkaform_api import settings, network, utils, lkf_models, upload_file
 class LKF_Base(LKFBaseObject):
 
     def __init__(self, settings, sys_argv=None, use_api=False, **kwargs):
+        # print('--------------------LKF API ----------------------------')
         config = settings.config
+        self.account_id = settings.config.get('ACCOUNT_ID')
+        self.master = True
         self.sys_argv = sys_argv
         self.use_api = use_api
         self.lkf_base = {}
@@ -141,7 +144,10 @@ class LKF_Base(LKFBaseObject):
             elif type(value) == list:
                 list_res = []
                 for l in value:
-                    list_res.append(self._labels(l))
+                    if isinstance(l, list):
+                        list_res = l
+                    else:
+                        list_res.append(self._lables_to_ids(l))
                 res.update({label:list_res})
             else:
                 res[label] = value
@@ -166,7 +172,13 @@ class LKF_Base(LKFBaseObject):
         return self.delete(query=query)
 
     def cache_get(self, values, **kwargs):
+
         res = self.cache_read(values, **kwargs)
+        if isinstance(res, list) and len(res) > 0:
+            if kwargs.get('keep_cache'):
+                return res
+            self.cache_drop(values)
+            return res
         if res and res.get('_id'):
             if kwargs.get('keep_cache'):
                 return res
@@ -174,6 +186,8 @@ class LKF_Base(LKFBaseObject):
         return res
 
     def cache_read(self, values, **kwargs):
+        if kwargs.keys():
+            values.update(kwargs)
         res = self.search(values)
         return res
 
@@ -467,6 +481,21 @@ class LKF_Base(LKFBaseObject):
         except:
             return {}
 
+    def get_record_by_folios(self, folios, form_id, select_columns={}, limit=None):
+        select_columns = self.get_selected_columns(select_columns)
+        query = {
+            'folio': {"$in": folios},
+            'deleted_at': {'$exists': False}
+        }
+        if form_id:
+            query.update({'form_id':form_id})
+        record_found = self.cr.find(query, select_columns)
+        try:
+            return [r for r in record_found]
+        except:
+            return {}
+
+
     def get_record_by_id(self, _id,  select_columns=[]):
         select_columns = self.get_selected_columns(select_columns)
         query = {
@@ -476,6 +505,20 @@ class LKF_Base(LKFBaseObject):
         record_found = self.cr.find(query, select_columns)
         try:
             return record_found.next()
+        except:
+            return {}
+
+    def get_record_by_ids(self, _ids,  select_columns=[]):
+        select_columns = self.get_selected_columns(select_columns)
+        _ids = [ObjectId(x) for x in _ids]
+        query = {
+            '_id': {"$in":ObjectId(_ids)},
+            'deleted_at': {'$exists': False}
+        }
+        record_found = self.cr.find(query, select_columns)
+        try:
+
+            return [r for r in record_found]
         except:
             return {}
 
