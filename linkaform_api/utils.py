@@ -50,6 +50,11 @@ class Cache(object):
         return response
 
     def delete_form_records(self, delete_record_ids, jwt_settings_key=False):
+        data = {'deleted_objects':[]}
+        if isinstance(delete_record_ids ,list):
+            data['deleted_objects'] = delete_record_ids
+        else:
+            data['deleted_objects'] = [delete_record_ids,]
         return self.patch_record(data, jwt_settings_key=jwt_settings_key)
 
     def assigne_user_records(self, user_id, record_id_list, send_email=False,
