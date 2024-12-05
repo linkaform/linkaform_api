@@ -52,13 +52,13 @@ class LKFBaseObject(LKFBase):
         self.settings = settings
         self.config = settings.config
 
-    def LKFException(self, msg, dict_error={}):
+    def LKFException(self, msg={}, dict_error={}):
         title_default = "Something needs to be checked!!!"
         type_default  = "warning"
         icon_default = "fa-circle-exclamation"
         msg_dict = {}
-
-        if '"msg":' in msg:
+        print('msg', msg)
+        if msg and '"msg":' in msg:
             raise Exception(msg)
 
         if isinstance(msg, str):

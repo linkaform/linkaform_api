@@ -172,7 +172,6 @@ class LKF_Base(LKFBaseObject):
         return self.delete(query=query)
 
     def cache_get(self, values, **kwargs):
-
         res = self.cache_read(values, **kwargs)
         if isinstance(res, list) and len(res) > 0:
             if kwargs.get('keep_cache'):
@@ -186,6 +185,9 @@ class LKF_Base(LKFBaseObject):
         return res
 
     def cache_read(self, values, **kwargs):
+        if 'keep_cache' in list(kwargs.keys()):
+            #muy raro porque el kwargs.get('keep_cache') no detectaba la llave
+            kwargs.pop('keep_cache')
         if kwargs.keys():
             values.update(kwargs)
         res = self.search(values)
