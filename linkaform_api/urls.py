@@ -83,6 +83,7 @@ class Api_url:
             'get_form_workflows': {'url': self.dest_url + '/api/infosync/workflows/?form_id=', 'method':'GET'},
             'unshare_item': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'},
             'version': {'url': self.dest_url + '/api/infosync/version/', 'method':'GET'},
+            'get_inbox_forms': {'url': self.dest_url + '/api/infosync/form/?id__in=', 'method':'GET'},
         }
 
     def get_global_url(self):
@@ -139,12 +140,16 @@ class Api_url:
 
     def get_users_url(self):
         return  {
-            'twilio_creds': {'url': self.dest_url + '/api/infosync/user_admin/twilio_creds/', 'method':'GET'},
             'all_users': {'url': self.dest_url + '/api/infosync/user_admin/?limit=0', 'method':'GET'},
-            'user_id_by_email': {'url': self.dest_url + '/api/infosync/user/?email__contains={0}', 'method':'GET'},
-            'user_by_id': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'GET'},
             'create_user': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'POST'},
+            'delete_inboxes': {'url': self.dest_url + '/api/infosync/inbox/bulk_docs/', 'method':'POST'},
             'get_form_users' :{'url': self.dest_url + '/api/infosync/item/{0}/get_users/?limit=0', 'method':'GET'},
-            'updated_users' :{'url': self.dest_url + '/api/infosync/user_admin/?limit=0&updated_at__gte={}', 'method':'GET'},
             'get_licenses': {'url': self.dest_url + '/api/infosync/licenses/?limit=0', 'method': 'GET'},
+            'supervised_users': {'url': self.dest_url + '/api/infosync/group/supervised_users/', 'method': 'GET'},
+            'twilio_creds': {'url': self.dest_url + '/api/infosync/user_admin/twilio_creds/', 'method':'GET'},
+            'updated_users' :{'url': self.dest_url + '/api/infosync/user_admin/?limit=0&updated_at__gte={}', 'method':'GET'},
+            'user_by_id': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'GET'},
+            'user_id_by_email': {'url': self.dest_url + '/api/infosync/user/?email__contains={0}', 'method':'GET'},
+            'user_inbox': {'url': self.dest_url + '/api/infosync/inbox/all_docs/', 'method': 'POST'},
         }
+

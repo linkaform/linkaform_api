@@ -40,23 +40,6 @@ class Cache(object):
         self.lkf_object = lkf_object.LKFBaseObject(id='', created_by={}, settings=self.settings)
         self.thread_dict = {}
 
-    def delete_inbox_records(self, delete_records, jwt_settings_key=False):
-        #  delete_records {user_id:[record_id,]}
-        url_method = self.api_url.record['delete_inbox']
-        data = {'delete_records': delete_records}
-        response = self.network.dispatch(url_method=url_method, data=data, jwt_settings_key=jwt_settings_key)
-        if response['status_code'] == 200:
-            return response['data']
-        return response
-
-    def delete_form_records(self, delete_record_ids, jwt_settings_key=False):
-        data = {'deleted_objects':[]}
-        if isinstance(delete_record_ids ,list):
-            data['deleted_objects'] = delete_record_ids
-        else:
-            data['deleted_objects'] = [delete_record_ids,]
-        return self.patch_record(data, jwt_settings_key=jwt_settings_key)
-
     def assigne_user_records(self, user_id, record_id_list, send_email=False,
         send_push_notification=False, previos_user_id=False, jwt_settings_key=False):
         url_method = self.api_url.record['assigne_user']
@@ -86,18 +69,6 @@ class Cache(object):
             return response['data']
 
         return response
-
-    def drop_fields_for_patch(self, record):
-        fields_to_drop = ['end_date','editable','updated_at','duration','index',
-                        'created_at', 'version', 'start_date', 'updated_by','voucher' ,
-                        'voucher_id','connection_record_id','other_versions','mobile_record_id']
-        for field in fields_to_drop:
-            try:
-                record.pop(field)
-            except KeyError:
-                pass
-
-        return record
 
     def catalog_view(self, catalog_id, form_id, options={}, parent_catalog_id=None, jwt_settings_key=False):
         ''' Obtiene las vistas de los catalogos en un froma
@@ -192,6 +163,95 @@ class Cache(object):
         user = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
         return user
 
+    def delete_inbox_records(self, delete_records, jwt_settings_key=False):
+        #  delete_records {user_id:[record_id,]}
+        url_method = self.api_url.record['delete_inbox']
+        data = {'delete_records': delete_records}
+        response = self.network.dispatch(url_method=url_method, data=data, jwt_settings_key=jwt_settings_key)
+        if response['status_code'] == 200:
+            return response['data']
+        return response
+
+    def delete_users_inbox_thread_function(self, url_method, inboxes, jwt_settings_key=False):
+        print('stop', url_method)
+        print('inbox=', inboxes)
+        response = self.network.dispatch(url_method=url_method, data=inboxes, jwt_settings_key=jwt_settings_key)
+        if response.get('data'):
+            records_updated = response['data']
+            if isinstance(records_updated, str):
+                records_updated = simplejson.loads(records_updated)
+        return response 
+
+    def delete_inbox_format(self, inboxes):
+        res = []
+        for inbox in inboxes:
+            r = {
+                '_id': inbox.get('id',inbox.get('_id',inbox.get('key'))), 
+                '_deleted': True
+            }
+            revision = inbox.get('_rev',inbox.get('value',{}).get('rev'))
+            if revision:
+                r.update({'_rev':revision})
+            res.append(r)
+        return res
+
+    def delete_users_inbox(self, user_id, inboxes, threading=False, jwt_settings_key=False):
+        #DETELES the users inbox
+        #params:
+        # inboxes: list of dicts of users inbox
+        url_method = self.api_url.users['delete_inboxes']
+        data = {
+            "inbox_records": self.delete_inbox_format(inboxes),
+            "user_id":user_id
+            }
+
+        if threading:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+                usr_data = []
+                records_updated = {}
+                for inbox in inboxes:
+                    user_data = {
+                       "user_id": user_id,
+                       "inbox_records": {usr_id:self.delete_inbox_format(inbox)},
+                    }
+                    usr_data.append(user_data)
+                print('doning this many post', len(usr_data))
+                to_multi_patch = [executor.submit(
+                    self.delete_users_inbox_thread_function, url_method, u_data, jwt_settings_key=jwt_settings_key) 
+                    for u_data in usr_data]
+                for thread_post in concurrent.futures.as_completed(to_multi_patch):
+                    resp = thread_post.result()
+                    resp_objects = resp.get('data', {})
+                    if isinstance(resp_objects, str):
+                        res = simplejson.loads(resp_objects)
+                        records_updated.update(res)
+        else:
+            records_updated = self.delete_users_inbox_thread_function(url_method, data, jwt_settings_key=jwt_settings_key)
+        return records_updated
+
+    def delete_form_records(self, delete_record_ids, jwt_settings_key=False):
+        data = {'deleted_objects':[]}
+        url = self.api_url.record['form_answer_patch']['url'] 
+        url = url.replace(self.api_url.dest_url, '')
+        if isinstance(delete_record_ids ,list):
+            data['deleted_objects'] = [f"{url}{x}/" for x in delete_record_ids]
+        else:
+            data['deleted_objects'] = [f"{url}{delete_record_ids}/",]
+        print('DELETEING RECORDS=', data)
+        return self.patch_record(data, jwt_settings_key=jwt_settings_key)
+
+    def drop_fields_for_patch(self, record):
+        fields_to_drop = ['end_date','editable','updated_at','duration','index',
+                        'created_at', 'version', 'start_date', 'updated_by','voucher' ,
+                        'voucher_id','connection_record_id','other_versions','mobile_record_id']
+        for field in fields_to_drop:
+            try:
+                record.pop(field)
+            except KeyError:
+                pass
+
+        return record
+
     def ftp_upload(self, server, username, password, file_name, file_path):
         import ftplib
         session = ftplib.FTP(server, username, password)
@@ -232,6 +292,52 @@ class Cache(object):
         if not self.items_data[item_type].get(item_id):
             self.items_data[item_type][item_id] = self.get_item_answer(item_type, item_id)
         return self.items_data[item_type][item_id]
+
+    def get_user_inbox_thread_function(self, url_method, data, jwt_settings_key):
+        response = self.network.dispatch(url_method=url_method, data=data, jwt_settings_key=jwt_settings_key)
+        # self.thread_dict[record] = res
+        return response
+        #logging.info("Finishing with code"%(record, res))
+
+    def get_user_inbox(self, users=[], group_id=None, is_group=False, threading=False, jwt_settings_key=False):
+        #Gets the users inbox
+        #params:
+        # users: list of users
+        # group_id: is send will get the group inbox
+        # is_group: boolean 
+        url_method = self.api_url.users['user_inbox']
+        data = {
+            "users":users,
+            "group_id":group_id,
+            "is_group":is_group}
+        if threading:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+                usr_data = []
+                records_updated = {}
+                for usr in data['users']:
+                    user_data = {
+                       "users": [usr,],
+                        "group_id":group_id,
+                        "is_group":is_group
+                    }
+                    usr_data.append(user_data)
+                to_multi_patch = [executor.submit(
+                    self.get_user_inbox_thread_function, url_method, u_data, jwt_settings_key=jwt_settings_key) 
+                    for u_data in usr_data]
+                for thread_post in concurrent.futures.as_completed(to_multi_patch):
+                    resp = thread_post.result()
+                    resp_objects = resp.get('data', {})
+                    if isinstance(resp_objects, str):
+                        res = simplejson.loads(resp_objects)
+                        records_updated.update(res)
+            return records_updated
+        else:
+            response = self.network.dispatch(url_method=url_method, data=data, jwt_settings_key=jwt_settings_key)
+            if response.get('data'):
+                res = response['data']
+                if isinstance(res, str):
+                    records_updated = simplejson.loads(res)
+        return records_updated
 
     def get_item_fields(self, item_type, item_id, refresh=False):
         if not self.items_fields.get(item_type):
@@ -369,6 +475,80 @@ class Cache(object):
 
         return all_form_users
 
+    def get_md5hash(self, file_name):
+        try:
+            md5 = hashlib.md5(open(file_name,'rb').read()).hexdigest()
+        except FileNotFoundError:
+            md5 = None
+        return md5
+
+    def get_jwt(self, user=None, password=None, get_jwt=True, api_key=None, get_user=False):
+        session = False
+        if not user:
+            user = self.settings.config.get('USERNAME',self.settings.config.get('AUTHORIZATION_EMAIL_VALUE'))
+        if not password:
+            password = self.settings.config.get('PASS')
+        if api_key:
+            if type(api_key) == bool:
+                api_key = self.settings.config.get('api_key')
+            jwt = self.network.login(session, username=user, get_jwt=get_jwt, api_key=api_key, get_user=get_user)
+        else:
+            jwt = self.network.login(session, user, password, get_jwt=get_jwt, get_user=get_user)
+        return jwt
+
+    def get_pdf_record(self, record_id, template_id=None, upload_data=None, send_url=False, name_pdf='', jwt_settings_key=False):
+        return self.network.pdf_record(record_id , template_id=template_id, upload_data=upload_data, send_url=send_url, name_pdf=name_pdf, jwt_settings_key=jwt_settings_key)
+
+    def get_item(self, item_id, item_type=None, jwt_settings_key=False):
+        # Delete an item
+        url = self.api_url.item['get_item']['url'].format(item_id)
+        url += '&itype__exact={}'.format(item_type)
+        method = self.api_url.item['get_item']['method']
+        return self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+
+    def get_records_by_filter(self, filter_id, limit=20, jwt_settings_key=False):
+        url = self.api_url.record['get_form_records_filter']['url'].format(filter_id, limit)
+        method = self.api_url.record['get_form_records_filter']['method']
+        records = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+        objects = records['data']
+        return objects
+
+    def get_group_users(self, group_id, user_type='users', jwt_settings_key=False):
+        #Returns all users of a group
+        #user_type 'users', 'admin_users','supervisor_users'
+        post_json = self.api_url.get_groups_url()['get_group_users']
+        url = post_json['url'].format(group_id)
+        response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
+        if user_type in ('users', 'admin_users','supervisor_users'):
+            return response.get('data', {}).get(user_type,[])
+        else:
+            return response.get('data', {})
+
+    def get_updated_groups(self, date_epoc, jwt_settings_key=False):
+        post_json = self.api_url.get_groups_url()['updated_groups']
+        url = post_json['url'].format(date_epoc)
+        response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
+        all_groups = response.get('objects', [])
+        if not all_groups:
+            all_groups = response.get('json',{}).get('objects', [])
+        return all_groups
+
+    def get_form_workflows(self, form_id, jwt_settings_key=False):
+        url = self.api_url.form['get_form_workflows']['url']+str(form_id)
+        method = self.api_url.form['get_form_workflows']['method']
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
+        if response['status_code'] == 200:
+            return response['data']
+        return False
+
+    def get_form_to_duplicate(self, form_id, jwt_settings_key=False):
+        form_with_fields = self.get_form_id_fields(form_id, jwt_settings_key=jwt_settings_key)
+        if form_with_fields:
+            dict_form = form_with_fields[0]
+            dict_form.pop('form_id')
+            dict_form.pop('fields')
+            return dict_form
+
     def get_form_connections(self, form_id, jwt_settings_key=False):
         #TODO UPDATE SELF.ITESM
         #Returns all the connections
@@ -448,6 +628,14 @@ class Cache(object):
             metadata.pop('form_id')
         return metadata
 
+    def get_form_rules(self, form_id, jwt_settings_key=False):
+        url = self.api_url.form['get_form_rules']['url']+str(form_id)
+        method = self.api_url.form['get_form_rules']['method']
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
+        if response['status_code'] == 200:
+            return response['data']
+        return False
+
     def guess(self, value, answer):
         count = last_find = valuation = 0
         was_int = False
@@ -466,6 +654,111 @@ class Cache(object):
                 value = value[:index] + value[index+1:]
                 last_find = index
         return (count, org_value)
+
+    def get_catalog_id_fields(self, catalog_id, jwt_settings_key=False):
+        url = self.api_url.catalog['catalog_id_fields']['url']+str(catalog_id)+'/'
+        method = self.api_url.catalog['catalog_id_fields']['method']
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
+        if response['status_code'] == 200:
+            return response['data']
+        return False
+
+    def get_catalog_metadata(self, catalog_id=False):
+        time_started = time.time()
+        metadata = {
+        "catalog_id": catalog_id,
+        "geolocation": [],
+        "start_timestamp" : time.time(),
+        "end_timestamp" : time.time()
+        }
+        if not catalog_id:
+            metadata.pop('catalog_id')
+        return metadata
+
+    def get_catalog_record_by_folio(self, catalog_id, catalog_folio, jwt_settings_key=False):
+        mango = {
+            'selector':{
+                '$and':[{'_id':{'$eq':catalog_folio}}]
+            }
+        }
+        return self.search_catalog(catalog_id, mango, jwt_settings_key=jwt_settings_key)
+
+    def get_exchange_rate(self, type_currency='USD', from_date='', jwt_settings_key=False):
+        if not from_date:
+            current_date = datetime.now()
+            from_date = datetime.strftime(current_date, '%Y-%m-%d')
+        mango_query = {
+            "selector":{"answers": {"$and":[ 
+                {"645545b5738f34f5a955e4ce": {'$eq': type_currency}},
+                {"645545b5738f34f5a955e4cf": {"$lte": from_date}}
+            ]}},
+            "limit":10000,
+            "skip":0,
+            #"sort":[{"645545b5738f34f5a955e4cf": "desc"}]
+        }
+        record_found = self.search_catalog(100534, mango_query, jwt_settings_key=jwt_settings_key)
+        if record_found:
+            record_found.sort(key=lambda x: x.get("645545b5738f34f5a955e4cf"), reverse=True)
+            return record_found[0]
+        return record_found
+
+    def get_catalog_filters(self, catalog_id, jwt_settings_key=False):
+        url = self.api_url.catalog['get_catalog_filters']['url'] + str(catalog_id)
+        method = self.api_url.catalog['get_catalog_filters']['method']
+        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
+        return response
+
+    def get_records(self, catalog_db, rec_ids, batch_size):
+        mango_query = {
+            "selector": {
+                "_id": {
+                    "$in": rec_ids
+                    }
+                },
+            "limit":batch_size+1
+            }
+        result = catalog_db.find(mango_query)
+        res = [x for x in result]
+        return res
+
+    def get_last_seq(self, db_cr, catalog_from):
+        mango_query = {
+            "selector": {
+                "_id": "last_seq_{}".format(catalog_from)
+                },
+            "limit":1
+        }
+        result = db_cr.find(mango_query)
+        res = [x for x in result]
+        return res
+
+    def get_all_user_connection(self, email_user, jwt_settings_key=False):
+        # Returns all users and connections
+        connections = []
+        url_data = self.api_url.get_connections_url()['all_user_connection']
+        url_data['url'] = '{}?data={}'.format(url_data['url'], email_user)
+        response = self.network.dispatch(url_data, jwt_settings_key=jwt_settings_key)
+
+        return response
+
+    def get_supervised_users(self, jwt_settings_key=False):
+        url_data = self.api_url.get_users_url()['supervised_users']
+        url = url_data['url']
+        res =  self.network.dispatch(url=url, method=url_data['method'], jwt_settings_key=jwt_settings_key)
+        if res.get('data'):
+            return res['data']
+        return res
+
+    def get_user_connection(self, email_user, jwt_settings_key=False):
+        # TODO UPDATE SELF.ITESM
+        # Returns a user or connection
+        connections = []
+        post_json = self.api_url.get_connections_url()['user_connection']
+        post_json['url'] = '{}{}'.format(post_json['url'], email_user)
+        user_connection = self.network.dispatch(post_json, jwt_settings_key=jwt_settings_key)
+        objects = user_connection['data']
+
+        return objects
 
     def make_excel_file(self, header, records, form_id, file_field_id, upload_name=None, jwt_settings_key='JWT_KEY', is_tmp=False):
         records.insert(0, header)
@@ -595,7 +888,6 @@ class Cache(object):
         #logging.info("Finishing with code"%(record, res))
 
     def patch_multi_record(self, answers, form_id, folios=[], record_id=[], jwt_settings_key=False, threading=False):
-        print('record_id', record_id)
         if not answers or not (folios or record_id):
             return {}
         data = {'all_responses': True}
@@ -625,13 +917,17 @@ class Cache(object):
                     to_multi_patch = [executor.submit(self.thread_function_dict, record, data, type_update, jwt_settings_key=jwt_settings_key) for record in records]
                     for one_multi_patch in concurrent.futures.as_completed(to_multi_patch):
                         resp = one_multi_patch.result()
-                        objects_updated = resp.get('json', {}).get('objects', [])
+                        objects_updated = resp.get('json', {})
+                        if objects_updated.get('objects'):
+                            objects_updated = objects_updated['objects']
+                        else:
+                            objects_updated = [objects_updated,]
                         for o in objects_updated:
                             for f in o:
                                 if type_update == 'folios':
-                                    records_updated.append( o[f].get('folio') )
+                                    records_updated.append(o)
                                 else:
-                                    records_updated.append( o[f].get('id') )
+                                    records_updated.append(o)
                     '''
                     for record in records:
                         data['records'] = [record]
@@ -643,15 +939,19 @@ class Cache(object):
                 #     for folio in folios:
                 #         executor.map(lambda x: self.thread_function_dict(x, data,
                 #             jwt_settings_key=jwt_settings_key), [folio])
-            no_records_updated = []
-            if record_id:
-                no_records_updated = list( set(record_id) - set(records_updated) )
-            elif folios:
-                no_records_updated = list( set(folios) - set(records_updated) )
-
-            for no_update in no_records_updated:
-                self.thread_dict[ no_update ] = {'status_code': 400, 'error': 'Error al acutalizar el registro con multi_record, favor de reintenar'}
-            return  self.thread_dict
+            # no_records_updated = []
+            # print('records_updated=',records_updated)
+            # if record_id:
+            #     print(']]]]]]]]]]]]]]]]]')
+            #     print('record_id=', record_id)
+            #     print('records_updated=', records_updated)
+            #     no_records_updated = list( set(record_id) - set(records_updated) )
+            # elif folios:
+            #     no_records_updated = list( set(folios) - set(records_updated) )
+            # print('no_records_updated=',no_records_updated)
+            # for no_update in no_records_updated:
+            #     self.thread_dict[ no_update ] = {'status_code': 400, 'error': 'Error al acutalizar el registro con multi_record, favor de reintenar'}
+            return  records_updated
 
         return self.network.dispatch(self.api_url.record['form_answer_patch_multi'], data=data,
             jwt_settings_key=jwt_settings_key)
@@ -715,13 +1015,6 @@ class Cache(object):
         method = self.api_url.script['update_script']['method']
         return self.network.dispatch(url=url, method=method, data=properites, jwt_settings_key=jwt_settings_key)
 
-    def get_md5hash(self, file_name):
-        try:
-            md5 = hashlib.md5(open(file_name,'rb').read()).hexdigest()
-        except FileNotFoundError:
-            md5 = None
-        return md5
-
     def post_upload_tmp(self, data, up_file, jwt_settings_key=False):
         #data:
         #up_file:
@@ -769,32 +1062,8 @@ class Cache(object):
         except ValueError:
             raise ValueError("Incorrect data format, should be YYYY-MM-DD")
 
-    def get_jwt(self, user=None, password=None, get_jwt=True, api_key=None, get_user=False):
-        session = False
-        if not user:
-            user = self.settings.config.get('USERNAME',self.settings.config.get('AUTHORIZATION_EMAIL_VALUE'))
-        if not password:
-            password = self.settings.config.get('PASS')
-        if api_key:
-            if type(api_key) == bool:
-                api_key = self.settings.config.get('api_key')
-            jwt = self.network.login(session, username=user, get_jwt=get_jwt, api_key=api_key, get_user=get_user)
-        else:
-            jwt = self.network.login(session, user, password, get_jwt=get_jwt, get_user=get_user)
-        return jwt
-
-    def get_pdf_record(self, record_id, template_id=None, upload_data=None, send_url=False, name_pdf='', jwt_settings_key=False):
-        return self.network.pdf_record(record_id , template_id=template_id, upload_data=upload_data, send_url=send_url, name_pdf=name_pdf, jwt_settings_key=jwt_settings_key)
-
     def run_script(self, data, jwt_settings_key=False):
         return self.network.dispatch(self.api_url.script['run_script'], data=data, jwt_settings_key=jwt_settings_key)
-
-    def get_records_by_filter(self, filter_id, limit=20, jwt_settings_key=False):
-        url = self.api_url.record['get_form_records_filter']['url'].format(filter_id, limit)
-        method = self.api_url.record['get_form_records_filter']['method']
-        records = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
-        objects = records['data']
-        return objects
 
     """
     ITEMS
@@ -805,14 +1074,6 @@ class Cache(object):
         method = self.api_url.item['delete_item']['method']
         return self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
 
-    def get_item(self, item_id, item_type=None, jwt_settings_key=False):
-        # Delete an item
-        url = self.api_url.item['get_item']['url'].format(item_id)
-        url += '&itype__exact={}'.format(item_type)
-        method = self.api_url.item['get_item']['method']
-        return self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
-
-
     """
     Formas
     """
@@ -821,13 +1082,6 @@ class Cache(object):
         method = self.api_url.form['download_form_data']['method']
         return self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
 
-    def get_form_to_duplicate(self, form_id, jwt_settings_key=False):
-        form_with_fields = self.get_form_id_fields(form_id, jwt_settings_key=jwt_settings_key)
-        if form_with_fields:
-            dict_form = form_with_fields[0]
-            dict_form.pop('form_id')
-            dict_form.pop('fields')
-            return dict_form
 
     """
     GROUPS
@@ -846,36 +1100,9 @@ class Cache(object):
 
         return response
 
-    def get_group_users(self, group_id, user_type='users', jwt_settings_key=False):
-        #Returns all users of a group
-        #user_type 'users', 'admin_users','supervisor_users'
-        post_json = self.api_url.get_groups_url()['get_group_users']
-        url = post_json['url'].format(group_id)
-        response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
-        if user_type in ('users', 'admin_users','supervisor_users'):
-            return response.get('data', {}).get(user_type,[])
-        else:
-            return response.get('data', {})
-
-    def get_updated_groups(self, date_epoc, jwt_settings_key=False):
-        post_json = self.api_url.get_groups_url()['updated_groups']
-        url = post_json['url'].format(date_epoc)
-        response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
-        all_groups = response.get('objects', [])
-        if not all_groups:
-            all_groups = response.get('json',{}).get('objects', [])
-        return all_groups
-
     """
     Rules
     """
-    def get_form_rules(self, form_id, jwt_settings_key=False):
-        url = self.api_url.form['get_form_rules']['url']+str(form_id)
-        method = self.api_url.form['get_form_rules']['method']
-        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
-        if response['status_code'] == 200:
-            return response['data']
-        return False
 
     def upload_rules(self, data, method='POST', jwt_settings_key=False):
         if method == 'PATCH':
@@ -908,14 +1135,6 @@ class Cache(object):
             url = self.api_url.form['upload_workflows']['url']
         return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
 
-    def get_form_workflows(self, form_id, jwt_settings_key=False):
-        url = self.api_url.form['get_form_workflows']['url']+str(form_id)
-        method = self.api_url.form['get_form_workflows']['method']
-        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
-        if response['status_code'] == 200:
-            return response['data']
-        return False
-
     """
     Catalogos
     """
@@ -941,26 +1160,6 @@ class Cache(object):
         url = '{}{}/'.format(self.api_url.catalog['download_catalog_model']['url'], catalog_id)
         method = self.api_url.catalog['download_catalog_model']['method']
         return self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
-
-    def get_catalog_id_fields(self, catalog_id, jwt_settings_key=False):
-        url = self.api_url.catalog['catalog_id_fields']['url']+str(catalog_id)+'/'
-        method = self.api_url.catalog['catalog_id_fields']['method']
-        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
-        if response['status_code'] == 200:
-            return response['data']
-        return False
-
-    def get_catalog_metadata(self, catalog_id=False):
-        time_started = time.time()
-        metadata = {
-        "catalog_id": catalog_id,
-        "geolocation": [],
-        "start_timestamp" : time.time(),
-        "end_timestamp" : time.time()
-        }
-        if not catalog_id:
-            metadata.pop('catalog_id')
-        return metadata
 
     def post_catalog_answers(self, answers, test=False, jwt_settings_key=False):
         return self.network.post_catalog_answers(answers, jwt_settings_key=jwt_settings_key)
@@ -1024,14 +1223,6 @@ class Cache(object):
                 return response['content'].get('error')
         return False
 
-    def get_catalog_record_by_folio(self, catalog_id, catalog_folio, jwt_settings_key=False):
-        mango = {
-            'selector':{
-                '$and':[{'_id':{'$eq':catalog_folio}}]
-            }
-        }
-        return self.search_catalog(catalog_id, mango, jwt_settings_key=jwt_settings_key)
-
     def update_catalog_answers(self, data, record_id=None, jwt_settings_key=False):
         if record_id:
             data['_id'] = record_id
@@ -1079,31 +1270,6 @@ class Cache(object):
         }
         return self.network.dispatch(self.api_url.catalog['catalog_answer_patch_multi'], data=data, jwt_settings_key=jwt_settings_key)
 
-    def get_exchange_rate(self, type_currency='USD', from_date='', jwt_settings_key=False):
-        if not from_date:
-            current_date = datetime.now()
-            from_date = datetime.strftime(current_date, '%Y-%m-%d')
-        mango_query = {
-            "selector":{"answers": {"$and":[ 
-                {"645545b5738f34f5a955e4ce": {'$eq': type_currency}},
-                {"645545b5738f34f5a955e4cf": {"$lte": from_date}}
-            ]}},
-            "limit":10000,
-            "skip":0,
-            #"sort":[{"645545b5738f34f5a955e4cf": "desc"}]
-        }
-        record_found = self.search_catalog(100534, mango_query, jwt_settings_key=jwt_settings_key)
-        if record_found:
-            record_found.sort(key=lambda x: x.get("645545b5738f34f5a955e4cf"), reverse=True)
-            return record_found[0]
-        return record_found
-
-    def get_catalog_filters(self, catalog_id, jwt_settings_key=False):
-        url = self.api_url.catalog['get_catalog_filters']['url'] + str(catalog_id)
-        method = self.api_url.catalog['get_catalog_filters']['method']
-        response = self.network.dispatch(url=url, method=method, use_api_key=False, jwt_settings_key=jwt_settings_key)
-        return response
-
     def delete_filter(self, catalog_id, filter_name, jwt_settings_key=False):
         url = self.api_url.catalog['delete_filter']['url']
         method = self.api_url.catalog['delete_filter']['method']
@@ -1131,30 +1297,6 @@ class Cache(object):
               },
                "limit": 1
           }
-        result = db_cr.find(mango_query)
-        res = [x for x in result]
-        return res
-
-    def get_records(self, catalog_db, rec_ids, batch_size):
-        mango_query = {
-            "selector": {
-                "_id": {
-                    "$in": rec_ids
-                    }
-                },
-            "limit":batch_size+1
-            }
-        result = catalog_db.find(mango_query)
-        res = [x for x in result]
-        return res
-
-    def get_last_seq(self, db_cr, catalog_from):
-        mango_query = {
-            "selector": {
-                "_id": "last_seq_{}".format(catalog_from)
-                },
-            "limit":1
-        }
         result = db_cr.find(mango_query)
         res = [x for x in result]
         return res
@@ -1313,28 +1455,6 @@ class Cache(object):
         wget.download(file_url, '/tmp/{}'.format(oc_name))
         return oc_name
 
-    """
-    Usuarios
-    """
-    def get_all_user_connection(self, email_user, jwt_settings_key=False):
-        # Returns all users and connections
-        connections = []
-        url_data = self.api_url.get_connections_url()['all_user_connection']
-        url_data['url'] = '{}?data={}'.format(url_data['url'], email_user)
-        response = self.network.dispatch(url_data, jwt_settings_key=jwt_settings_key)
-
-        return response
-
-    def get_user_connection(self, email_user, jwt_settings_key=False):
-        # TODO UPDATE SELF.ITESM
-        # Returns a user or connection
-        connections = []
-        post_json = self.api_url.get_connections_url()['user_connection']
-        post_json['url'] = '{}{}'.format(post_json['url'], email_user)
-        user_connection = self.network.dispatch(post_json, jwt_settings_key=jwt_settings_key)
-        objects = user_connection['data']
-
-        return objects
 
     """
     CRON

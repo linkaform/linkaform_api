@@ -254,6 +254,8 @@ class LKF_Base(LKFBaseObject):
         return year_week
 
     def date_2_epoch(self, date_str):
+        if not date_str:
+            return None
         date_obj = self.date_from_str(date_str)
         return date_obj.timestamp()
 
