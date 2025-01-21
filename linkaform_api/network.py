@@ -546,7 +546,7 @@ class Network:
     def get_mongo_uri(self,db_name):
         param_url = '?authSource={0}'.format(db_name)
         user = self.settings.config['MONGODB_USER']
-        if not user: account_126
+        if not user:
             user = "account_%s"%(self.settings.config['ACCOUNT_ID'])
         if not self.settings.config.get('MONGODB_PASSWORD'):
             self.get_mongo_password()
