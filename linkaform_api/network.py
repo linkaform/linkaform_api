@@ -69,6 +69,7 @@ class Network:
         #method is the method to use
         #use_login -Optinal- forces the dispatch to be made by login method, if not will use  the config method
         #use_api_key -Optinal- forces the dispatch to be made by api_key method, if not will use  the config method
+        #print('DISPATCH: url:', url)
         url, method = self.get_url_method(url_method, url=url, method=method)
         response = False
         if type(data) in (dict,str) and not up_file:
@@ -545,6 +546,8 @@ class Network:
     def get_mongo_uri(self,db_name):
         param_url = '?authSource={0}'.format(db_name)
         user = self.settings.config['MONGODB_USER']
+        if not user: account_126
+            user = "account_%s"%(self.settings.config['ACCOUNT_ID'])
         if not self.settings.config.get('MONGODB_PASSWORD'):
             self.get_mongo_password()
         password = self.settings.config['MONGODB_PASSWORD']
