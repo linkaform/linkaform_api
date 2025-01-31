@@ -20,7 +20,7 @@ class Api_url:
         self.users = self.get_users_url()
         # AIRFLOW
         self.airflow_dest_url = settings.config['AIRFLOW_PROTOCOL'] + '://' + settings.config['AIRFLOW_HOST']
-        if settings.config['AIRFLOW_PORT']:
+        if settings.config.get('AIRFLOW_PORT'):
             self.airflow_dest_url += ':{}'.format(settings.config['AIRFLOW_PORT'])
         self.airflow = self.get_airflow()
         self.bob_url = settings.config['PROTOCOL'] + '://' + settings.config['HOST']
