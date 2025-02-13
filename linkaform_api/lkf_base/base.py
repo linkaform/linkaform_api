@@ -108,7 +108,9 @@ class LKF_Base(LKFBaseObject):
         if not ids_label_dct:
             ids_label_dct = self.f
         if not data and not from_self:
-            data=self.answers
+            data = {}
+            if hasattr(self, 'answers'):
+                data = self.answers
         # print('ids_label_dct=',ids_label_dct)
         _f = {v:k for k, v in ids_label_dct.items()}
         res = {}
@@ -498,7 +500,6 @@ class LKF_Base(LKFBaseObject):
             return [r for r in record_found]
         except:
             return {}
-
 
     def get_record_by_id(self, _id,  select_columns=[]):
         select_columns = self.get_selected_columns(select_columns)
