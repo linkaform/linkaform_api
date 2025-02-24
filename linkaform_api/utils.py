@@ -56,10 +56,11 @@ class Cache(object):
         return response
 
     def assigne_group_records(self, group_id, record_id_list, send_email=False,
-        send_push_notification=False, previos_user_id=False, jwt_settings_key=False):
+        send_push_notification=True, previos_user_id=False, jwt_settings_key=False):
         url_method = self.api_url.record['assigne_user']
         data = {'group_id': group_id, 'records': record_id_list,
                   'send_push_notification': send_push_notification,
+                  'from_api': True,
                   }
         if previos_user_id:
             data.update({'prev_user_id':previos_user_id})

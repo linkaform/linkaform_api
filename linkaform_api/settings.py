@@ -34,7 +34,7 @@ config = {
     'AIRFLOW_PROTOCOL' : 'https', #http or https
     # 'AIRFLOW_PORT' : 5000, #http or https
     #'AIRFLOW_HOST' : 'af.linkaform.com',
-    'AIRFLOW_HOST' : 'airflow.linkaform.com',
+    'AIRFLOW_HOST' : 'bob.linkaform.com',
     'USER_ID' : '',
     'ACCOUNT_ID': '',
     'KEYS_POSITION' : {},
