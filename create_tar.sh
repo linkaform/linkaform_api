@@ -7,4 +7,4 @@ python3 setup.py sdist
 echo Authorizando cuenta en b2
 $(which b2) authorize-account f5fde066eaac 001bada2501283bc9014a905a767c55761ecb3136c
 echo Subiendo...
-b2 upload_file lkf-resources dist/linkaform_api-3.0.tar.gz linkaform_api-3.0.tar.gz
+b2 file upload lkf-resources dist/linkaform_api-2.0.tar.gz linkaform_api-2.0.tar.gz
