@@ -66,9 +66,10 @@ class Cache(object):
     def assigne_connection_records(self, connection_id, record_id_list, user_of_connection=False,
         send_email=False, send_push_notification=False, jwt_settings_key=False):
         url_method = self.api_url.record['assigne_connection']
+        print('enviando from_api True')
         data = {'connection_id': connection_id, 'records': record_id_list,
                   'send_push_notification': send_push_notification,
-                  'send_mail': send_email}
+                  'send_mail': send_email, 'from_api': True}
         if user_of_connection:
             data['userOfConnection'] = user_of_connection
 
