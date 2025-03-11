@@ -35,11 +35,12 @@ class Cache(object):
         return response
 
     def assigne_connection_records(self, connection_id, record_id_list, user_of_connection=False,
-        send_email=False, send_push_notification=False, jwt_settings_key=False):
+        send_email=False, send_push_notification=False, jwt_settings_key=False, from_api=True):
         url_method = self.api_url.record['assigne_connection']
+        print 'Enviando from_api=',from_api
         data = {'connection_id': connection_id, 'records': record_id_list,
                   'send_push_notification': send_push_notification,
-                  'send_mail': send_email}
+                  'send_mail': send_email, 'from_api': from_api}
         if user_of_connection:
             data['userOfConnection'] = user_of_connection
         response = self.network.dispatch(url_method=url_method, data=data, jwt_settings_key=jwt_settings_key)
@@ -197,8 +198,8 @@ class Cache(object):
     def get_connection_by_id(self, connection_id, jwt_settings_key=False):
         #TODO UPDATE SELF.ITESM
         #Returns the connections info
-        url = self.api_url.connecions['connection_by_id']['url'] + str(connection_id) + '/'
-        method = self.api_url.connecions['connection_by_id']['method']
+        url = self.api_url.connections['connection_by_id']['url'] + str(connection_id) + '/'
+        method = self.api_url.connections['connection_by_id']['method']
         connection = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
         objects = connection['data']
         return objects
