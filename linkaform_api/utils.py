@@ -369,8 +369,8 @@ class Cache(object):
     def get_connection_by_id(self, connection_id, jwt_settings_key=False):
         #TODO UPDATE SELF.ITESM
         #Returns the connections info
-        url = self.api_url.connecions['connection_by_id']['url'] + str(connection_id) + '/'
-        method = self.api_url.connecions['connection_by_id']['method']
+        url = self.api_url.connections['connection_by_id']['url'] + str(connection_id) + '/'
+        method = self.api_url.connections['connection_by_id']['method']
         connection = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
         objects = connection['data']
         return objects
@@ -405,7 +405,7 @@ class Cache(object):
         return objects
 
     def get_user_fileshare(self, form_id, user_id, jwt_settings_key=False):
-        url_list = self.api_url.connecions['user_fileshare']['url'].split('&')
+        url_list = self.api_url.connections['user_fileshare']['url'].split('&')
         url = url_list[0] + str(form_id)
         url += '&' + url_list[1] + str(user_id)
         method = self.api_url.form['user_fileshare']['method']
