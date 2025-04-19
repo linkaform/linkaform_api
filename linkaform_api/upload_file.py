@@ -21,9 +21,19 @@ from linkaform_api import network, utils, settings
 
 class LoadFile:
 
-    def __init__(self, settings={}):
+    def __init__(self, settings={}, **kwargs):
         self.settings = settings
-        self.lkf_api = utils.Cache(settings)
+        if kwargs.get('lkf_api'):
+            self.lkf_api = kwargs.lkf_api
+        else:
+            if hasattr(self, 'lkf_api'):
+                self.lkf_api = self.lkf_api
+            else:
+                if kwargs.get('Cache'):
+                    self.lkf_api = kwargs['Cache']
+                else:
+                    self.lkf_api = utils.Cache(settings)
+                # print('*+++++settings3=',settingsd)
         self.net = network.Network(settings)
         #self.cr = self.net.get_collections()
 

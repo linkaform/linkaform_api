@@ -75,11 +75,14 @@ class LKFModulesModel(BaseModel, LKFBaseObject):
 
 class LKFModules(LKFBaseObject):
 
-    def __init__(self, settings):
+    def __init__(self, settings, lkf_api=None):
         self.settings = settings
         self.config = settings.config
         self.name =  __class__.__name__
-        self.lkf_api = Cache(settings)
+        if lkf_api:
+            self.lkf_api = lkf_api
+        else:
+            self.lkf_api = Cache(settings)
         self.module_data = {'form':{},'catalog':{},'script':{}} 
         self.moduled_loaded = False
         #Inicializa la variable module_data para saber que modulos estan instalados

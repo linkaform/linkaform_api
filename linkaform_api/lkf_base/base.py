@@ -14,19 +14,20 @@ from linkaform_api import settings, network, utils, lkf_models, upload_file
 class LKF_Base(LKFBaseObject):
 
     def __init__(self, settings, sys_argv=None, use_api=False, **kwargs):
-        # print('--------------------LKF API ----------------------------')
+        # print('--------------------LKF_Base----------------------------', LKF_Base.__mro__)
         config = settings.config
         self.account_id = settings.config.get('ACCOUNT_ID')
         self.master = True
         self.sys_argv = sys_argv
         self.use_api = use_api
         self.lkf_base = {}
-        self._set_connections(settings)
         self.open_status = 'open'
         self.close_status = 'close'
         self.open_status = 'new'
         self.status_id = '0000000000000000000aaaaa'
-        self.settings = self.update_settings(settings, use_api=use_api)
+        # print('settings', dir(settings.lkf_api))
+        self.settings = settings
+        # self.settings = self.update_settings(settings, use_api=use_api)
         self.f = kwargs.get('f', {})
         self.GET_CONFIG = {}
         self.kwargs = kwargs
@@ -64,7 +65,8 @@ class LKF_Base(LKFBaseObject):
                 if type(conneciont_id) == dict:
                     conneciont_id = conneciont_id.get('$oid')
                 self.record_id = conneciont_id
-            self._set_connections(settings)
+            # self._set_connections(settings)
+        self._set_connections(settings)
 
     # def _do_inherits(self):
     #     print('========================= inherit')
@@ -86,13 +88,21 @@ class LKF_Base(LKFBaseObject):
     #     return self
 
     def _set_connections(self, settings):
+
+        self.upfile = upload_file.LoadFile(settings, **{'Cache':self})
+        #self.lkf_api = self.upfile.lkf_api
+        # TODO USAR el lkf_api que esta en LoadFile para evitar buqule
         self.lkf_api = utils.Cache(settings)
-        self.upfile = upload_file.LoadFile(settings)
-        self.net = network.Network(settings)
+        # print('dir utils',dir(self.lkf_apid))
+        if hasattr(self.lkf_api, 'network'):
+            self.net = self.lkf_api.network
+        else:
+            self.net = network.Network(settings)
         self.cr = self.net.get_collections()
+        # print(' set connections .............33333', dir(selfd))
         self.cr_wkf = self.net.get_collections('workflow_log')
         self.cr_version = self.net.get_collections('answer_version')
-        self.lkm = lkf_models.LKFModules(settings)
+        self.lkm = lkf_models.LKFModules(settings, lkf_api=self.lkf_api)
         return True
 
     def _labels_list(self, data=[], ids_label_dct={}, from_self=False):

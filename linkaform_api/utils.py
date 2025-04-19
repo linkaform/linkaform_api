@@ -26,7 +26,7 @@ from twilio.rest import Client
 #Linkaform Imports
 from . import network
 
-class Cache(object):
+class Cache:
 
     def __init__(self, settings):
         self.items = {}
@@ -36,9 +36,15 @@ class Cache(object):
         from linkaform_api import urls
         self.api_url = urls.Api_url(settings)
         self.network = network.Network(self.settings)
-        self.couch = couch_util.Couch_utils(self.settings)
+        if hasattr(self, 'couch'):
+            self.couch = self.couch
+        else:
+            self.couch = couch_util.Couch_utils(self.settings)
         self.lkf_object = lkf_object.LKFBaseObject(id='', created_by={}, settings=self.settings)
         self.thread_dict = {}
+
+    def check_delete(self):
+        pass
 
     def assigne_user_records(self, user_id, record_id_list, send_email=False,
         send_push_notification=False, previos_user_id=False, jwt_settings_key=False):
