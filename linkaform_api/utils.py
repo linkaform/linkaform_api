@@ -450,6 +450,11 @@ class Cache:
         url = post_json['url']
         return self.network.dispatch(url=url, method=post_json['method'], use_api_key=use_api_key,  jwt_settings_key=jwt_settings_key)
 
+    def get_user_google_wallet(self, use_api_key=False, jwt_settings_key=False):
+        post_json = self.api_url.get_users_url()['google_wallet']
+        url = post_json['url']
+        return self.network.dispatch(url=url, method=post_json['method'], use_api_key=use_api_key,  jwt_settings_key=jwt_settings_key)
+
     def get_user_by_email(self, user_email, jwt_settings_key=False):
         post_json = self.api_url.get_users_url()['user_id_by_email']
         url = post_json['url'].format(user_email)

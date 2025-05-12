@@ -147,6 +147,7 @@ class Api_url:
             'get_licenses': {'url': self.dest_url + '/api/infosync/licenses/?limit=0', 'method': 'GET'},
             'supervised_users': {'url': self.dest_url + '/api/infosync/group/supervised_users/', 'method': 'GET'},
             'twilio_creds': {'url': self.dest_url + '/api/infosync/user_admin/twilio_creds/', 'method':'GET'},
+            'google_wallet': {'url': self.dest_url + '/api/infosync/soter/google_wallet/', 'method':'GET'},
             'updated_users' :{'url': self.dest_url + '/api/infosync/user_admin/?limit=0&updated_at__gte={}', 'method':'GET'},
             'user_by_id': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'GET'},
             'user_id_by_email': {'url': self.dest_url + '/api/infosync/user/?email__contains={0}', 'method':'GET'},
