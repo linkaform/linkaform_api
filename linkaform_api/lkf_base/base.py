@@ -27,7 +27,7 @@ class LKF_Base(LKFBaseObject):
         self.status_id = '0000000000000000000aaaaa'
         # print('settings', dir(settings.lkf_api))
         self.settings = settings
-        # self.settings = self.update_settings(settings, use_api=use_api)
+        self.settings = self.update_settings(settings, use_api=use_api)
         self.f = kwargs.get('f', {})
         self.GET_CONFIG = {}
         self.kwargs = kwargs
@@ -332,7 +332,12 @@ class LKF_Base(LKFBaseObject):
                 x['created_at'] = self.get_date_str(x['created_at'])
             if x.get('updated_at'):
                 x['updated_at'] = self.get_date_str(x['updated_at'])
-            res.append(self._labels(x))
+            if kwargs.get('labels_off') and kwargs['labels_off']:
+                # Se hizo asi para garantizar compatiblidad con proces
+                # Que manden llamar funcion.
+                res.append(x)
+            else:
+                res.append(self._labels(x))
         if get_one and res:
             res = res[0]
         elif get_one and not res:
