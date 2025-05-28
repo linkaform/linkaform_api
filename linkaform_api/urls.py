@@ -48,6 +48,7 @@ class Api_url:
             'get_record_by_folio': {'url': self.dest_url + '/api/infosync/catalog/find/', 'method':'POST'},
             'set_catalog_answer': {'url': self.dest_url + '/api/infosync/catalog_answers/', 'method':'POST'},
             'share_catalog': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'},
+            'sync_catalogs_records': {'url': self.dest_url + '/api/infosync/catalog_answers/sync_catalogs_records/', 'method': 'POST'},
             'update_catalog_answer': {'url': self.dest_url + '/api/infosync/catalog_answers/', 'method': 'PATCH'},
             'update_catalog_model': {'url': self.dest_url + '/api/infosync/catalog_model/{0}/', 'method': 'PATCH'},
             'update_catalog_multi': {'url': self.dest_url + '/api/infosync/catalog_answers/{}/', 'method': 'PATCH'},
@@ -84,6 +85,7 @@ class Api_url:
             'unshare_item': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'},
             'version': {'url': self.dest_url + '/api/infosync/version/', 'method':'GET'},
             'get_inbox_forms': {'url': self.dest_url + '/api/infosync/form/?id__in=', 'method':'GET'},
+            'run_wf_action': {'url': self.dest_url + '/api/infosync/workflow_action/execute_task/', 'method':'POST'},
         }
 
     def get_global_url(self):
