@@ -1092,6 +1092,23 @@ class Cache:
     def run_script(self, data, jwt_settings_key=False):
         return self.network.dispatch(self.api_url.script['run_script'], data=data, jwt_settings_key=jwt_settings_key)
 
+    def run_workflow_action(self, data, jwt_settings_key=False):
+        """
+        Run workflow action
+        data:
+        {
+            "action_id":1, #el action id
+            "record_id":"58e522a2b43fdd4ae10e7210", #record id al que se le va aplicar la accion
+            "extra_args": {
+                "form_id":35376 #forma donde eta registra la accion
+            },
+            "configuration": {
+            }
+        }
+        """
+        return self.network.dispatch(self.api_url.form['run_wf_action'], data=data, jwt_settings_key=jwt_settings_key)
+
+
     """
     ITEMS
     """
@@ -1467,6 +1484,18 @@ class Cache:
         r = db_cr_to.save(update_seq)
         return True
 
+    def sync_catalogs_records(self, data, jwt_settings_key=False):
+        """
+        Sinconiza el registro de una forma a un catalogo 
+        data:
+        {
+            "catalogs_ids":[7777, 1234],# $id de los catalogos en si
+            "form_answer_id":"58e522a2b43fdd4ae10e7210", #record id al que se le va aplicar la accion
+            "form_answer_status": created/edited/deleted
+        }
+        """
+        return self.network.dispatch(self.api_url.catalog['sync_catalogs_records'], data=data, jwt_settings_key=jwt_settings_key)
+
     def read_current_record_from_txt(self, file_url):
         name_downloded = self.download_pdf( file_url, is_txt=True )
         f = open( "/tmp/{}".format( name_downloded ) )
@@ -1633,6 +1662,7 @@ class Cache:
             dom = xml.dom.minidom.parseString(xml_str)
             xml_str = dom.toprettyxml(indent="    ")
         return xml_str
+
 
 def warning(*objs):
     '''
