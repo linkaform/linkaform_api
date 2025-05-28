@@ -53,11 +53,10 @@ class LKFBaseObject(LKFBase):
         self.config = settings.config
 
     def LKFException(self, msg={}, dict_error={}):
-        title_default = "Something needs to be checked!!!"
+        title_default = "Addons Statement"
         type_default  = "warning"
         icon_default = "fa-circle-exclamation"
         msg_dict = {}
-        print('msg', msg)
         if msg and '"msg":' in msg:
             raise Exception(msg)
 
@@ -65,15 +64,15 @@ class LKFBaseObject(LKFBase):
             msg = {'msg':msg}
 
         msg_dict['title'] = msg.get('title', title_default)
-        msg_dict['msg'] = msg.get('msg', "Something went wrong")
+        msg_dict['label'] = msg.get('title', title_default)
+        msg_dict['msg'] = [msg.get('msg', "Something went wrong")]
         msg_dict['icon'] = msg.get('icon', icon_default)
         msg_dict['type'] = msg.get('type', type_default)
+        msg_dict["status"] = 400
 
         error_format = {
-            "status":400,
-            "msg":msg_dict
+            "exception":msg_dict
         }
-
         if dict_error:
             error_format.update(dict_error)
 
