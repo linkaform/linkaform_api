@@ -15,8 +15,8 @@ class LKF_Base(LKFBaseObject):
 
     def __init__(self, settings, sys_argv=None, use_api=False, **kwargs):
         # print('--------------------LKF_Base----------------------------', LKF_Base.__mro__)
-        config = settings.config
-        self.account_id = settings.config.get('ACCOUNT_ID')
+        self.config = settings.config
+        self.account_id = self.config.get('ACCOUNT_ID')
         self.master = True
         self.sys_argv = sys_argv
         self.use_api = use_api
@@ -38,12 +38,12 @@ class LKF_Base(LKFBaseObject):
             self.data = simplejson.loads( sys_argv[2] )
             if not use_api:
                 try:
-                    config['JWT_KEY'] = self.data.get("jwt",'').split(' ')[1] if self.data.get("jwt",'') else None
-                    config['USER_JWT_KEY'] = self.data.get("jwt",'').split(' ')[1] if self.data.get("jwt",'') else None
+                    self.config['JWT_KEY'] = self.data.get("jwt",'').split(' ')[1] if self.data.get("jwt",'') else None
+                    self.config['USER_JWT_KEY'] = self.data.get("jwt",'').split(' ')[1] if self.data.get("jwt",'') else None
                 except Exception as e:
-                    self.LKFException("Error al obtener autentificacion, favor de validar tu JWT")
-                self.settings.config.update(config)
-            if config.get('JWT_KEY'):
+                    self.LKFException("Error al obtener autentificacion, favor de validar tu JWT", e)
+                self.settings.config.update(self.config)
+            if self.config.get('JWT_KEY'):
                 self.user = self.decode_jwt()
             self.answers = self.current_record.get('answers',{})
             self.current_record = self.get_current_record(sys_argv)
@@ -93,13 +93,11 @@ class LKF_Base(LKFBaseObject):
         #self.lkf_api = self.upfile.lkf_api
         # TODO USAR el lkf_api que esta en LoadFile para evitar buqule
         self.lkf_api = utils.Cache(settings)
-        # print('dir utils',dir(self.lkf_apid))
         if hasattr(self.lkf_api, 'network'):
             self.net = self.lkf_api.network
         else:
             self.net = network.Network(settings)
         self.cr = self.net.get_collections()
-        # print(' set connections .............33333', dir(selfd))
         self.cr_wkf = self.net.get_collections('workflow_log')
         self.cr_version = self.net.get_collections('answer_version')
         self.lkm = lkf_models.LKFModules(settings, lkf_api=self.lkf_api)
