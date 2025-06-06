@@ -427,7 +427,7 @@ class LKF_Base(LKFBaseObject):
         current_record = simplejson.loads(sys_argv[1])
         if not current_record.get('answers') and current_record.get('answers_url'):
             current_record = self.read_current_record_from_txt( current_record['answers_url'] )
-        if record_to_long:
+        elif record_to_long:
             current_record = self.get_record_from_db( current_record.get('form_id'), current_record.get('folio') )
         return current_record
 
