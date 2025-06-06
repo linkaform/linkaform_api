@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys, simplejson, arrow, time, pyexcel
+import sys, simplejson, arrow, time, pyexcel, wget
 from datetime import datetime, date
 from bson import ObjectId
 import importlib
