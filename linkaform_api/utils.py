@@ -1490,11 +1490,46 @@ class Cache:
         data:
         {
             "catalogs_ids":[7777, 1234],# $id de los catalogos en si
-            "form_answer_id":"58e522a2b43fdd4ae10e7210", #record id al que se le va aplicar la accion
-            "form_answer_status": created/edited/deleted
+            "form_answers_ids":["58e522a2b43fdd4ae10e7210", "58e522a2b43fdd4ae10e7210"], #record id al que se le va aplicar la accion
+            "status":"created/edited/deleted"
         }
         """
-        return self.network.dispatch(self.api_url.catalog['sync_catalogs_records'], data=data, jwt_settings_key=jwt_settings_key)
+        print('data', data)
+        
+        # Split form_answers_ids into chunks of 200
+        catalogs_ids = data["catalogs_ids"]
+        status = data["status"]
+        form_answers_ids = data["form_answers_ids"]
+        
+        # Create chunks of 200 form answers
+        chunk_size = 200
+        chunks = [form_answers_ids[i:i + chunk_size] for i in range(0, len(form_answers_ids), chunk_size)]
+        
+        # Process each chunk in parallel using ThreadPoolExecutor
+        with concurrent.futures.ThreadPoolExecutor(max_workers=25) as executor:
+            futures = []
+            for chunk in chunks:
+                chunk_data = {
+                    "catalogs_ids": catalogs_ids,
+                    "form_answers_ids": chunk,
+                    "status": status
+                }
+                future = executor.submit(
+                    self.network.dispatch,
+                    self.api_url.catalog['sync_catalogs_records'],
+                    data=chunk_data,
+                    jwt_settings_key=jwt_settings_key
+                )
+                futures.append(future)
+            
+            # Wait for all threads to complete
+            concurrent.futures.wait(futures)
+            
+            # Get results from all threads
+            results = [future.result() for future in futures]
+            
+        # Return the combined results
+        return results
 
     def read_current_record_from_txt(self, file_url):
         name_downloded = self.download_pdf( file_url, is_txt=True )
