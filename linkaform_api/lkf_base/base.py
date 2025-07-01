@@ -119,7 +119,6 @@ class LKF_Base(LKFBaseObject):
             data = {}
             if hasattr(self, 'answers'):
                 data = self.answers
-        # print('ids_label_dct=',ids_label_dct)
         _f = {v:k for k, v in ids_label_dct.items()}
         res = {}
         if type(data) in (str, int, float):
