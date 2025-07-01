@@ -617,9 +617,15 @@ class Cache:
         return licenses['data']
 
     def get_from_fields(self, form_id, jwt_settings_key=False):
-        field = []
         url = self.api_url.form['get_form_fields']['url'] + str(form_id) + '/'
         method = self.api_url.form['get_form_fields']['method']
+        fields =  self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+        objects = fields['data']
+        return objects
+
+    def get_form_for_answer(self, form_id, jwt_settings_key=False):
+        url = self.api_url.form['get_form_for_answer']['url'] + str(form_id) + '/'
+        method = self.api_url.form['get_form_for_answer']['method']
         fields =  self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
         objects = fields['data']
         return objects
@@ -1494,7 +1500,6 @@ class Cache:
             "status":"created/edited/deleted"
         }
         """
-        print('data', data)
         
         # Split form_answers_ids into chunks of 200
         catalogs_ids = data["catalogs_ids"]
