@@ -437,6 +437,12 @@ class Cache:
                     items.append(obj)
         return items
 
+    def get_mobile_form(self, jwt_settings_key=False):
+        url = self.api_url.form['get_mobile_form']['url']
+        method = self.api_url.form['get_mobile_form']['method']
+        response = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+        return response
+
     def get_all_connections(self, jwt_settings_key=False):
         #TODO UPDATE SELF.ITESM
         #Returns all the connections
@@ -635,6 +641,15 @@ class Cache:
         url = url_list[0] + str(form_id)
         url += '&' + url_list[1] + str(user_id)
         method = self.api_url.form['user_fileshare']['method']
+        response = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+        return response
+
+    def get_user_forms(self, user_id, jwt_settings_key=False):
+        """
+        Regresa todas las formas que el usuario tiene compartidas
+        """
+        url = self.api_url.users['get_user_forms']['url'].format(user_id)
+        method = self.api_url.users['get_user_forms']['method']
         response = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
         return response
 
