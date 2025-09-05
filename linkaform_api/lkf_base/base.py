@@ -32,6 +32,7 @@ class LKF_Base(LKFBaseObject):
         self.GET_CONFIG = {}
         self.kwargs = kwargs
         self.kwargs['MODULES'] = self.kwargs.get('MODULES',[])
+        print('=================')
         if sys_argv:
             self.current_record =  simplejson.loads( sys_argv[1] )
             self.argv = sys_argv
@@ -45,7 +46,6 @@ class LKF_Base(LKFBaseObject):
                 self.settings.config.update(self.config)
             if self.config.get('JWT_KEY'):
                 self.user = self.decode_jwt()
-            self.answers = self.current_record.get('answers',{})
             self.current_record = self.get_current_record(sys_argv)
             self.folio = self.current_record.get('folio',{})
             self.form_id = self.current_record.get('form_id',{})
@@ -424,10 +424,13 @@ class LKF_Base(LKFBaseObject):
         except:
             record_to_long = False
         current_record = simplejson.loads(sys_argv[1])
+        print('current_record', current_record)
         if not current_record.get('answers') and current_record.get('answers_url'):
             current_record = self.read_current_record_from_txt( current_record['answers_url'] )
+            self.answers = current_record.get('answers',{})
         elif record_to_long:
             current_record = self.get_record_from_db( current_record.get('form_id'), current_record.get('folio') )
+            self.answers = current_record.get('answers',{})
         return current_record
 
     def get_prev_version(self, versions, select_columns=[]):
