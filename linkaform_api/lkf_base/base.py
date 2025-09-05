@@ -424,7 +424,6 @@ class LKF_Base(LKFBaseObject):
         except:
             record_to_long = False
         current_record = simplejson.loads(sys_argv[1])
-        print('current_record', current_record)
         if not current_record.get('answers') and current_record.get('answers_url'):
             current_record = self.read_current_record_from_txt( current_record['answers_url'] )
             self.answers = current_record.get('answers',{})
