@@ -6,3 +6,5 @@ dist/*.tag.gz
 # Python egg metadata, regenerated from source files by setuptools.
 /*.egg-info
 *.tar.gz
+
+.env

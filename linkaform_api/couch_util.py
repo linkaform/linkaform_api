@@ -7,47 +7,47 @@ from couchdb import Server
 class Couch_utils(object):
 
     def __init__(self, settings={}):
-        if settings.config['COUCH_ENV'] == 'prod':
-            couch_pord_url = "{}://{}:{}@{}:{}".format(
-                settings.config['COUCH_PROTOCOL'],
-                settings.config['COUCH_USER'],
-                settings.config['COUCH_PASSWORD'],
-                settings.config['COUCH_HOST'],
-                settings.config['COUCH_PORT'])
-            self.cdb = Server(couch_pord_url)
-            self.url_prod = "{}://{}:{}/".format(
-                settings.config['COUCH_PROTOCOL'],
-                settings.config['COUCH_HOST'],
-                settings.config['COUCH_PORT']
-                )
-            self.host = "{}://{}:{}@{}".format(
-                settings.config['COUCH_PROTOCOL'],
-                settings.config['COUCH_USER'],
-                settings.config['COUCH_PASSWORD'],
-                settings.config['COUCH_HOST'],
-                )
-        elif settings.config['COUCH_ENV'] == 'dev':
-            couch_dev_url = "{}://{}:{}@{}:{}".format(
-                settings.config['COUCH_DEV_PROTOCOL'],
-                settings.config['COUCH_DEV_USER'],
-                settings.config['COUCH_DEV_PASSWORD'],
-                settings.config['COUCH_DEV_HOST'],
-                settings.config['COUCH_DEV_PORT'])
-            self.cdb = Server(couch_dev_url)
-            self.cdb_dest = Server(couch_dev_url)
-            self.url_test = "{}://{}:{}/".format(
-                settings.config['COUCH_DEV_PROTOCOL'],
-                settings.config['COUCH_DEV_HOST'],
-                settings.config['COUCH_DEV_PORT']
-                )
-            self.host = "{}://{}:{}@{}".format(
-                settings.config['COUCH_DEV_PROTOCOL'],
-                settings.config['COUCH_DEV_USER'],
-                settings.config['COUCH_DEV_PASSWORD'],
-                settings.config['COUCH_DEV_HOST'],
-                )
-        self.max_replications = 20
-        self.cr = None
+      if settings.config['COUCH_ENV'] == 'prod':
+          couch_pord_url = "{}://{}:{}@{}:{}".format(
+              settings.config['COUCH_PROTOCOL'],
+              settings.config['COUCH_USER'],
+              settings.config['COUCH_PASSWORD'],
+              settings.config['COUCH_HOST'],
+              settings.config['COUCH_PORT'])
+          self.cdb = Server(couch_pord_url)
+          self.url_prod = "{}://{}:{}/".format(
+              settings.config['COUCH_PROTOCOL'],
+              settings.config['COUCH_HOST'],
+              settings.config['COUCH_PORT']
+              )
+          self.host = "{}://{}:{}@{}".format(
+              settings.config['COUCH_PROTOCOL'],
+              settings.config['COUCH_USER'],
+              settings.config['COUCH_PASSWORD'],
+              settings.config['COUCH_HOST'],
+              )
+      elif settings.config['COUCH_ENV'] == 'dev':
+          couch_dev_url = "{}://{}:{}@{}:{}".format(
+              settings.config['COUCH_DEV_PROTOCOL'],
+              settings.config['COUCH_DEV_USER'],
+              settings.config['COUCH_DEV_PASSWORD'],
+              settings.config['COUCH_DEV_HOST'],
+              settings.config['COUCH_DEV_PORT'])
+          self.cdb = Server(couch_dev_url)
+          self.cdb_dest = Server(couch_dev_url)
+          self.url_test = "{}://{}:{}/".format(
+              settings.config['COUCH_DEV_PROTOCOL'],
+              settings.config['COUCH_DEV_HOST'],
+              settings.config['COUCH_DEV_PORT']
+              )
+          self.host = "{}://{}:{}@{}".format(
+              settings.config['COUCH_DEV_PROTOCOL'],
+              settings.config['COUCH_DEV_USER'],
+              settings.config['COUCH_DEV_PASSWORD'],
+              settings.config['COUCH_DEV_HOST'],
+              )
+      self.max_replications = 20
+      self.cr = None
 
     def set_db(self, dbname):
       self.cr = self.cdb[dbname]
