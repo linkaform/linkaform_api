@@ -70,7 +70,6 @@ class Cache:
                   }
         if previos_user_id:
             data.update({'prev_user_id':previos_user_id})
-        print('data assigne_group_records=', data)
         response = self.network.dispatch(url_method=url_method, data=data, jwt_settings_key=jwt_settings_key)
         if response['status_code'] == 200:
             return response['data']
