@@ -10,6 +10,7 @@ setup(name='linkaform_api',
     packages=find_packages(),
     # packages=['linkaform_api', 'linkaform_api.models'],
     install_requires=[
+        'pydantic',
         'pymongo',
         'pyexcel',
         'simplejson',
