@@ -32,15 +32,14 @@ class LKF_Base(LKFBaseObject):
         self.GET_CONFIG = {}
         self.kwargs = kwargs
         self.kwargs['MODULES'] = self.kwargs.get('MODULES',[])
-        print('=================')
         if sys_argv:
-            self.current_record =  simplejson.loads( sys_argv[1] )
             self.argv = sys_argv
             self.data = simplejson.loads( sys_argv[2] )
             if not use_api:
                 try:
-                    self.config['JWT_KEY'] = self.data.get("jwt",'').split(' ')[1] if self.data.get("jwt",'') else None
-                    self.config['USER_JWT_KEY'] = self.data.get("jwt",'').split(' ')[1] if self.data.get("jwt",'') else None
+                    jwt = self.data.get("Bearer",self.data.get("jwt",''))
+                    self.config['JWT_KEY'] = jwt.split(' ')[-1] if jwt else None
+                    self.config['USER_JWT_KEY'] = jwt.split(' ')[-1] if jwt else None
                 except Exception as e:
                     self.LKFException("Error al obtener autentificacion, favor de validar tu JWT", e)
                 self.settings.config.update(self.config)
