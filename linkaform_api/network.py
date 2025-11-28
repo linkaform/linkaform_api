@@ -1,9 +1,11 @@
 # coding: utf-8
 #!/usr/bin/python
 
-import requests, sys, simplejson, simplejson, time, threading, concurrent.futures
+import logging, requests, sys, simplejson, time, threading, concurrent.futures
 from bson import json_util, ObjectId
+from requests.adapters import HTTPAdapter
 from urllib.parse import quote
+from urllib3.util.retry import Retry
 import psycopg2
 
 from pymongo import MongoClient
@@ -16,6 +18,71 @@ def unlist(arg):
         return unlist(arg[0])
     return arg
 
+def setup_retry_logging():
+    """Sets up logging to capture urllib3 retry messages."""
+
+    # Set the root logger to catch everything
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        stream=sys.stderr
+    )
+
+    # Get the specific urllib3 logger
+    # This is the logger responsible for printing retry events.
+    urllib3_logger = logging.getLogger('urllib3.connectionpool')
+
+    # Set its level to INFO or DEBUG to see internal events
+    urllib3_logger.setLevel(logging.INFO)
+
+    # Set both to DEBUG to capture all internal info
+    logging.getLogger().setLevel(logging.DEBUG) # Root logger
+    logging.getLogger('urllib3.connectionpool').setLevel(logging.DEBUG)
+    logging.getLogger('urllib3.util.retry').setLevel(logging.DEBUG) # Target this specific logger too
+
+    print('Logging setup complete. Watching for urllib3 INFO messages...')
+
+# Call setup at the beginning of your script
+# setup_retry_logging()
+
+class ConnectionClient(object):
+    def __init__(self, retries=9, backoff_factor=0.1):
+        # 1. Initialize the Session
+        self.session = requests.Session()
+        
+        # Retry Strategy (Connection Focus)
+        retry_strategy = Retry(
+            total=retries,# Maximum number of retries (e.g., 3 attempts total)
+            # --- CONNECTION-ONLY FOCUS ---
+            # Set to 0 to prevent retries on specific status codes.
+            status_forcelist=None,
+            status=0, # Maximum retries for bad status codes
+            # Only retry GET, HEAD, etc.
+            method_whitelist=('GET', 'HEAD', 'OPTIONS', 'POST', 'PATCH'),
+            # Apply exponential delay between connection attempts
+            backoff_factor=backoff_factor,
+            # Add randomness to the delay between retry attempts in the backoff strategy
+            # backoff_jitter=0.1
+        )
+
+        # 3. Mount the Adapter
+        adapter = HTTPAdapter(max_retries=retry_strategy)
+        self.session.mount('http://', adapter)
+        self.session.mount('https://', adapter)
+
+    def get(self, url, **kwargs):
+        # Use the session for all requests
+        return self.session.get(url, **kwargs)
+
+    def post(self, url, data, files=None, **kwargs):
+        return self.session.post(url, data, files=files, **kwargs)
+
+    def patch(self, url, data, files=None, **kwargs):
+        return self.session.patch(url, data, files=files, **kwargs)
+
+    def delete(self, url, data, files=None, **kwargs):
+        return self.session.delete(url, data, files=files, **kwargs)
+
 class Network:
 
     def __init__(self, settings={}):
@@ -24,6 +91,7 @@ class Network:
         self.settings = settings
         self.api_url = urls.Api_url(settings)
         self.thread_result = []
+        self.connection_client = ConnectionClient()
 
     def login(self, session, username, password=None, get_jwt=False ,api_key=None, get_user=True):
         #data = simplejson.dumps({"password": self.settings.config['PASS'], "username": self.settings.config['USERNAME']})
@@ -114,7 +182,6 @@ class Network:
                 'Content-type': 'application/json',
                 'Authorization':'Bearer {0}'.format(JWT)
             }
-
         elif use_api_key or (self.settings.config['IS_USING_APIKEY'] and not use_login):
             AUTHORIZATION_EMAIL_VALUE = self.settings.config.get('AUTHORIZATION_EMAIL_VALUE')
             AUTHORIZATION_TOKEN_VALUE = self.settings.config.get('AUTHORIZATION_TOKEN_VALUE')
@@ -126,22 +193,20 @@ class Network:
                 'Content-type': 'application/json',
                 'Authorization':'ApiKey {0}:{1}'.format(username, api_key)
             }
+
         if use_login:
             use_login = True
-            session = requests.Session()
+            self.connection_client.session.headers = {'Content-type': 'application/json'}
+            extra_args = {'param': params, 'verify': True}
             if self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']):
-                if params:
-                    r = session.get(url, params=params, headers={'Content-type': 'application/json'}, verify=True)
-                else:
-                    r = session.get(url, headers={'Content-type': 'application/json'}, verify=True)
+                r = self.connection_client.get(url, **extra_args)
             else:
                 raise Exception('Cannot login, please check user and password, or network connection!!!')
 
         if not use_login:
-            if params:
-                r = requests.get(url, params=params, headers=headers, verify=False)
-            else:
-                r = requests.get(url, headers=headers,verify=False)
+            self.connection_client.session.headers.update(headers)
+            extra_args = {'param': params, 'verify': False}
+            r = self.connection_client.get(url, **extra_args)
 
         response['status_code'] = r.status_code
 
@@ -182,20 +247,15 @@ class Network:
                 'Authorization':'ApiKey {0}:{1}'.format(username, api_key)
             }
         if use_login:
-            session = requests.Session()
+            self.connection_client.session.headers = {'Content-type': 'application/json'}
+            extra_args = {'verify': False}
             if use_login or (self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']) and not use_api_key):
-                if not up_file:
-                    r = session.post(url, data, headers={'Content-type': 'application/json'}, verify=False)#, files=file)
-
-                if up_file:
-                    r = session.post(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
+                r = self.connection_client.post(url, data, files=up_file, **extra_args)
 
         if not use_login:
-            if not up_file:
-                r = requests.post(url, data, headers=headers, verify=True)
-
-            if up_file:
-                r = requests.post(url, headers=headers, verify=True, files=up_file, data=data)
+            self.connection_client.session.headers.update(headers)
+            extra_args = {'verify': False}
+            r = self.connection_client.post(url, data, files=up_file, **extra_args)
 
         if unformatted_response:
             response = r
@@ -262,20 +322,19 @@ class Network:
             }
         else:
             use_login = True
-            session = requests.Session()
+            extra_args = {'verify': False}
+            self.connection_client.session.headers = {'Content-type': 'application/json'}
             if use_login or (self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']) and not use_api_key):
-                if not up_file:
-                    r = session.patch(url, data, headers={'Content-type': 'application/json'}, verify=False)#, files=file)
-
-                if up_file:
-                    r = session.patch(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
+                r = self.connection_client.patch(url, data, files=up_file, **extra_args)
 
         if not use_login:
-            if not up_file:
-                r = requests.request('patch', url, data=data, headers=headers, verify=True)
-
+            self.connection_client.session.headers.update(headers)
             if up_file:
-                r = requests.patch(url, headers=headers, verify=False, files=up_file, data=simplejson.loads(data))
+                extra_args = {'verify': False}
+                r = self.connection_client.patch(url, data=simplejson.loads(data), files=up_file, **extra_args)
+            else:
+                extra_args = {'verify': True}
+                r = self.connection_client.patch(url, data, **extra_args)
 
         if unformatted_response:
             response = r
@@ -321,22 +380,22 @@ class Network:
                 'Content-type': 'application/json',
                 'Authorization':'ApiKey {0}:{1}'.format(username, api_key)
             }
-
         else:
             use_login = True
-            session = requests.Session()
+            extra_args = {'verify': False}
+            self.connection_client.session.headers = {'Content-type': 'application/json'}
             if use_login or (self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']) and not use_api_key):
-                if not up_file:
-                    r = session.delete(url, data, headers={'Content-type': 'application/json'}, verify=False)#, files=file)
+                r = self.connection_client.delete(url, data, files=up_file, **extra_args)
 
-                if up_file:
-                    r = session.delete(url, data, headers={'Content-type': 'application/json'}, verify=False, files=up_file)
         if not use_login:
-            if not up_file:
-                r = requests.request('delete', url, data=data, headers=headers, verify=True)
-
+            self.connection_client.session.headers.update(headers)
             if up_file:
-                r = requests.delete(url, headers=headers, verify=False, files=up_file, data=simplejson.loads(data))
+                extra_args = {'verify': False}
+                r = self.connection_client.delete(url, simplejson.loads(data), files=up_file, **extra_args)
+
+            if not up_file:
+                extra_args = {'verify': True}
+                r = self.connection_client.delete(url, data, **extra_args)
 
         response['status_code'] = r.status_code
 
