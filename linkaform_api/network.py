@@ -58,7 +58,7 @@ class ConnectionClient(object):
             status_forcelist=None,
             status=0, # Maximum retries for bad status codes
             # Only retry GET, HEAD, etc.
-            method_whitelist=('GET', 'HEAD', 'OPTIONS', 'POST', 'PATCH'),
+            allowed_methods=['GET', 'HEAD', 'OPTIONS', 'POST', 'PATCH'],
             # Apply exponential delay between connection attempts
             backoff_factor=backoff_factor,
             # Add randomness to the delay between retry attempts in the backoff strategy
