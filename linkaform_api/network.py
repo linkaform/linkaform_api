@@ -197,7 +197,7 @@ class Network:
         if use_login:
             use_login = True
             self.connection_client.session.headers = {'Content-type': 'application/json'}
-            extra_args = {'param': params, 'verify': True}
+            extra_args = {'params': params, 'verify': True}
             if self.login(session, self.settings.config['USERNAME'], self.settings.config['PASS']):
                 r = self.connection_client.get(url, **extra_args)
             else:
@@ -205,7 +205,7 @@ class Network:
 
         if not use_login:
             self.connection_client.session.headers.update(headers)
-            extra_args = {'param': params, 'verify': False}
+            extra_args = {'params': params, 'verify': False}
             r = self.connection_client.get(url, **extra_args)
 
         response['status_code'] = r.status_code
