@@ -255,8 +255,13 @@ class Network:
         if not use_login:
             self.connection_client.session.headers.update(headers)
             extra_args = {'verify': False}
-            r = self.connection_client.post(url, data, files=up_file, **extra_args)
 
+            if up_file:
+                # Si es una carga de archivo se manda al request
+                r = requests.post(url, data=data, files=up_file, headers=headers, verify=True)
+            else:
+                r = self.connection_client.post(url, data=data, files=up_file, verify=False)
+            
         if unformatted_response:
             response = r
         else:
