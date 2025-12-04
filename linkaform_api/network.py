@@ -260,7 +260,7 @@ class Network:
                 # Si es una carga de archivo se manda al request
                 r = requests.post(url, data=data, files=up_file, headers=headers, verify=True)
             else:
-                r = self.connection_client.post(url, data=data, files=up_file, verify=False)
+                r = self.connection_client.post(url, data=data, files=None, verify=False)
             
         if unformatted_response:
             response = r
