@@ -227,7 +227,7 @@ class Cache:
             }
 
         if threading:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=36) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
                 usr_data = []
                 records_updated = {}
                 for inbox in inboxes:
@@ -332,7 +332,7 @@ class Cache:
             "group_id":group_id,
             "is_group":is_group}
         if threading:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=36) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
                 usr_data = []
                 records_updated = {}
                 for usr in data['users']:
@@ -958,7 +958,7 @@ class Cache:
 
         if threading:
             self.thread_dict = {}
-            with concurrent.futures.ThreadPoolExecutor(max_workers=36) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
                 if data.get(type_update, False):
                     records = data.pop(type_update)
                     to_multi_patch = [executor.submit(self.thread_function_dict, record, data, type_update, jwt_settings_key=jwt_settings_key) for record in records]
@@ -1023,7 +1023,7 @@ class Cache:
         #     print('no folio provided')
         #     return {}
         if threading:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=36) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
                 for data in records:
                     executor.map(lambda x: self.thread_function_bulk_patch(x, form_id,
                         jwt_settings_key=jwt_settings_key), [data])
@@ -1305,7 +1305,7 @@ class Cache:
 
     def bulk_patch_catalog(self, records, catalog_id, jwt_settings_key=False, threading=False):
         if threading:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=36) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
                 for data in records:
                     executor.map(lambda x: self.thread_function_bulk_patch_catalog(x, catalog_id,
                         jwt_settings_key=jwt_settings_key), [data])
@@ -1525,7 +1525,7 @@ class Cache:
         chunks = [form_answers_ids[i:i + chunk_size] for i in range(0, len(form_answers_ids), chunk_size)]
         
         # Process each chunk in parallel using ThreadPoolExecutor
-        with concurrent.futures.ThreadPoolExecutor(max_workers=36) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
             futures = []
             for chunk in chunks:
                 chunk_data = {
