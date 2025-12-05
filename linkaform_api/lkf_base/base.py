@@ -10,11 +10,11 @@ from ..lkf_object import LKFBaseObject
 
 from linkaform_api import settings, network, utils, lkf_models, upload_file
 
-
+# print('============ LKF API BASE ===================')
 class LKF_Base(LKFBaseObject):
 
     def __init__(self, settings, sys_argv=None, use_api=False, **kwargs):
-        # print('--------------------LKF_Base----------------------------', LKF_Base.__mro__)
+        # print('--------------------LKF_Base----------------------------')
         self.config = settings.config
         self.account_id = self.config.get('ACCOUNT_ID')
         self.master = True
@@ -480,7 +480,8 @@ class LKF_Base(LKFBaseObject):
             match_query.update(self.get_query_by('folio', folio))
         if query_answers:
             match_query.update(query_answers)
-
+        if not hasattr(self, 'cr'):
+            self._set_connections(self.settings)
         record_found = self.cr.find(match_query, select_columns)
         try:
             return record_found.next()

@@ -29,7 +29,7 @@ config = {
     'MONGODB_MAX_IDLE_TIME': 12000,
     'MONGODB_MAX_POOL_SIZE': 1000,
     'PROTOCOL' : 'https', #http or https
-    'HOST' : 'qa.linkaform.com',
+    'HOST' : 'app.linkaform.com',
     'HOST_BOB' : 'bob.linkaform.com',
     'AIRFLOW_PROTOCOL' : 'https', #http or https
     # 'AIRFLOW_PORT' : 5000, #http or https
