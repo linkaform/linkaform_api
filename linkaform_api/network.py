@@ -301,7 +301,7 @@ class Network:
         url = self.api_url.form['set_form_answer']
         if test:
             answers = [answers[0],answers[1]]
-        with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
             executor.map(lambda x: self.thread_function(x, url, jwt_settings_key=jwt_settings_key), answers)
         #print ' self.thread_result',  self.thread_result
         #for index, answer in enumerate(answers):

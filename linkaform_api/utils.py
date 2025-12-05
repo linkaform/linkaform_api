@@ -420,7 +420,7 @@ class Cache(object):
 
         if threading:
             self.thread_dict = {}
-            with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
                 if data.get(type_update, False):
                     records = data.pop(type_update)
                     to_multi_patch = [executor.submit(self.thread_function_dict, record, data, type_update, jwt_settings_key=jwt_settings_key) for record in records]
@@ -479,7 +479,7 @@ class Cache(object):
         #     print 'no folio provided'
         #     return {}
         if threading:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
                 for data in records:
                     executor.map(lambda x: self.thread_function_bulk_patch(x, form_id,
                         jwt_settings_key=jwt_settings_key), [data])
