@@ -796,6 +796,11 @@ class Cache:
             return res['data']
         return res
 
+    def get_sms_creds(self, use_api_key=False, jwt_settings_key=False):
+        post_json = self.api_url.get_users_url()['sms_creds']
+        url = post_json['url']
+        return self.network.dispatch(url=url, method=post_json['method'], use_api_key=use_api_key,  jwt_settings_key=jwt_settings_key)
+
     def get_user_connection(self, email_user, jwt_settings_key=False):
         # TODO UPDATE SELF.ITESM
         # Returns a user or connection
