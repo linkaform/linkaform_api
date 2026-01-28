@@ -134,9 +134,9 @@ class LKF_Base(LKFBaseObject):
                     else:
                         if l:
                             list_res.append(self._labels(data=l, ids_label_dct=ids_label_dct, from_self=True))
-                res.update({label:list_res})
+                res.update({label.lstrip('_'):list_res})
             else:
-                res[label] = value
+                res[label.lstrip('_')] = value
         return res
 
     def _lables_to_ids(self, data={}):
@@ -316,7 +316,7 @@ class LKF_Base(LKFBaseObject):
         wget.download(file_url, '/tmp/{}'.format(file_name))
         return file_name
 
-    def format_cr(self, cr_result, get_one=False, labels={}, **kwargs):
+    def format_cr(self, cr_result, get_one=False, ids_label_dct={}, **kwargs):
         res = []
         for x in cr_result:
             if x.get('_id'):
@@ -333,15 +333,15 @@ class LKF_Base(LKFBaseObject):
                 # Que manden llamar funcion.
                 res.append(x)
             else:
-                res.append(self._labels(x))
+                res.append(self._labels(x, ids_label_dct=ids_label_dct))
         if get_one and res:
             res = res[0]
         elif get_one and not res:
             res = {}
         return res
 
-    def format_cr_result(self, cr_result, get_one=False):
-        return self.format_cr(cr_result, get_one=get_one)
+    def format_cr_result(self, cr_result, get_one=False, ids_label_dct={}):
+        return self.format_cr(cr_result, get_one=get_one, ids_label_dct=ids_label_dct)
 
     def format_select(self, value):
         if value:
