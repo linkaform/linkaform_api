@@ -96,15 +96,15 @@ class LKFBaseObject(LKFBase):
     # properties: Optional[dict]
     # user_icon: Optional[AnyUrl]
     # user_url: Optional[AnyUrl]
-    # user_tag: Optional[List[str]]
+    # user_tag: Optional[List[str]] 
     # timezone: Optional[str]
 
     def decode_jwt(self):
         token = self.config['JWT_KEY']
         import sys
         version = sys.version
-        privKeyFile = open('/etc/ssl/certs/lkf_jwt_key.pub','r')
-        pub_key = privKeyFile.read()
+        pubKeyFile = open('/etc/ssl/certs/lkf_jwt_key.pub','r')
+        pub_key = pubKeyFile.read()
         jwt_data = jwt.decode(token, pub_key, algorithms='RS256')
         return jwt_data
 
