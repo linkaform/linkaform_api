@@ -134,12 +134,20 @@ class LKF_Base(LKFBaseObject):
                     else:
                         if l:
                             list_res.append(self._labels(data=l, ids_label_dct=ids_label_dct, from_self=True))
-                res.update({label.lstrip('_'):list_res})
+                if label == '_id':
+                    res.update({label:list_res})
+                else:
+                    res.update({label.lstrip('_'):list_res})
             else:
-                res[label.lstrip('_')] = value
+                if label == '_id':
+                    res.update({label:list_res})
+                else:
+                    res.update({label.lstrip('_'):list_res})
         return res
 
-    def _lables_to_ids(self, data={}):
+    def _lables_to_ids(self, data={}, ids_label_dct={}):
+        if not ids_label_dct:
+            ids_label_dct = self.f
         if not data:
             data=self.answers
         res = {}
@@ -148,14 +156,14 @@ class LKF_Base(LKFBaseObject):
         for key, value in data.items():
             label = self.f.get(key,key)
             if type(value) == dict:
-                res.update(self._labels(data=value))
+                res.update(self._labels(data=value,ids_label_dct={}))
             elif type(value) == list:
                 list_res = []
                 for l in value:
                     if isinstance(l, list):
                         list_res = l
                     else:
-                        list_res.append(self._lables_to_ids(l))
+                        list_res.append(self._lables_to_ids(l, ids_label_dct=ids_label_dct))
                 res.update({label:list_res})
             else:
                 res[label] = value
