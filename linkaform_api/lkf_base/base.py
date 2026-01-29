@@ -140,9 +140,9 @@ class LKF_Base(LKFBaseObject):
                     res.update({label.lstrip('_'):list_res})
             else:
                 if label == '_id':
-                    res.update({label:list_res})
+                    res[label] = value
                 else:
-                    res.update({label.lstrip('_'):list_res})
+                    res[label.lstrip('_')] = value
         return res
 
     def _lables_to_ids(self, data={}, ids_label_dct={}):
