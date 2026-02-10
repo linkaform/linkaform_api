@@ -1287,9 +1287,9 @@ class Cache:
             return self.prepare_response_find(response, **kwargs)
         if response['status_code'] == 440:
             if response.get('json'):
-                return response['json'].get('error')
+                return {'error':response['json'].get('error'), 'status_code':response['status_code']}
             if response.get('content'):
-                return response['content'].get('error')
+                return {'error':response['content'].get('error'), 'status_code':response['status_code']}
         return False
 
     def update_catalog_answers(self, data, record_id=None, jwt_settings_key=False):

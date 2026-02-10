@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import sys, simplejson, arrow, time, pyexcel, wget
+import sys, simplejson, arrow, time, pyexcel, wget, re
 from datetime import datetime, date
 from bson import ObjectId
 import importlib
@@ -784,6 +784,10 @@ class LKF_Base(LKFBaseObject):
         else:
             raise('Not a valid length of a date')
         return value
+
+    def valid_email(self, email):
+        patron = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        return re.match(patron, email) is not None
 
     def wf_create_relation(self, resp_create_record):
         if resp_create_record.get('status_code') == 201:

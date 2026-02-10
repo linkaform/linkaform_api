@@ -115,7 +115,8 @@ class LKFBaseObject(LKFBase):
             'username': u.get('user',{}).get('username'),
             'account_id': u.get('user',{}).get('parent_info',{}).get('id'),
             'name': u.get('user',{}).get('first_name',{}),
-            'user_id': u.get('user',{}).get('id')
+            'user_id': u.get('user',{}).get('id'),
+            'id': u.get('user',{}).get('id')
             }
         return user
 
