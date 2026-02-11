@@ -32,6 +32,7 @@ class LKF_Base(LKFBaseObject):
         self.GET_CONFIG = {}
         self.kwargs = kwargs
         self.kwargs['MODULES'] = self.kwargs.get('MODULES',[])
+        self.user = {}
         if sys_argv:
             self.argv = sys_argv
             self.data = simplejson.loads( sys_argv[2] )
@@ -248,7 +249,7 @@ class LKF_Base(LKFBaseObject):
             try:
                 return datetime.strptime(value, date_format)
             except:
-                raise('Not a valid date')
+                self.LKFException('Not a valid date')
         if len(value) == 10:
             #Date
             value = get_value(value, '%Y-%m-%d')
@@ -259,7 +260,7 @@ class LKF_Base(LKFBaseObject):
         elif len(value) == 8:
             value = get_value(value, '%Y-%m-%d %H:%M')
         else:
-            raise('Not a valid length of a date')
+            self.LKFException('Not a valid length of a date')
         return value
 
     def date_to_week(self, date_from):
@@ -383,7 +384,7 @@ class LKF_Base(LKFBaseObject):
     def get_date_str(self, value):
         if value:
             if isinstance(value, datetime):
-                return value.strftime('%Y-%m-%d')
+                return value.strftime('%Y-%m-%d %H:%M:%S')
             elif isinstance(value, date):
                 return value.strftime('%Y-%m-%d')
             return str(value)
@@ -767,22 +768,22 @@ class LKF_Base(LKFBaseObject):
             try:
                 value = datetime.strptime(value, '%Y-%m-%d')
             except:
-                raise('Not a valid date')
+                self.LKFException('Not a valid date')
         elif len(value) == 19:
             #DateTime
             try:
-                value = datetime.strptime(value, '%Y-%m-%d %H:%M%S')
+                value = datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
             except:
-                raise('Not a valid date')
+                self.LKFException('Not a valid date')
 
         elif len(value) == 8:
             #Time
             try:
-                value = datetime.strptime(value, '%Y-%m-%d %H:%M%S')
+                value = datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
             except:
-                raise('Not a valid date')
+                self.LKFException('Not a valid date')
         else:
-            raise('Not a valid length of a date')
+            self.LKFException('Not a valid length of a date')
         return value
 
     def valid_email(self, email):
