@@ -790,6 +790,16 @@ class LKF_Base(LKFBaseObject):
         patron = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         return re.match(patron, email) is not None
 
+    def valid_url(self, url):
+        patron = re.compile(
+            r'^https?://'  # http:// o https://
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'  # dominio
+            r'localhost|'  # o localhost
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # o IP
+            r'(?::\d+)?'  # puerto opcional
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+        return patron.match(url) is not None
+
     def wf_create_relation(self, resp_create_record):
         if resp_create_record.get('status_code') == 201:
             # print('... creando workflow')
