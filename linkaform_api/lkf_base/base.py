@@ -66,6 +66,8 @@ class LKF_Base(LKFBaseObject):
                     conneciont_id = conneciont_id.get('$oid')
                 self.record_id = conneciont_id
             # self._set_connections(settings)
+        if self.config.get('JWT_KEY') and not self.user:
+           self.user = self.decode_jwt()
         self._set_connections(settings)
 
     # def _do_inherits(self):
@@ -659,8 +661,7 @@ class LKF_Base(LKFBaseObject):
         idx = 0
         while cant > 0:
             new_id = ObjectId()
-            res = self.cr.find({"_id":new_id})
-            cant = res.count()
+            cant = self.cr.count_documents({"_id":new_id})
         return str(new_id)
         
     def project_format(self, field_dict, **kwargs):
