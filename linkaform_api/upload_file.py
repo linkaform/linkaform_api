@@ -10,7 +10,7 @@
 #####
 import wget
 import pyexcel
-import time, re
+import time, re, requests
 from datetime import datetime
 from sys import argv
 import simplejson
@@ -43,7 +43,30 @@ class LoadFile:
         if file_name:
             sheet = pyexcel.get_sheet(file_name = file_name)
         if file_url:
-            sheet = pyexcel.get_sheet(url = file_url)
+            try:
+                sheet = pyexcel.get_sheet(url = file_url)
+            except Exception:
+                response = requests.get(file_url)
+                content = response.content
+
+                if content[:2] == b'PK':
+                    try:
+                        sheet = pyexcel.get_sheet(
+                            file_type='ods',
+                            file_content=content
+                        )
+                    except Exception:
+                        sheet = pyexcel.get_sheet(
+                            file_type='xlsx',
+                            file_content=content
+                        )
+                elif content[:8] == b'\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1':
+                    sheet = pyexcel.get_sheet(
+                        file_type='xls',
+                        file_content=content
+                    )
+                else:
+                    raise ValueError(f"Formato de archivo no reconocido")
         records = sheet.array
         header = records.pop(0)
         try:
