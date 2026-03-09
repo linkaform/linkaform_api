@@ -9,8 +9,8 @@
 #
 #####
 import wget
-import pyexcel
-import time, re, requests
+import pyexcel, openpyxl
+import time, re, requests, zipfile, io
 from datetime import datetime
 from sys import argv
 import simplejson
@@ -42,32 +42,40 @@ class LoadFile:
         #sheet = pyexcel.get_sheet(file_name="bolsa.xlsx")
         if file_name:
             sheet = pyexcel.get_sheet(file_name = file_name)
-        if file_url:
+            records = sheet.array
+        elif file_url:
             try:
-                sheet = pyexcel.get_sheet(url = file_url)
+                sheet = pyexcel.get_sheet(url=file_url)
+                records = sheet.array
             except Exception:
                 response = requests.get(file_url)
                 content = response.content
 
                 if content[:2] == b'PK':
                     try:
-                        sheet = pyexcel.get_sheet(
-                            file_type='ods',
-                            file_content=content
-                        )
-                    except Exception:
-                        sheet = pyexcel.get_sheet(
-                            file_type='xlsx',
-                            file_content=content
-                        )
+                        with zipfile.ZipFile(io.BytesIO(content)) as z:
+                            names = z.namelist()
+
+                        if any(n.startswith('xl/') for n in names):
+                            # XLSX: usar openpyxl directo para evitar conflicto de plugins
+                            wb = openpyxl.load_workbook(io.BytesIO(content), data_only=True)
+                            ws = wb.active
+                            records = [[cell.value for cell in row] for row in ws.iter_rows()]
+                        elif 'META-INF/manifest.xml' in names:
+                            sheet = pyexcel.get_sheet(file_type='ods', file_content=content)
+                            records = sheet.array
+                        else:
+                            raise ValueError("Formato ZIP no reconocido")
+
+                    except zipfile.BadZipFile:
+                        raise ValueError("Archivo corrupto o formato no soportado")
+
                 elif content[:8] == b'\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1':
-                    sheet = pyexcel.get_sheet(
-                        file_type='xls',
-                        file_content=content
-                    )
+                    sheet = pyexcel.get_sheet(file_type='xls', file_content=content)
+                    records = sheet.array
                 else:
                     raise ValueError(f"Formato de archivo no reconocido")
-        records = sheet.array
+
         header = records.pop(0)
         try:
             header = [str(col).lower().replace(u'\xa0',u' ').strip().replace(' ', '_') for col in header]
