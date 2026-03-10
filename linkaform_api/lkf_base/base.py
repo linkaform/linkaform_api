@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 import sys, simplejson, arrow, time, pyexcel, wget, re
-from datetime import datetime, date
+import importlib, requests
+
 from bson import ObjectId
-import importlib
-from datetime import datetime
+from datetime import datetime, date
+from io import BytesIO
 from pytz import timezone
+from openpyxl import load_workbook
 
 from ..lkf_object import LKFBaseObject
 
@@ -655,11 +657,11 @@ class LKF_Base(LKFBaseObject):
         else:
             return data
 
-    def object_id(self):
+    def object_id(self, validate=True):
         #Asegura que no exista el object_id en la base de datos
         cant = 1
         idx = 0
-        while cant > 0:
+        while cant > 0 and validate:
             new_id = ObjectId()
             cant = self.cr.count_documents({"_id":new_id})
         return str(new_id)
@@ -688,8 +690,10 @@ class LKF_Base(LKFBaseObject):
         return simplejson.loads( f.read() )
 
     def read_file(self, file_url):
-        sheet = pyexcel.get_sheet(url = file_url)
-        all_records = sheet.array
+        response = requests.get(file_url)
+        wb = load_workbook(BytesIO(response.content), read_only=True)
+        sheet = wb.active
+        all_records = [row for row in sheet.iter_rows(values_only=True)]
         header = all_records.pop(0)
         return header, all_records
 
