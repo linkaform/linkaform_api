@@ -523,6 +523,8 @@ class Cache:
         if api_key:
             if type(api_key) == bool:
                 api_key = self.settings.config.get('api_key')
+            print('api key', api_key)
+            print('api user', user)
             jwt = self.network.login(session, username=user, get_jwt=get_jwt, api_key=api_key, get_user=get_user)
         else:
             jwt = self.network.login(session, user, password, get_jwt=get_jwt, get_user=get_user)
@@ -643,12 +645,30 @@ class Cache:
         response = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
         return response
 
+    def get_user_catalog(self, user_id, jwt_settings_key=False):
+        """
+        Regresa todos los catalogos que el usuario tiene compartidas
+        """
+        url = self.api_url.users['get_user_catalog']['url'].format(user_id)
+        method = self.api_url.users['get_user_catalog']['method']
+        response = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+        return response
+
     def get_user_forms(self, user_id, jwt_settings_key=False):
         """
         Regresa todas las formas que el usuario tiene compartidas
         """
         url = self.api_url.users['get_user_forms']['url'].format(user_id)
         method = self.api_url.users['get_user_forms']['method']
+        response = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+        return response
+
+    def get_user_scripts(self, user_id, jwt_settings_key=False):
+        """
+        Regresa todos los scripts que el usuario tiene compartidas
+        """
+        url = self.api_url.users['get_user_scripts']['url'].format(user_id)
+        method = self.api_url.users['get_user_scripts']['method']
         response = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
         return response
 
@@ -1133,6 +1153,25 @@ class Cache:
         """
         return self.network.dispatch(self.api_url.form['run_wf_action'], data=data, jwt_settings_key=jwt_settings_key)
 
+    def update_user_password(self, user_ids, password=None, jwt_settings_key=False):
+        """
+        Update users password
+        Args:
+        user_ids: (int|list): Puedes enviar un id del password o una lista de integers con user_id
+        password: (str): Si envias un password se va a settear es password para el o los usuarios.
+                        Si no envias, se genera un password random
+        Return:
+            Diccionario con {user_id:password}
+        """
+        response = []
+        if isinstance(user_ids, int):
+            user_ids = [user_ids,]
+        for user_id in user_ids:
+            post_json = self.api_url.get_users_url()['update_password']
+            url = post_json['url'].format(user_id)
+            pass_data = {'password':password, 'password2': password}
+            response.append(self.network.dispatch(url=url, method=post_json['method'], data=pass_data, jwt_settings_key=jwt_settings_key))
+        return response
 
     """
     ITEMS
@@ -1788,3 +1827,7 @@ def get_same_properites(key, values):
         update_vals = values.pop(key)
         values.update(update_vals)
     return values
+
+
+def random_password():
+    return True
