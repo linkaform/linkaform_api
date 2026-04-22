@@ -523,8 +523,6 @@ class Cache:
         if api_key:
             if type(api_key) == bool:
                 api_key = self.settings.config.get('api_key')
-            print('api key', api_key)
-            print('api user', user)
             jwt = self.network.login(session, username=user, get_jwt=get_jwt, api_key=api_key, get_user=get_user)
         else:
             jwt = self.network.login(session, user, password, get_jwt=get_jwt, get_user=get_user)
