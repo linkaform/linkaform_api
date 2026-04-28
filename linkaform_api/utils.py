@@ -523,8 +523,6 @@ class Cache:
         if api_key:
             if type(api_key) == bool:
                 api_key = self.settings.config.get('api_key')
-            print('api key', api_key)
-            print('api user', user)
             jwt = self.network.login(session, username=user, get_jwt=get_jwt, api_key=api_key, get_user=get_user)
         else:
             jwt = self.network.login(session, user, password, get_jwt=get_jwt, get_user=get_user)
@@ -993,13 +991,10 @@ class Cache:
                         if objects_updated.get('objects'):
                             objects_updated = objects_updated['objects']
                         else:
-                            objects_updated = [objects_updated,]
+                            objects_updated = [objects_updated]
+                        
                         for o in objects_updated:
-                            for f in o:
-                                if type_update == 'folios':
-                                    records_updated.append(o)
-                                else:
-                                    records_updated.append(o)
+                            records_updated.append(o) 
                     '''
                     for record in records:
                         data['records'] = [record]
@@ -1230,7 +1225,6 @@ class Cache:
             data = {'objects': [], 'deleted_objects': data_to_share}
         else:
             data = {'objects': [data_to_share,]}
-
         return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
 
     """
