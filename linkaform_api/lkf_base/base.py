@@ -290,7 +290,16 @@ class LKF_Base(LKFBaseObject):
             except ValueError:
                 res = datetime.strptime(value, '%Y-%m-%d')
         return res
-        
+
+
+    def date_difference_minutes(self, date1, date2, fmt='%Y-%m-%d %H:%M:%S'):
+        try:
+            diff = datetime.strptime(date1, fmt) - datetime.strptime(date2, fmt)
+            res = diff.total_seconds() / 60
+        except:
+            res = 0
+        return res
+
     def date_operation(self, date_value, operator, qty, unit, date_format=None):
         if type(date_value) == str:
             epoch = self.date_2_epoch(date_value)
