@@ -957,7 +957,7 @@ class Cache:
         return res
         #logging.info("Finishing with code"%(record, res))
 
-    def patch_multi_record(self, answers, form_id, folios=[], record_id=[], jwt_settings_key=False, threading=False):
+    def patch_multi_record(self, answers, form_id, folios=[], record_id=[], jwt_settings_key=False, threading=False, max_workers=128):
         if not answers or not (folios or record_id):
             return {}
         data = {'all_responses': True}
@@ -965,6 +965,8 @@ class Cache:
         data['answers'] = answers
         data['form_id'] = form_id
         type_update = 'records'
+        if max_workers > 128:
+            max_workers = 128
 
         if folios and not record_id:
             data['folios'] = folios
@@ -981,7 +983,7 @@ class Cache:
 
         if threading:
             self.thread_dict = {}
-            with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
                 if data.get(type_update, False):
                     records = data.pop(type_update)
                     to_multi_patch = [executor.submit(self.thread_function_dict, record, data, type_update, jwt_settings_key=jwt_settings_key) for record in records]
