@@ -314,12 +314,14 @@ class LKF_Base(LKFBaseObject):
         if unit in ('day', 'days'):
             seconds = qty * 60 * 60 * 24
         if unit in ('week', 'weeks'):
-            seconds = qty * 60 * 60 * 24 + 7
+            seconds = qty * 60 * 60 * 24 * 7
         if operator == '+' or operator == 'add':
             epoch += seconds
         if operator == '-' or operator == 'subtract':
             epoch -= seconds
         if date_format:
+            if date_format is True:
+                date_format = '%Y-%m-%d %H:%M:%S'  # default cuando solo pasan True
             return datetime.fromtimestamp(epoch).strftime(date_format)
         else:
             return datetime.fromtimestamp(epoch)
