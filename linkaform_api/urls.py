@@ -139,7 +139,8 @@ class Api_url:
             'create_folder': {'url': self.dest_url + '/api/infosync/script_folder/', 'method':'POST'},
             'run_script': {'url': self.dest_url + '/api/infosync/scripts/run/', 'method':'POST'},
             'upload_script': {'url': self.dest_url + '/api/infosync/upload_script/', 'method': 'POST'},
-            'update_script': {'url': self.dest_url + '/api/infosync/scripts/{}/', 'method': 'PATCH'}
+            'update_script': {'url': self.dest_url + '/api/infosync/scripts/{}/', 'method': 'PATCH'},
+            'share_script': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'},
         }
 
     def get_users_url(self):
