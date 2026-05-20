@@ -1393,6 +1393,16 @@ class Cache:
             data = { 'objects': [ data_to_share, ] }
         r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
         return r
+    
+    def share_script(self, data_to_share, unshare=False, jwt_settings_key=False):
+        url = self.api_url.script['share_script']['url']
+        method = self.api_url.script['share_script']['method']
+        if unshare:
+            data = { 'objects': [], 'deleted_objects': data_to_share }
+        else:
+            data = { 'objects': [ data_to_share, ] }
+        r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+        return r
 
     def find_record(self, db_cr, rec_id):
         mango_query = {
