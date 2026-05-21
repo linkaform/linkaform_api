@@ -31,7 +31,6 @@ class Network:
             data = {"username":username, "api_key": api_key}
         else:
             data = {"password": self.settings.config['PASS'], "username": self.settings.config['USERNAME']}
-
         response = self.dispatch(self.api_url.globals['login'], data=data, use_login=True)
         if get_user and response['status_code'] != 400:
             if response.get('content'):
@@ -44,6 +43,8 @@ class Network:
                 return response['content']['jwt']
 
             if response.get('json'):
+                if response.get('status_code') == 404:
+                    raise ValueError('key not found')
                 return response['json']['jwt']
 
         return response['status_code'] == 200

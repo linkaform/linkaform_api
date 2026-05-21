@@ -105,6 +105,13 @@ class LKF_Base(LKFBaseObject):
         self.cr_wkf = self.net.get_collections('workflow_log')
         self.cr_version = self.net.get_collections('answer_version')
         self.lkm = lkf_models.LKFModules(settings, lkf_api=self.lkf_api)
+        # ── OpenRouter — solo si el usuario configuró su API key ──
+        if self.config.get('OPENROUTER_API_KEY'):
+            from linkaform_api.integrations.openrouter import OpenRouter
+            self.ai = OpenRouter(self.config)
+        else:
+            self.ai = None
+
         return True
 
     def _labels_list(self, data=[], ids_label_dct={}, from_self=False):
