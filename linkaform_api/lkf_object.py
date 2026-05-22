@@ -52,7 +52,7 @@ class LKFBaseObject(LKFBase):
         self.settings = settings
         self.config = settings.config
 
-    def LKFException(self, msg={}, dict_error={}):
+    def LKFException(self, msg={}, status_code = None, dict_error={}):
         title_default = "Addons Statement"
         type_default  = "warning"
         icon_default = "fa-circle-exclamation"
@@ -62,13 +62,18 @@ class LKFBaseObject(LKFBase):
 
         if isinstance(msg, str):
             msg = {'msg':msg}
+        if not status_code:
+           status_code = msg.get('status_code') 
 
         msg_dict['title'] = msg.get('title', title_default)
         msg_dict['label'] = msg.get('title', title_default)
         msg_dict['msg'] = [msg.get('msg', "Something went wrong")]
         msg_dict['icon'] = msg.get('icon', icon_default)
         msg_dict['type'] = msg.get('type', type_default)
-        msg_dict["status"] = 400
+        msg_dict["status_code"] = status_code
+        # Status Code Warning
+        msg_dict["status"] = status_code
+        msg_dict["warning"] = "status key will be depreciated and replaced with status_code on future releaces"
 
         error_format = {
             "exception":msg_dict

@@ -19,6 +19,7 @@ import json
 import base64
 import requests
 from pathlib import Path
+from ..lkf_object import LKFBaseObject
 
 
 # Modelo por default — puede sobreescribirse en account_settings con OPENROUTER_MODEL
@@ -29,7 +30,7 @@ DEFAULT_MODEL = 'google/gemini-2.5-flash'
 OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions'
 
 
-class OpenRouter:
+class OpenRouter(LKFBaseObject):
     """
     Cliente OpenRouter para LinkaForm.
 
@@ -229,7 +230,8 @@ class OpenRouter:
         )
         return self._parse_json(raw)
 
-    def ocr_general(self, image_source:list, system: str, prompt: str, model: str = None):
+    def ocr_general(self, image_source:list, system: str, prompt: str, 
+            model: str = None, agent: str = 'Clave10', max_tokens: int = 600):
         """
         Extrae datos de una identificación (INE, pasaporte, licencia, etc.)
         y los retorna como dict.
@@ -253,33 +255,33 @@ class OpenRouter:
             datos = self.ai.ocr_id("https://s3.amazonaws.com/.../ine.jpg")
             datos = self.ai.ocr_id("/tmp/identificacion.png")
         """
-        self.headers['X-Title'] = 'Clave10: OCR ID'
-        system = (
-            "Eres un OCR especializado en Paquetes de entrega. "
-            "Eres un guarida de segurida o recepcionista de un gran corportativo que recive"
-            "Muchos paquetes, de paqueterias o de comida"
-        )
-        prompt = (
-            "Lee la informacion de la etiqueta proporcionada. Regresa en un JSON los datos de:"
-            "- remitente: 'str' Es el remitente, el orgien del paquete, el quien envia"
-            "- telefono_remitente: 'str' telefono quien envia"
-            "- direccion_remiente: es la direccion de quien envia"
-            "- receptor: 'str' Es para quien va el paquete."
-            "- telefono_receptor: 'str' telefono quien recibe    "
-            "- email_receptor: 'str' email quien recibe    "
-            "- paqueteria: 'str' Empresa quien envia el paquete, ej FedEx, USPS, UPS, UberEats"
-            "- no_guia: 'str' Es el numero de guia o numero de orden o numero de paquete"
-            "- telefono_receptor: 'str' Telefono de quien recibe"
-            "- contenido: 'str' contenido"
-            "- tipo_paquete: 'str' El tipo de paquete, caja, sobre, alimentos, folores"
-            )
+        self.headers['X-Title'] = agent
+        # system = (
+        #     "Eres un OCR especializado en Paquetes de entrega. "
+        #     "Eres un guarida de segurida o recepcionista de un gran corportativo que recive"
+        #     "Muchos paquetes, de paqueterias o de comida"
+        # )
+        # prompt = (
+        #     "Lee la informacion de la etiqueta proporcionada. Regresa en un JSON los datos de:"
+        #     "- remitente: 'str' Es el remitente, el orgien del paquete, el quien envia"
+        #     "- telefono_remitente: 'str' telefono quien envia"
+        #     "- direccion_remiente: es la direccion de quien envia"
+        #     "- receptor: 'str' Es para quien va el paquete."
+        #     "- telefono_receptor: 'str' telefono quien recibe    "
+        #     "- email_receptor: 'str' email quien recibe    "
+        #     "- paqueteria: 'str' Empresa quien envia el paquete, ej FedEx, USPS, UPS, UberEats"
+        #     "- no_guia: 'str' Es el numero de guia o numero de orden o numero de paquete"
+        #     "- telefono_receptor: 'str' Telefono de quien recibe"
+        #     "- contenido: 'str' contenido"
+        #     "- tipo_paquete: 'str' El tipo de paquete, caja, sobre, alimentos, folores"
+        #     )
 
         raw = self.chat(
             prompt=prompt,
             image_url=image_source,
             system=system,
             model=model,
-            max_tokens=600,
+            max_tokens=max_tokens,
             temperature=0,
         )
         return self._parse_json(raw)
@@ -405,24 +407,43 @@ class OpenRouter:
         """
         Parsea la respuesta del modelo como JSON.
         Limpia bloques de código markdown si los hay.
+        Detecta respuestas truncadas por límite de tokens.
         """
         res = ""
         if raw_text.get('choices'):
-            if isinstance(raw_text['choices'], list) and len(raw_text['choices']) >0:
-                if raw_text['choices'][0].get('message',{}).get('content'):
-                    res = raw_text['choices'][0]['message']['content'].strip()
+            if isinstance(raw_text['choices'], list) and len(raw_text['choices']) > 0:
+                choice = raw_text['choices'][0]
+
+                # ── Detectar truncamiento ANTES de parsear ────────────
+                finish_reason = choice.get('finish_reason')
+                native_finish = choice.get('native_finish_reason')
+                if finish_reason == 'length' or native_finish == 'MAX_TOKENS':
+                    raise self.LKFException({
+                        'msg':(
+                        f"Respuesta truncada por límite de tokens (finish_reason='{finish_reason}'). "
+                        f"Tokens usados: {raw_text.get('usage', {}).get('completion_tokens')}. "
+                        f"Aumenta max_tokens en la llamada al modelo."),
+                        'status_code': 422}
+                    )
+
+                if choice.get('message', {}).get('content'):
+                    res = choice['message']['content'].strip()
 
         text = res.strip()
 
-        # Limpiar ```json ... ``` o ``` ... ```
+        # ── Limpiar bloques markdown ```json ... ``` ──────────────────
         if text.startswith('```'):
             lines = text.split('\n')
-            text  = '\n'.join(lines[1:-1]).strip()
-            raw_text['choices'][0]['message']['content'] = json.loads(text)
+            # Remover primera línea (```json) y última (```)
+            text = '\n'.join(lines[1:-1]).strip()
 
+        # ── Parsear JSON ──────────────────────────────────────────────
         try:
+            parsed = json.loads(text)
+            raw_text['choices'][0]['message']['content'] = parsed
             return raw_text
         except json.JSONDecodeError as e:
             raise ValueError(
-                f"El modelo no devolvió JSON válido: {e}\nRespuesta: {raw_text}"
+                f"El modelo no devolvió JSON válido: {e}\n"
+                f"Fragmento problemático: ...{text[max(0, e.pos-50):e.pos+50]}..."
             )
