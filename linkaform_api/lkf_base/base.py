@@ -117,7 +117,9 @@ class LKF_Base(LKFBaseObject):
     def _labels_list(self, data=[], ids_label_dct={}, from_self=False):
         res = []
         for d in data:
-            if type(d) == list:
+            if d is None:
+                res.append(None)
+            elif type(d) == list:
                 res.append(self._labels_list(d, ids_label_dct=ids_label_dct, from_self=True))
             else:
                 res.append(self._labels(d, ids_label_dct=ids_label_dct, from_self=True))
@@ -132,6 +134,8 @@ class LKF_Base(LKFBaseObject):
                 data = self.answers
         _f = {v:k for k, v in ids_label_dct.items()}
         res = {}
+        if data is None:
+            return None
         if type(data) in (str, int, float):
             return data
         for key, value in data.items():
