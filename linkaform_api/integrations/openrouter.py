@@ -110,71 +110,86 @@ class OpenRouter(LKFBaseObject):
 
     def ocr_id(self, image_source: list, model: str = 'google/gemini-2.5-flash-lite', name: str=None) -> dict:
         """
-        Extrae datos de una identificación (INE, pasaporte, licencia, etc.)
-        y los retorna como dict.
+        Extrae datos de todas las identificaciones visibles en la imagen
+        (INE, pasaporte, licencia, credencial escolar, etc.) y las retorna
+        como lista de dicts, una por identificación encontrada.
 
         Args:
             image_source: URL remota o ruta local de la imagen.
             model:        Modelo a usar (opcional).
+            name:         Si se indica, valida que al menos una ID pertenezca a esa persona.
 
         Returns:
-            dict con los campos extraídos. Ejemplo:
-            {
-                "nombre": "Juan",
-                "apellido_paterno": "Pérez",
-                "curp": "PEGJ850315HDFRMN01",
-                "fecha_nacimiento": "1985-03-15",
-                "tipo_documento": "INE",
-                ...
-            }
+            list[dict] con los campos extraídos por cada identificación. Ejemplo:
+            [
+                {
+                    "tipo_documento": "INE",
+                    "nombre": "Juan",
+                    "apellido_paterno": "Pérez",
+                    "curp": "PEGJ850315HDFRMN01",
+                    "fecha_nacimiento": "1985-03-15",
+                    ...
+                },
+                {
+                    "tipo_documento": "Licencia de conducir",
+                    ...
+                }
+            ]
 
         Ejemplo:
-            datos = self.ai.ocr_id("https://s3.amazonaws.com/.../ine.jpg")
-            datos = self.ai.ocr_id("/tmp/identificacion.png")
+            datos = self.ai.ocr_id("https://s3.amazonaws.com/.../ids.jpg")
+            datos = self.ai.ocr_id("/tmp/identificaciones.png")
         """
         self.headers['X-Title'] = 'Clave10: OCR ID'
         system = (
-            "Eres un OCR especializado en identificaciones. "
-            "Responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional, "
-            "sin bloques de código. Usa null para campos ilegibles."
+            "Eres un OCR especializado en identificaciones oficiales. "
+            "Responde ÚNICAMENTE con JSON válido, sin texto adicional y sin bloques de código. "
+            "Usa null para campos ilegibles o ausentes."
         )
-        prompt = "Valida que sea una identificación sea real.\n"
+        prompt = (
+            "Analiza la imagen y detecta TODAS las identificaciones presentes "
+            "(puede haber una o varias).\n"
+        )
         if name:
-            prompt += f"""Valida que la identifcacion pertenezca a {name}. IMPORTANTE, si la identificación
-             no pertenece a {name}, regresa un JSON status: La identificacion no pertences a {name},
-             status_code: 406"""
+            prompt += (
+                f"Valida que al menos una identificación pertenezca a '{name}'. "
+                f"Si ninguna pertenece a '{name}', incluye en ese objeto: "
+                f'"status": "La identificacion no pertenece a {name}", "status_code": 406\n'
+            )
 
-        prompt += """Extrae todos los datos de esta identificación y devuélvelos como JSON.
-
-            Incluye los campos que encuentres, y siempre contesta en este formato:
-            - nombre, 
-            - apellido_paterno,
+        prompt += """Para CADA identificación encontrada extrae sus datos y devuelve un array JSON
+            donde cada elemento corresponde a una identificación con estos campos:
+            - tipo_documento   (IMPORTANTE: indica exactamente el tipo: INE, Pasaporte, Licencia de conducir,
+                                Credencial escolar, etc.)
+            - nombre
+            - apellido_paterno
             - apellido_materno
-            - fecha_nacimiento (formato YYYY-MM-DD si es posible)
+            - fecha_nacimiento  (formato YYYY-MM-DD si es posible)
             - sexo
-            - curp, 
-            - rfc, 
+            - curp
+            - rfc
             - direccion: {
-                calle,    
-                colonia, 
-                municipio, 
-                estado, 
+                calle,
+                colonia,
+                municipio,
+                estado,
                 cp
             }
             - fecha_vigencia
             - fecha_expedicion
             - numero_documento
             - nacionalidad
-            - tipo_documento (INE, pasaporte, licencia, etc.)
-            - status_vigenica (indica con un vigente si fecha de vigencia esta vigente )
-            Responde SOLO con el JSON, sin explicaciones."""
-        
+            - status_vigencia   (\"vigente\" o \"vencida\" según la fecha de vigencia)
+
+            Si solo hay una identificación devuelve igualmente un array con un solo elemento.
+            Responde SOLO con el array JSON, sin explicaciones."""
+
         raw = self.chat(
             prompt=prompt,
             image_url=image_source,
             system=system,
             model=model,
-            max_tokens=600,
+            max_tokens=1500,
             temperature=0,
         )
         return self._parse_json(raw)
