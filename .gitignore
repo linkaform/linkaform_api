@@ -8,3 +8,4 @@ dist/*.tag.gz
 *.tar.gz
 
 .env
+linkaform_api/settings.py
