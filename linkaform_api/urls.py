@@ -30,6 +30,7 @@ class Api_url:
             'update': {'url': self.airflow_dest_url + '/cron', 'method':'PATCH'},
             'subscribe': {'url': self.airflow_dest_url + '/cron', 'method':'POST'},
             'delete_schedule': {'url': self.airflow_dest_url + '/cron', 'method':'DELETE'},
+            'run_dag': {'url': self.airflow_dest_url + '/cron/{0}', 'method':'POST'},
         }
 
     def get_catalog_url(self):

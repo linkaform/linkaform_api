@@ -121,7 +121,7 @@ class Cache:
             data = {}
         rows = data.get('rows',[])
         rows = [r.get('key')[group_level-1] for r in rows]
-        return rows      
+        return rows
 
     def create_catalog(self, catalog_model, jwt_settings_key=False):
         url = self.api_url.catalog['create_catalog']['url']
@@ -143,7 +143,7 @@ class Cache:
 
     def create_folder(self, folder_type, folder_name, jwt_settings_key=False):
         """
-        Create any item folder, it could be on the forms list, catalog list, 
+        Create any item folder, it could be on the forms list, catalog list,
         script list or report list
         Args:
             folder_type (str): valid options are form, catalog, script or report
@@ -201,13 +201,13 @@ class Cache:
             records_updated = response['data']
             if isinstance(records_updated, str):
                 records_updated = simplejson.loads(records_updated)
-        return response 
+        return response
 
     def delete_inbox_format(self, inboxes):
         res = []
         for inbox in inboxes:
             r = {
-                '_id': inbox.get('id',inbox.get('_id',inbox.get('key'))), 
+                '_id': inbox.get('id',inbox.get('_id',inbox.get('key'))),
                 '_deleted': True
             }
             revision = inbox.get('_rev',inbox.get('value',{}).get('rev'))
@@ -238,7 +238,7 @@ class Cache:
                     usr_data.append(user_data)
                 print('doning this many post', len(usr_data))
                 to_multi_patch = [executor.submit(
-                    self.delete_users_inbox_thread_function, url_method, u_data, jwt_settings_key=jwt_settings_key) 
+                    self.delete_users_inbox_thread_function, url_method, u_data, jwt_settings_key=jwt_settings_key)
                     for u_data in usr_data]
                 for thread_post in concurrent.futures.as_completed(to_multi_patch):
                     resp = thread_post.result()
@@ -252,7 +252,7 @@ class Cache:
 
     def delete_form_records(self, delete_record_ids, jwt_settings_key=False):
         data = {'deleted_objects':[]}
-        url = self.api_url.record['form_answer_patch']['url'] 
+        url = self.api_url.record['form_answer_patch']['url']
         url = url.replace(self.api_url.dest_url, '')
         if isinstance(delete_record_ids ,list):
             data['deleted_objects'] = [f"{url}{x}/" for x in delete_record_ids]
@@ -325,7 +325,7 @@ class Cache:
         #params:
         # users: list of users
         # group_id: is send will get the group inbox
-        # is_group: boolean 
+        # is_group: boolean
         url_method = self.api_url.users['user_inbox']
         data = {
             "users":users,
@@ -343,7 +343,7 @@ class Cache:
                     }
                     usr_data.append(user_data)
                 to_multi_patch = [executor.submit(
-                    self.get_user_inbox_thread_function, url_method, u_data, jwt_settings_key=jwt_settings_key) 
+                    self.get_user_inbox_thread_function, url_method, u_data, jwt_settings_key=jwt_settings_key)
                     for u_data in usr_data]
                 for thread_post in concurrent.futures.as_completed(to_multi_patch):
                     resp = thread_post.result()
@@ -753,7 +753,7 @@ class Cache:
             current_date = datetime.now()
             from_date = datetime.strftime(current_date, '%Y-%m-%d')
         mango_query = {
-            "selector":{"answers": {"$and":[ 
+            "selector":{"answers": {"$and":[
                 {"645545b5738f34f5a955e4ce": {'$eq': type_currency}},
                 {"645545b5738f34f5a955e4cf": {"$lte": from_date}}
             ]}},
@@ -994,9 +994,9 @@ class Cache:
                             objects_updated = objects_updated['objects']
                         else:
                             objects_updated = [objects_updated]
-                        
+
                         for o in objects_updated:
-                            records_updated.append(o) 
+                            records_updated.append(o)
                     '''
                     for record in records:
                         data['records'] = [record]
@@ -1306,7 +1306,7 @@ class Cache:
                "selector": {
                   "_id": {
                      "$gt": None
-                     } 
+                     }
                 },
                 "limit":limit,
                 "skip":skip
@@ -1393,7 +1393,7 @@ class Cache:
             data = { 'objects': [ data_to_share, ] }
         r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
         return r
-    
+
     def share_script(self, data_to_share, unshare=False, jwt_settings_key=False):
         url = self.api_url.script['share_script']['url']
         method = self.api_url.script['share_script']['method']
@@ -1459,7 +1459,7 @@ class Cache:
         phone_twilio = twilio_creds['phone']
 
         client = Client(api_key_sid, api_key_secret, account_sid)
-        
+
         message_data = {
             "phone_to": phone_to,
             "body": body,
@@ -1468,7 +1468,7 @@ class Cache:
         }
         message_record = self.lkf_object.create(_object=message_data, is_json=True, collection="messages")
         message_id = message_record.get('_id')
-        
+
         try:
             response = client.messages.create(
                 from_=phone_twilio,
@@ -1556,7 +1556,7 @@ class Cache:
 
     def sync_catalogs_records(self, data, jwt_settings_key=False):
         """
-        Sinconiza el registro de una forma a un catalogo 
+        Sinconiza el registro de una forma a un catalogo
         data:
         {
             "catalogs_ids":[7777, 1234],# $id de los catalogos en si
@@ -1564,16 +1564,16 @@ class Cache:
             "status":"created/edited/deleted"
         }
         """
-        
+
         # Split form_answers_ids into chunks of 200
         catalogs_ids = data["catalogs_ids"]
         status = data["status"]
         form_answers_ids = data["form_answers_ids"]
-        
+
         # Create chunks of 200 form answers
         chunk_size = 200
         chunks = [form_answers_ids[i:i + chunk_size] for i in range(0, len(form_answers_ids), chunk_size)]
-        
+
         # Process each chunk in parallel using ThreadPoolExecutor
         with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
             futures = []
@@ -1590,13 +1590,13 @@ class Cache:
                     jwt_settings_key=jwt_settings_key
                 )
                 futures.append(future)
-            
+
             # Wait for all threads to complete
             concurrent.futures.wait(futures)
-            
+
             # Get results from all threads
             results = [future.result() for future in futures]
-            
+
         # Return the combined results
         return results
 
@@ -1619,6 +1619,31 @@ class Cache:
     """
     CRON
     """
+    def delete_cron(self, dag_id, delete_all_events=True, jwt_settings_key=False):
+        #Returns all users of a group
+        #user_type 'users', 'admin_users','supervisor_users'
+        post_json = self.api_url.get_airflow()['delete_schedule']
+        url = post_json['url']
+        method = post_json['method']
+        body = {
+            "_id": dag_id,
+            "delete_all_events":delete_all_events
+        }
+        response = self.network.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
+        return response
+
+    def run_cron(self, dag_id, jwt_settings_key=False):
+        #Returns all users of a group
+        #user_type 'users', 'admin_users','supervisor_users'
+        post_json = self.api_url.get_airflow()['run_dag']
+        url = post_json['url'].format(dag_id)
+        method = post_json['method']
+        body = {
+            "_id": dag_id,
+        }
+        response = self.network.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
+        return response
+
     def subscribe_cron(self, body, jwt_settings_key=False):
         #Returns all users of a group
         #user_type 'users', 'admin_users','supervisor_users'
@@ -1635,19 +1660,6 @@ class Cache:
         response = self.network.dispatch(url=url, method=post_json['method'], data=body, jwt_settings_key=jwt_settings_key)
         return response
 
-    def delete_cron(self, schedule_id, delete_all_events=True, jwt_settings_key=False):
-        #Returns all users of a group
-        #user_type 'users', 'admin_users','supervisor_users'
-        post_json = self.api_url.get_airflow()['delete_schedule']
-        url = post_json['url']
-        method = post_json['method']
-        body = {
-            "_id": schedule_id,
-            "delete_all_events":delete_all_events
-        }
-        response = self.network.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
-        return response
-    
     """
     ADDONS
     """
@@ -1661,7 +1673,7 @@ class Cache:
             "unlink_all":True
         }
         response = self.network.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
-        return response        
+        return response
 
     def xml_to_json(self, xml_data):
         #TODO AGUAS CON LOS ENTEROS
