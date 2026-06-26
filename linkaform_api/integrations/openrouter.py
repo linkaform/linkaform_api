@@ -366,9 +366,13 @@ class OpenRouter(LKFBaseObject):
     def _build_image_url(self, image_source: str) -> str:
         """
         Prepara la URL de la imagen para el payload.
-        - URL remota  → la devuelve tal cual
+        - data: URL  → ya está en base64, se devuelve tal cual
+        - URL remota → se devuelve tal cual
         - Archivo local → convierte a base64
         """
+        if image_source.startswith('data:'):
+            return image_source
+
         if image_source.startswith('http://') or image_source.startswith('https://'):
             return image_source
 
@@ -378,6 +382,7 @@ class OpenRouter(LKFBaseObject):
             '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
             '.png': 'image/png',  '.gif':  'image/gif',
             '.webp': 'image/webp',
+            '.pdf': 'application/pdf',
         }
         media_type = media_types.get(ext, 'image/jpeg')
         with open(image_source, 'rb') as f:
