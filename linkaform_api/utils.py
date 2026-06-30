@@ -184,6 +184,15 @@ class Cache:
         user = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
         return user
 
+    def create_user_couch_db(self, user_id, db_name, jwt_settings_key=False):
+        #Returns all users of a group
+        #user_type 'users', 'admin_users','supervisor_users'
+        url = self.api_url.db_tools['create_couch_db']['url']
+        method = self.api_url.db_tools['create_couch_db']['method']
+        data = {'user_id':int(user_id), 'db_name':db_name}
+        response = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+        return response
+
     def delete_inbox_records(self, delete_records, jwt_settings_key=False):
         #  delete_records {user_id:[record_id,]}
         url_method = self.api_url.record['delete_inbox']
@@ -194,8 +203,6 @@ class Cache:
         return response
 
     def delete_users_inbox_thread_function(self, url_method, inboxes, jwt_settings_key=False):
-        print('stop', url_method)
-        print('inbox=', inboxes)
         response = self.network.dispatch(url_method=url_method, data=inboxes, jwt_settings_key=jwt_settings_key)
         if response.get('data'):
             records_updated = response['data']
