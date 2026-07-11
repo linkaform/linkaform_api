@@ -143,6 +143,7 @@ class Api_url:
             'upload_script': {'url': self.dest_url + '/api/infosync/upload_script/', 'method': 'POST'},
             'update_script': {'url': self.dest_url + '/api/infosync/scripts/{}/', 'method': 'PATCH'},
             'share_script': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'},
+            'get_script_md5': {'url': self.dest_url + '/api/infosync/scripts/{}/md5/', 'method': 'GET'},
         }
 
     def get_users_url(self):

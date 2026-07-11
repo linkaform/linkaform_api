@@ -427,11 +427,24 @@ class LKFModules(LKFBaseObject):
         if item and script_version:
             item_id = int(item['item_id'])
             script_item_version = item['item_version']
-            #TODO search on local env
-            if script_version == script_item_version:
+            local_matches = script_version == script_item_version
+            # El tracking local (item_version) solo refleja lo que ESTA herramienta subio
+            # la ultima vez; si alguien mas reemplazo el script en el servidor por fuera de
+            # este flujo, seguiria pareciendo "sin cambios". Verificar contra el md5 real
+            # del servidor cuando el backend lo soporte (get_script_md5); si no, usar el
+            # tracking local como antes.
+            remote_version = lkf_api.get_script_md5(item_id)
+            if remote_version is not None:
+                skip_upload = remote_version == script_version
+            else:
+                skip_upload = local_matches
+            if skip_upload:
                 item_info.update(item)
                 self.update_parent_id(parent_id, item, **kwargs)
-                pass
+                if not local_matches:
+                    # El servidor ya tenia el contenido correcto pero nuestro tracking local
+                    # estaba desactualizado (instalado desde otro entorno/herramienta); sincronizar.
+                    self.update({'_id': item['_id']}, {'item_version': script_version})
             else:
                 #update form
                 print('Updating script: ', script_name)

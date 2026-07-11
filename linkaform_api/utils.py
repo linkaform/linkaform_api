@@ -1091,6 +1091,24 @@ class Cache:
         method = self.api_url.script['update_script']['method']
         return self.network.dispatch(url=url, method=method, data=properites, jwt_settings_key=jwt_settings_key)
 
+    def get_script_md5(self, script_id, jwt_settings_key=False):
+        """
+        Obtiene el md5 del contenido del script tal como esta desplegado en el servidor
+        (requiere el endpoint scripts/<script_id>/md5/ en el backend).
+        Regresa None si el backend no lo soporta o el script no existe, para que el
+        caller pueda decidir subir el script de todas formas en vez de tronar.
+        """
+        url = self.api_url.script['get_script_md5']['url'].format(script_id)
+        method = self.api_url.script['get_script_md5']['method']
+        try:
+            res = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+        except Exception as e:
+            print(f'get_script_md5: error consultando md5 remoto para script_id={script_id}: {e}')
+            return None
+        if not res or res.get('status_code') not in (200, 201):
+            return None
+        return res.get('data', {}).get('md5') or res.get('json', {}).get('md5')
+
     def post_upload_tmp(self, data, up_file, jwt_settings_key=False):
         #data:
         #up_file:

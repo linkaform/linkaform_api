@@ -386,7 +386,6 @@ class Network:
         #for index, answer in enumerate(answers):
             #print('answer', answer)
         for index, r in enumerate(self.thread_result):
-            #print('r' ,r)
             #r = self.dispatch(self.api_url.form['set_form_answer'], data=answer, jwt_settings_key=jwt_settings_key )
             #r = dispatch(api_url['catalog']['set_catalog_answer'], data=answer)
             if r['status_code'] in  (201,200,202,204):
@@ -599,6 +598,10 @@ class Network:
 
     def get_collections(self, collection='form_answer', create=False):
         database = self.get_user_connection()
+        if create and collection in database['db'].list_collection_names():
+            # Ya existe: pedir create=True de nuevo hace que pymongo mande el comando
+            # admin `create`, que truena con NamespaceExists si la coleccion ya esta.
+            create = False
         return Collection(database['db'], collection, create)
 
     def get_infsoync_collections(self, collection='form_answer', create=False):
