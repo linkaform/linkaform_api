@@ -1,20 +1,22 @@
 # -*- coding: utf-8 -*-
-import sys, simplejson, arrow, time, pyexcel, wget
-from datetime import datetime, date
+import sys, simplejson, arrow, time, pyexcel, wget, re
+import importlib, requests
+
 from bson import ObjectId
-import importlib
-from datetime import datetime
+from datetime import datetime, date
+from io import BytesIO
 from pytz import timezone
+from openpyxl import load_workbook
 
 from ..lkf_object import LKFBaseObject
 
 from linkaform_api import settings, network, utils, lkf_models, upload_file
 
-
+# print('============ LKF API BASE ===================')
 class LKF_Base(LKFBaseObject):
 
     def __init__(self, settings, sys_argv=None, use_api=False, **kwargs):
-        # print('--------------------LKF_Base----------------------------', LKF_Base.__mro__)
+        # print('--------------------LKF_Base----------------------------')
         self.config = settings.config
         self.account_id = self.config.get('ACCOUNT_ID')
         self.master = True
@@ -32,14 +34,15 @@ class LKF_Base(LKFBaseObject):
         self.GET_CONFIG = {}
         self.kwargs = kwargs
         self.kwargs['MODULES'] = self.kwargs.get('MODULES',[])
+        self.user = {}
         if sys_argv:
             self.argv = sys_argv
             self.data = simplejson.loads( sys_argv[2] )
             if not use_api:
                 try:
                     jwt = self.data.get("Bearer",self.data.get("jwt",''))
-                    self.config['JWT_KEY'] = jwt.split(' ')[-1] if jwt else None
-                    self.config['USER_JWT_KEY'] = jwt.split(' ')[-1] if jwt else None
+                    self.config['JWT_KEY'] = jwt.split(' ')[-1] if jwt and len(jwt.split(' ')) >1 else None
+                    self.config['USER_JWT_KEY'] = jwt.split(' ')[-1] if jwt and len(jwt.split(' ')) >1 else None
                 except Exception as e:
                     self.LKFException("Error al obtener autentificacion, favor de validar tu JWT", e)
                 self.settings.config.update(self.config)
@@ -65,6 +68,8 @@ class LKF_Base(LKFBaseObject):
                     conneciont_id = conneciont_id.get('$oid')
                 self.record_id = conneciont_id
             # self._set_connections(settings)
+        if self.config.get('JWT_KEY') and not self.user:
+           self.user = self.decode_jwt()
         self._set_connections(settings)
 
     # def _do_inherits(self):
@@ -100,12 +105,21 @@ class LKF_Base(LKFBaseObject):
         self.cr_wkf = self.net.get_collections('workflow_log')
         self.cr_version = self.net.get_collections('answer_version')
         self.lkm = lkf_models.LKFModules(settings, lkf_api=self.lkf_api)
+        # ── OpenRouter — solo si el usuario configuró su API key ──
+        if self.config.get('OPENROUTER_API_KEY'):
+            from linkaform_api.integrations.openrouter import OpenRouter
+            self.ai = OpenRouter(self.config)
+        else:
+            self.ai = None
+
         return True
 
     def _labels_list(self, data=[], ids_label_dct={}, from_self=False):
         res = []
         for d in data:
-            if type(d) == list:
+            if d is None:
+                res.append(None)
+            elif type(d) == list:
                 res.append(self._labels_list(d, ids_label_dct=ids_label_dct, from_self=True))
             else:
                 res.append(self._labels(d, ids_label_dct=ids_label_dct, from_self=True))
@@ -120,6 +134,8 @@ class LKF_Base(LKFBaseObject):
                 data = self.answers
         _f = {v:k for k, v in ids_label_dct.items()}
         res = {}
+        if data is None:
+            return None
         if type(data) in (str, int, float):
             return data
         for key, value in data.items():
@@ -134,12 +150,20 @@ class LKF_Base(LKFBaseObject):
                     else:
                         if l:
                             list_res.append(self._labels(data=l, ids_label_dct=ids_label_dct, from_self=True))
-                res.update({label:list_res})
+                if label == '_id':
+                    res.update({label:list_res})
+                else:
+                    res.update({label.lstrip('_'):list_res})
             else:
-                res[label] = value
+                if label == '_id':
+                    res[label] = value
+                else:
+                    res[label.lstrip('_')] = value
         return res
 
-    def _lables_to_ids(self, data={}):
+    def _lables_to_ids(self, data={}, ids_label_dct={}):
+        if not ids_label_dct:
+            ids_label_dct = self.f
         if not data:
             data=self.answers
         res = {}
@@ -148,14 +172,14 @@ class LKF_Base(LKFBaseObject):
         for key, value in data.items():
             label = self.f.get(key,key)
             if type(value) == dict:
-                res.update(self._labels(data=value))
+                res.update(self._labels(data=value,ids_label_dct={}))
             elif type(value) == list:
                 list_res = []
                 for l in value:
                     if isinstance(l, list):
                         list_res = l
                     else:
-                        list_res.append(self._lables_to_ids(l))
+                        list_res.append(self._lables_to_ids(l, ids_label_dct=ids_label_dct))
                 res.update({label:list_res})
             else:
                 res[label] = value
@@ -240,7 +264,7 @@ class LKF_Base(LKFBaseObject):
             try:
                 return datetime.strptime(value, date_format)
             except:
-                raise('Not a valid date')
+                self.LKFException('Not a valid date')
         if len(value) == 10:
             #Date
             value = get_value(value, '%Y-%m-%d')
@@ -251,7 +275,7 @@ class LKF_Base(LKFBaseObject):
         elif len(value) == 8:
             value = get_value(value, '%Y-%m-%d %H:%M')
         else:
-            raise('Not a valid length of a date')
+            self.LKFException('Not a valid length of a date')
         return value
 
     def date_to_week(self, date_from):
@@ -277,7 +301,16 @@ class LKF_Base(LKFBaseObject):
             except ValueError:
                 res = datetime.strptime(value, '%Y-%m-%d')
         return res
-        
+
+
+    def date_difference_minutes(self, date1, date2, fmt='%Y-%m-%d %H:%M:%S'):
+        try:
+            diff = datetime.strptime(date1, fmt) - datetime.strptime(date2, fmt)
+            res = diff.total_seconds() / 60
+        except:
+            res = 0
+        return res
+
     def date_operation(self, date_value, operator, qty, unit, date_format=None):
         if type(date_value) == str:
             epoch = self.date_2_epoch(date_value)
@@ -292,12 +325,14 @@ class LKF_Base(LKFBaseObject):
         if unit in ('day', 'days'):
             seconds = qty * 60 * 60 * 24
         if unit in ('week', 'weeks'):
-            seconds = qty * 60 * 60 * 24 + 7
+            seconds = qty * 60 * 60 * 24 * 7
         if operator == '+' or operator == 'add':
             epoch += seconds
         if operator == '-' or operator == 'subtract':
             epoch -= seconds
         if date_format:
+            if date_format is True:
+                date_format = '%Y-%m-%d %H:%M:%S'  # default cuando solo pasan True
             return datetime.fromtimestamp(epoch).strftime(date_format)
         else:
             return datetime.fromtimestamp(epoch)
@@ -316,7 +351,7 @@ class LKF_Base(LKFBaseObject):
         wget.download(file_url, '/tmp/{}'.format(file_name))
         return file_name
 
-    def format_cr(self, cr_result, get_one=False, labels={}, **kwargs):
+    def format_cr(self, cr_result, get_one=False, ids_label_dct={}, **kwargs):
         res = []
         for x in cr_result:
             if x.get('_id'):
@@ -333,15 +368,15 @@ class LKF_Base(LKFBaseObject):
                 # Que manden llamar funcion.
                 res.append(x)
             else:
-                res.append(self._labels(x))
+                res.append(self._labels(x, ids_label_dct=ids_label_dct))
         if get_one and res:
             res = res[0]
         elif get_one and not res:
             res = {}
         return res
 
-    def format_cr_result(self, cr_result, get_one=False):
-        return self.format_cr(cr_result, get_one=get_one)
+    def format_cr_result(self, cr_result, get_one=False, ids_label_dct={}):
+        return self.format_cr(cr_result, get_one=get_one, ids_label_dct=ids_label_dct)
 
     def format_select(self, value):
         if value:
@@ -375,7 +410,7 @@ class LKF_Base(LKFBaseObject):
     def get_date_str(self, value):
         if value:
             if isinstance(value, datetime):
-                return value.strftime('%Y-%m-%d')
+                return value.strftime('%Y-%m-%d %H:%M:%S')
             elif isinstance(value, date):
                 return value.strftime('%Y-%m-%d')
             return str(value)
@@ -480,7 +515,8 @@ class LKF_Base(LKFBaseObject):
             match_query.update(self.get_query_by('folio', folio))
         if query_answers:
             match_query.update(query_answers)
-
+        if not hasattr(self, 'cr'):
+            self._set_connections(self.settings)
         record_found = self.cr.find(match_query, select_columns)
         try:
             return record_found.next()
@@ -643,14 +679,13 @@ class LKF_Base(LKFBaseObject):
         else:
             return data
 
-    def object_id(self):
+    def object_id(self, validate=True):
         #Asegura que no exista el object_id en la base de datos
         cant = 1
         idx = 0
-        while cant > 0:
+        while cant > 0 and validate:
             new_id = ObjectId()
-            res = self.cr.find({"_id":new_id})
-            cant = res.count()
+            cant = self.cr.count_documents({"_id":new_id})
         return str(new_id)
         
     def project_format(self, field_dict, **kwargs):
@@ -677,8 +712,10 @@ class LKF_Base(LKFBaseObject):
         return simplejson.loads( f.read() )
 
     def read_file(self, file_url):
-        sheet = pyexcel.get_sheet(url = file_url)
-        all_records = sheet.array
+        response = requests.get(file_url)
+        wb = load_workbook(BytesIO(response.content), read_only=True)
+        sheet = wb.active
+        all_records = [row for row in sheet.iter_rows(values_only=True)]
         header = all_records.pop(0)
         return header, all_records
 
@@ -758,23 +795,37 @@ class LKF_Base(LKFBaseObject):
             try:
                 value = datetime.strptime(value, '%Y-%m-%d')
             except:
-                raise('Not a valid date')
+                self.LKFException('Not a valid date')
         elif len(value) == 19:
             #DateTime
             try:
-                value = datetime.strptime(value, '%Y-%m-%d %H:%M%S')
+                value = datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
             except:
-                raise('Not a valid date')
+                self.LKFException('Not a valid date')
 
         elif len(value) == 8:
             #Time
             try:
-                value = datetime.strptime(value, '%Y-%m-%d %H:%M%S')
+                value = datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
             except:
-                raise('Not a valid date')
+                self.LKFException('Not a valid date')
         else:
-            raise('Not a valid length of a date')
+            self.LKFException('Not a valid length of a date')
         return value
+
+    def valid_email(self, email):
+        patron = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        return re.match(patron, email) is not None
+
+    def valid_url(self, url):
+        patron = re.compile(
+            r'^https?://'  # http:// o https://
+            r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'  # dominio
+            r'localhost|'  # o localhost
+            r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # o IP
+            r'(?::\d+)?'  # puerto opcional
+            r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+        return patron.match(url) is not None
 
     def wf_create_relation(self, resp_create_record):
         if resp_create_record.get('status_code') == 201:

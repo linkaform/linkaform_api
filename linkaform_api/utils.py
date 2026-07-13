@@ -121,7 +121,7 @@ class Cache:
             data = {}
         rows = data.get('rows',[])
         rows = [r.get('key')[group_level-1] for r in rows]
-        return rows      
+        return rows
 
     def create_catalog(self, catalog_model, jwt_settings_key=False):
         url = self.api_url.catalog['create_catalog']['url']
@@ -143,7 +143,7 @@ class Cache:
 
     def create_folder(self, folder_type, folder_name, jwt_settings_key=False):
         """
-        Create any item folder, it could be on the forms list, catalog list, 
+        Create any item folder, it could be on the forms list, catalog list,
         script list or report list
         Args:
             folder_type (str): valid options are form, catalog, script or report
@@ -184,6 +184,15 @@ class Cache:
         user = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
         return user
 
+    def create_user_couch_db(self, user_id, db_name, jwt_settings_key=False):
+        #Returns all users of a group
+        #user_type 'users', 'admin_users','supervisor_users'
+        url = self.api_url.db_tools['create_couch_db']['url']
+        method = self.api_url.db_tools['create_couch_db']['method']
+        data = {'user_id':int(user_id), 'db_name':db_name}
+        response = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+        return response
+
     def delete_inbox_records(self, delete_records, jwt_settings_key=False):
         #  delete_records {user_id:[record_id,]}
         url_method = self.api_url.record['delete_inbox']
@@ -194,20 +203,18 @@ class Cache:
         return response
 
     def delete_users_inbox_thread_function(self, url_method, inboxes, jwt_settings_key=False):
-        print('stop', url_method)
-        print('inbox=', inboxes)
         response = self.network.dispatch(url_method=url_method, data=inboxes, jwt_settings_key=jwt_settings_key)
         if response.get('data'):
             records_updated = response['data']
             if isinstance(records_updated, str):
                 records_updated = simplejson.loads(records_updated)
-        return response 
+        return response
 
     def delete_inbox_format(self, inboxes):
         res = []
         for inbox in inboxes:
             r = {
-                '_id': inbox.get('id',inbox.get('_id',inbox.get('key'))), 
+                '_id': inbox.get('id',inbox.get('_id',inbox.get('key'))),
                 '_deleted': True
             }
             revision = inbox.get('_rev',inbox.get('value',{}).get('rev'))
@@ -227,7 +234,7 @@ class Cache:
             }
 
         if threading:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=36) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
                 usr_data = []
                 records_updated = {}
                 for inbox in inboxes:
@@ -238,7 +245,7 @@ class Cache:
                     usr_data.append(user_data)
                 print('doning this many post', len(usr_data))
                 to_multi_patch = [executor.submit(
-                    self.delete_users_inbox_thread_function, url_method, u_data, jwt_settings_key=jwt_settings_key) 
+                    self.delete_users_inbox_thread_function, url_method, u_data, jwt_settings_key=jwt_settings_key)
                     for u_data in usr_data]
                 for thread_post in concurrent.futures.as_completed(to_multi_patch):
                     resp = thread_post.result()
@@ -252,7 +259,7 @@ class Cache:
 
     def delete_form_records(self, delete_record_ids, jwt_settings_key=False):
         data = {'deleted_objects':[]}
-        url = self.api_url.record['form_answer_patch']['url'] 
+        url = self.api_url.record['form_answer_patch']['url']
         url = url.replace(self.api_url.dest_url, '')
         if isinstance(delete_record_ids ,list):
             data['deleted_objects'] = [f"{url}{x}/" for x in delete_record_ids]
@@ -325,14 +332,14 @@ class Cache:
         #params:
         # users: list of users
         # group_id: is send will get the group inbox
-        # is_group: boolean 
+        # is_group: boolean
         url_method = self.api_url.users['user_inbox']
         data = {
             "users":users,
             "group_id":group_id,
             "is_group":is_group}
         if threading:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=36) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
                 usr_data = []
                 records_updated = {}
                 for usr in data['users']:
@@ -343,7 +350,7 @@ class Cache:
                     }
                     usr_data.append(user_data)
                 to_multi_patch = [executor.submit(
-                    self.get_user_inbox_thread_function, url_method, u_data, jwt_settings_key=jwt_settings_key) 
+                    self.get_user_inbox_thread_function, url_method, u_data, jwt_settings_key=jwt_settings_key)
                     for u_data in usr_data]
                 for thread_post in concurrent.futures.as_completed(to_multi_patch):
                     resp = thread_post.result()
@@ -643,12 +650,30 @@ class Cache:
         response = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
         return response
 
+    def get_user_catalog(self, user_id, jwt_settings_key=False):
+        """
+        Regresa todos los catalogos que el usuario tiene compartidas
+        """
+        url = self.api_url.users['get_user_catalog']['url'].format(user_id)
+        method = self.api_url.users['get_user_catalog']['method']
+        response = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+        return response
+
     def get_user_forms(self, user_id, jwt_settings_key=False):
         """
         Regresa todas las formas que el usuario tiene compartidas
         """
         url = self.api_url.users['get_user_forms']['url'].format(user_id)
         method = self.api_url.users['get_user_forms']['method']
+        response = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+        return response
+
+    def get_user_scripts(self, user_id, jwt_settings_key=False):
+        """
+        Regresa todos los scripts que el usuario tiene compartidas
+        """
+        url = self.api_url.users['get_user_scripts']['url'].format(user_id)
+        method = self.api_url.users['get_user_scripts']['method']
         response = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
         return response
 
@@ -664,7 +689,7 @@ class Cache:
         time_started = time.time()
         metadata = {
             "form_id" : form_id,
-            "geolocation": [-100.3862645,25.644885499999997],
+            "geolocation": [19.4270242,-99.1685487],
             "geolocation_method":{"method": "HTML5", "accuracy": 0},
             "start_timestamp" : time.time(),
             "end_timestamp" : time.time(),
@@ -735,7 +760,7 @@ class Cache:
             current_date = datetime.now()
             from_date = datetime.strftime(current_date, '%Y-%m-%d')
         mango_query = {
-            "selector":{"answers": {"$and":[ 
+            "selector":{"answers": {"$and":[
                 {"645545b5738f34f5a955e4ce": {'$eq': type_currency}},
                 {"645545b5738f34f5a955e4cf": {"$lte": from_date}}
             ]}},
@@ -795,6 +820,11 @@ class Cache:
         if res.get('data'):
             return res['data']
         return res
+
+    def get_sms_creds(self, use_api_key=False, jwt_settings_key=False):
+        post_json = self.api_url.get_users_url()['sms_creds']
+        url = post_json['url']
+        return self.network.dispatch(url=url, method=post_json['method'], use_api_key=use_api_key,  jwt_settings_key=jwt_settings_key)
 
     def get_user_connection(self, email_user, jwt_settings_key=False):
         # TODO UPDATE SELF.ITESM
@@ -934,7 +964,7 @@ class Cache:
         return res
         #logging.info("Finishing with code"%(record, res))
 
-    def patch_multi_record(self, answers, form_id, folios=[], record_id=[], jwt_settings_key=False, threading=False):
+    def patch_multi_record(self, answers, form_id, folios=[], record_id=[], jwt_settings_key=False, threading=False, max_workers=128):
         if not answers or not (folios or record_id):
             return {}
         data = {'all_responses': True}
@@ -942,6 +972,8 @@ class Cache:
         data['answers'] = answers
         data['form_id'] = form_id
         type_update = 'records'
+        if max_workers > 128:
+            max_workers = 128
 
         if folios and not record_id:
             data['folios'] = folios
@@ -958,7 +990,7 @@ class Cache:
 
         if threading:
             self.thread_dict = {}
-            with concurrent.futures.ThreadPoolExecutor(max_workers=36) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
                 if data.get(type_update, False):
                     records = data.pop(type_update)
                     to_multi_patch = [executor.submit(self.thread_function_dict, record, data, type_update, jwt_settings_key=jwt_settings_key) for record in records]
@@ -968,13 +1000,10 @@ class Cache:
                         if objects_updated.get('objects'):
                             objects_updated = objects_updated['objects']
                         else:
-                            objects_updated = [objects_updated,]
+                            objects_updated = [objects_updated]
+
                         for o in objects_updated:
-                            for f in o:
-                                if type_update == 'folios':
-                                    records_updated.append(o)
-                                else:
-                                    records_updated.append(o)
+                            records_updated.append(o)
                     '''
                     for record in records:
                         data['records'] = [record]
@@ -1023,7 +1052,7 @@ class Cache:
         #     print('no folio provided')
         #     return {}
         if threading:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=36) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
                 for data in records:
                     executor.map(lambda x: self.thread_function_bulk_patch(x, form_id,
                         jwt_settings_key=jwt_settings_key), [data])
@@ -1061,6 +1090,24 @@ class Cache:
         url = self.api_url.script['update_script']['url'].format(script_id)
         method = self.api_url.script['update_script']['method']
         return self.network.dispatch(url=url, method=method, data=properites, jwt_settings_key=jwt_settings_key)
+
+    def get_script_md5(self, script_id, jwt_settings_key=False):
+        """
+        Obtiene el md5 del contenido del script tal como esta desplegado en el servidor
+        (requiere el endpoint scripts/<script_id>/md5/ en el backend).
+        Regresa None si el backend no lo soporta o el script no existe, para que el
+        caller pueda decidir subir el script de todas formas en vez de tronar.
+        """
+        url = self.api_url.script['get_script_md5']['url'].format(script_id)
+        method = self.api_url.script['get_script_md5']['method']
+        try:
+            res = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+        except Exception as e:
+            print(f'get_script_md5: error consultando md5 remoto para script_id={script_id}: {e}')
+            return None
+        if not res or res.get('status_code') not in (200, 201):
+            return None
+        return res.get('data', {}).get('md5') or res.get('json', {}).get('md5')
 
     def post_upload_tmp(self, data, up_file, jwt_settings_key=False):
         #data:
@@ -1128,6 +1175,25 @@ class Cache:
         """
         return self.network.dispatch(self.api_url.form['run_wf_action'], data=data, jwt_settings_key=jwt_settings_key)
 
+    def update_user_password(self, user_ids, password=None, jwt_settings_key=False):
+        """
+        Update users password
+        Args:
+        user_ids: (int|list): Puedes enviar un id del password o una lista de integers con user_id
+        password: (str): Si envias un password se va a settear es password para el o los usuarios.
+                        Si no envias, se genera un password random
+        Return:
+            Diccionario con {user_id:password}
+        """
+        response = []
+        if isinstance(user_ids, int):
+            user_ids = [user_ids,]
+        for user_id in user_ids:
+            post_json = self.api_url.get_users_url()['update_password']
+            url = post_json['url'].format(user_id)
+            pass_data = {'password':password, 'password2': password}
+            response.append(self.network.dispatch(url=url, method=post_json['method'], data=pass_data, jwt_settings_key=jwt_settings_key))
+        return response
 
     """
     ITEMS
@@ -1186,7 +1252,6 @@ class Cache:
             data = {'objects': [], 'deleted_objects': data_to_share}
         else:
             data = {'objects': [data_to_share,]}
-
         return self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
 
     """
@@ -1266,7 +1331,7 @@ class Cache:
                "selector": {
                   "_id": {
                      "$gt": None
-                     } 
+                     }
                 },
                 "limit":limit,
                 "skip":skip
@@ -1282,9 +1347,9 @@ class Cache:
             return self.prepare_response_find(response, **kwargs)
         if response['status_code'] == 440:
             if response.get('json'):
-                return response['json'].get('error')
+                return {'error':response['json'].get('error'), 'status_code':response['status_code']}
             if response.get('content'):
-                return response['content'].get('error')
+                return {'error':response['content'].get('error'), 'status_code':response['status_code']}
         return False
 
     def update_catalog_answers(self, data, record_id=None, jwt_settings_key=False):
@@ -1305,7 +1370,7 @@ class Cache:
 
     def bulk_patch_catalog(self, records, catalog_id, jwt_settings_key=False, threading=False):
         if threading:
-            with concurrent.futures.ThreadPoolExecutor(max_workers=36) as executor:
+            with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
                 for data in records:
                     executor.map(lambda x: self.thread_function_bulk_patch_catalog(x, catalog_id,
                         jwt_settings_key=jwt_settings_key), [data])
@@ -1347,6 +1412,16 @@ class Cache:
     def share_catalog(self, data_to_share, unshare=False, jwt_settings_key=False):
         url = self.api_url.catalog['share_catalog']['url']
         method = self.api_url.catalog['share_catalog']['method']
+        if unshare:
+            data = { 'objects': [], 'deleted_objects': data_to_share }
+        else:
+            data = { 'objects': [ data_to_share, ] }
+        r = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+        return r
+
+    def share_script(self, data_to_share, unshare=False, jwt_settings_key=False):
+        url = self.api_url.script['share_script']['url']
+        method = self.api_url.script['share_script']['method']
         if unshare:
             data = { 'objects': [], 'deleted_objects': data_to_share }
         else:
@@ -1409,7 +1484,7 @@ class Cache:
         phone_twilio = twilio_creds['phone']
 
         client = Client(api_key_sid, api_key_secret, account_sid)
-        
+
         message_data = {
             "phone_to": phone_to,
             "body": body,
@@ -1418,7 +1493,7 @@ class Cache:
         }
         message_record = self.lkf_object.create(_object=message_data, is_json=True, collection="messages")
         message_id = message_record.get('_id')
-        
+
         try:
             response = client.messages.create(
                 from_=phone_twilio,
@@ -1506,7 +1581,7 @@ class Cache:
 
     def sync_catalogs_records(self, data, jwt_settings_key=False):
         """
-        Sinconiza el registro de una forma a un catalogo 
+        Sinconiza el registro de una forma a un catalogo
         data:
         {
             "catalogs_ids":[7777, 1234],# $id de los catalogos en si
@@ -1514,18 +1589,18 @@ class Cache:
             "status":"created/edited/deleted"
         }
         """
-        
+
         # Split form_answers_ids into chunks of 200
         catalogs_ids = data["catalogs_ids"]
         status = data["status"]
         form_answers_ids = data["form_answers_ids"]
-        
+
         # Create chunks of 200 form answers
         chunk_size = 200
         chunks = [form_answers_ids[i:i + chunk_size] for i in range(0, len(form_answers_ids), chunk_size)]
-        
+
         # Process each chunk in parallel using ThreadPoolExecutor
-        with concurrent.futures.ThreadPoolExecutor(max_workers=36) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
             futures = []
             for chunk in chunks:
                 chunk_data = {
@@ -1540,13 +1615,13 @@ class Cache:
                     jwt_settings_key=jwt_settings_key
                 )
                 futures.append(future)
-            
+
             # Wait for all threads to complete
             concurrent.futures.wait(futures)
-            
+
             # Get results from all threads
             results = [future.result() for future in futures]
-            
+
         # Return the combined results
         return results
 
@@ -1569,6 +1644,31 @@ class Cache:
     """
     CRON
     """
+    def delete_cron(self, dag_id, delete_all_events=True, jwt_settings_key=False):
+        #Returns all users of a group
+        #user_type 'users', 'admin_users','supervisor_users'
+        post_json = self.api_url.get_airflow()['delete_schedule']
+        url = post_json['url']
+        method = post_json['method']
+        body = {
+            "_id": dag_id,
+            "delete_all_events":delete_all_events
+        }
+        response = self.network.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
+        return response
+
+    def run_cron(self, dag_id, jwt_settings_key=False):
+        #Returns all users of a group
+        #user_type 'users', 'admin_users','supervisor_users'
+        post_json = self.api_url.get_airflow()['run_dag']
+        url = post_json['url'].format(dag_id)
+        method = post_json['method']
+        body = {
+            "_id": dag_id,
+        }
+        response = self.network.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
+        return response
+
     def subscribe_cron(self, body, jwt_settings_key=False):
         #Returns all users of a group
         #user_type 'users', 'admin_users','supervisor_users'
@@ -1585,19 +1685,6 @@ class Cache:
         response = self.network.dispatch(url=url, method=post_json['method'], data=body, jwt_settings_key=jwt_settings_key)
         return response
 
-    def delete_cron(self, schedule_id, delete_all_events=True, jwt_settings_key=False):
-        #Returns all users of a group
-        #user_type 'users', 'admin_users','supervisor_users'
-        post_json = self.api_url.get_airflow()['delete_schedule']
-        url = post_json['url']
-        method = post_json['method']
-        body = {
-            "_id": schedule_id,
-            "delete_all_events":delete_all_events
-        }
-        response = self.network.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
-        return response
-    
     """
     ADDONS
     """
@@ -1611,7 +1698,7 @@ class Cache:
             "unlink_all":True
         }
         response = self.network.dispatch(url=url, method=method, data=body, jwt_settings_key=jwt_settings_key)
-        return response        
+        return response
 
     def xml_to_json(self, xml_data):
         #TODO AGUAS CON LOS ENTEROS
@@ -1783,3 +1870,7 @@ def get_same_properites(key, values):
         update_vals = values.pop(key)
         values.update(update_vals)
     return values
+
+
+def random_password():
+    return True

@@ -100,7 +100,6 @@ class Network:
             data = {"username":username, "api_key": api_key}
         else:
             data = {"password": self.settings.config['PASS'], "username": self.settings.config['USERNAME']}
-
         response = self.dispatch(self.api_url.globals['login'], data=data, use_login=True)
         if get_user and response['status_code'] != 400:
             if response.get('content'):
@@ -113,6 +112,8 @@ class Network:
                 return response['content']['jwt']
 
             if response.get('json'):
+                if response.get('status_code') == 404:
+                    raise ValueError('key not found')
                 return response['json']['jwt']
 
         return response['status_code'] == 200
@@ -444,13 +445,12 @@ class Network:
         url = self.api_url.form['set_form_answer']
         if test:
             answers = [answers[0],answers[1]]
-        with concurrent.futures.ThreadPoolExecutor(max_workers=36) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
             executor.map(lambda x: self.thread_function(x, url, jwt_settings_key=jwt_settings_key), answers)
         #print(' self.thread_result',  self.thread_result)
         #for index, answer in enumerate(answers):
             #print('answer', answer)
         for index, r in enumerate(self.thread_result):
-            #print('r' ,r)
             #r = self.dispatch(self.api_url.form['set_form_answer'], data=answer, jwt_settings_key=jwt_settings_key )
             #r = dispatch(api_url['catalog']['set_catalog_answer'], data=answer)
             if r['status_code'] in  (201,200,202,204):
@@ -663,16 +663,11 @@ class Network:
 
     def get_collections(self, collection='form_answer', create=False):
         database = self.get_user_connection()
-        try:
-            return Collection(database['db'], collection, create)
-        except OperationFailure as e:
-            # create=True manda el comando admin `create`, que truena con
-            # NamespaceExists (code 48) si la colección ya existe. En ese caso
-            # regresar el conector normal (sin create=True). Cualquier otro
-            # OperationFailure (permisos, auth, etc.) se sigue propagando.
-            if create and e.code == 48:
-                return Collection(database['db'], collection)
-            raise
+        if create and collection in database['db'].list_collection_names():
+            # Ya existe: pedir create=True de nuevo hace que pymongo mande el comando
+            # admin `create`, que truena con NamespaceExists si la coleccion ya esta.
+            create = False
+        return Collection(database['db'], collection, create)
 
     def get_infsoync_collections(self, collection='form_answer', create=False):
         database = get_infosync_connection()
@@ -720,7 +715,7 @@ class Network:
         #print('*************************** answers',answers)
         if test:
             answers = [answers[0],answers[1]]
-        with concurrent.futures.ThreadPoolExecutor(max_workers=36) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
             executor.map(lambda x: self.thread_function(x, url, jwt_settings_key=jwt_settings_key), answers)
         for index, r in enumerate(self.thread_result):
             if r['status_code'] in  (201,200,202,204):

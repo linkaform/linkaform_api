@@ -18,6 +18,7 @@ class Api_url:
         self.report = self.get_report()
         self.script = self.get_script()
         self.users = self.get_users_url()
+        self.db_tools = self.get_db_tools()
         # AIRFLOW
         self.airflow_dest_url = settings.config['AIRFLOW_PROTOCOL'] + '://' + settings.config['AIRFLOW_HOST']
         if settings.config.get('AIRFLOW_PORT'):
@@ -30,6 +31,7 @@ class Api_url:
             'update': {'url': self.airflow_dest_url + '/cron', 'method':'PATCH'},
             'subscribe': {'url': self.airflow_dest_url + '/cron', 'method':'POST'},
             'delete_schedule': {'url': self.airflow_dest_url + '/cron', 'method':'DELETE'},
+            'run_dag': {'url': self.airflow_dest_url + '/cron/{0}', 'method':'POST'},
         }
 
     def get_catalog_url(self):
@@ -139,7 +141,9 @@ class Api_url:
             'create_folder': {'url': self.dest_url + '/api/infosync/script_folder/', 'method':'POST'},
             'run_script': {'url': self.dest_url + '/api/infosync/scripts/run/', 'method':'POST'},
             'upload_script': {'url': self.dest_url + '/api/infosync/upload_script/', 'method': 'POST'},
-            'update_script': {'url': self.dest_url + '/api/infosync/scripts/{}/', 'method': 'PATCH'}
+            'update_script': {'url': self.dest_url + '/api/infosync/scripts/{}/', 'method': 'PATCH'},
+            'share_script': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'},
+            'get_script_md5': {'url': self.dest_url + '/api/infosync/scripts/{}/md5/', 'method': 'GET'},
         }
 
     def get_users_url(self):
@@ -148,14 +152,23 @@ class Api_url:
             'create_user': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'POST'},
             'delete_inboxes': {'url': self.dest_url + '/api/infosync/inbox/bulk_docs/', 'method':'POST'},
             'get_form_users' :{'url': self.dest_url + '/api/infosync/item/{0}/get_users/?limit=0', 'method':'GET'},
+            'get_user_catalog' :{'url': self.dest_url + '/api/infosync/user_admin/{0}/catalogs/?limit=0', 'method':'GET'},
             'get_user_forms' :{'url': self.dest_url + '/api/infosync/user_admin/{0}/forms/?limit=0', 'method':'GET'},
+            'get_user_scripts': {'url': self.dest_url + '/api/infosync/user_admin/{0}/scripts/?limit=0', 'method':'GET'},
+            #'get_user_scripts': {'url': self.dest_url + '/api/infosync/get_scripts/', 'method':'GET'},
             'get_licenses': {'url': self.dest_url + '/api/infosync/licenses/?limit=0', 'method': 'GET'},
             'supervised_users': {'url': self.dest_url + '/api/infosync/group/supervised_users/', 'method': 'GET'},
+            'sms_creds': {'url': self.dest_url + '/api/infosync/user_admin/sms_creds/', 'method':'GET'},
             'twilio_creds': {'url': self.dest_url + '/api/infosync/user_admin/twilio_creds/', 'method':'GET'},
             'google_wallet': {'url': self.dest_url + '/api/infosync/soter/google_wallet/', 'method':'GET'},
+            'update_password': {'url': self.dest_url + '/api/infosync/user_admin/{0}/', 'method': 'PATCH'},
             'updated_users' :{'url': self.dest_url + '/api/infosync/user_admin/?limit=0&updated_at__gte={}', 'method':'GET'},
             'user_by_id': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'GET'},
             'user_id_by_email': {'url': self.dest_url + '/api/infosync/user/?email__contains={0}', 'method':'GET'},
             'user_inbox': {'url': self.dest_url + '/api/infosync/inbox/all_docs/', 'method': 'POST'},
         }
 
+    def get_db_tools(self):
+        return  {
+            'create_couch_db': {'url': self.dest_url + '/api/infosync/clave10_admin/create_db/', 'method':'POST'},
+        }

@@ -52,7 +52,7 @@ class LKFBaseObject(LKFBase):
         self.settings = settings
         self.config = settings.config
 
-    def LKFException(self, msg={}, dict_error={}):
+    def LKFException(self, msg={}, status_code = None, dict_error={}):
         title_default = "Addons Statement"
         type_default  = "warning"
         icon_default = "fa-circle-exclamation"
@@ -62,13 +62,18 @@ class LKFBaseObject(LKFBase):
 
         if isinstance(msg, str):
             msg = {'msg':msg}
+        if not status_code:
+           status_code = msg.get('status_code') 
 
         msg_dict['title'] = msg.get('title', title_default)
         msg_dict['label'] = msg.get('title', title_default)
         msg_dict['msg'] = [msg.get('msg', "Something went wrong")]
         msg_dict['icon'] = msg.get('icon', icon_default)
         msg_dict['type'] = msg.get('type', type_default)
-        msg_dict["status"] = 400
+        msg_dict["status_code"] = status_code
+        # Status Code Warning
+        msg_dict["status"] = status_code
+        msg_dict["warning"] = "status key will be depreciated and replaced with status_code on future releaces"
 
         error_format = {
             "exception":msg_dict
@@ -96,15 +101,15 @@ class LKFBaseObject(LKFBase):
     # properties: Optional[dict]
     # user_icon: Optional[AnyUrl]
     # user_url: Optional[AnyUrl]
-    # user_tag: Optional[List[str]]
+    # user_tag: Optional[List[str]] 
     # timezone: Optional[str]
 
     def decode_jwt(self):
         token = self.config['JWT_KEY']
         import sys
         version = sys.version
-        privKeyFile = open('/etc/ssl/certs/lkf_jwt_key.pub','r')
-        pub_key = privKeyFile.read()
+        pubKeyFile = open('/etc/ssl/certs/lkf_jwt_key.pub','r')
+        pub_key = pubKeyFile.read()
         jwt_data = jwt.decode(token, pub_key, algorithms='RS256')
         return jwt_data
 
@@ -115,7 +120,8 @@ class LKFBaseObject(LKFBase):
             'username': u.get('user',{}).get('username'),
             'account_id': u.get('user',{}).get('parent_info',{}).get('id'),
             'name': u.get('user',{}).get('first_name',{}),
-            'user_id': u.get('user',{}).get('id')
+            'user_id': u.get('user',{}).get('id'),
+            'id': u.get('user',{}).get('id')
             }
         return user
 
