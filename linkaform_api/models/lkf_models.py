@@ -603,7 +603,7 @@ class LKFModules(LKFBaseObject):
                     item_obj.update({'parent_id':parent_id})
                     self.update(update_query, item_obj)
                 elif move_res.get('status_code') == 404:
-                    print('no encontro el script....')
+                    print('no encontro el script :', item_obj['item_name'])
                 else:
                     self.LKFException('Error moving {}  called {}.'.format(item_obj['item_name'], move_res))
             else:
