@@ -133,6 +133,7 @@ class LKFBaseObject(LKFBase):
             self.config['MONGODB_HOST'],
             dbname,
             )
+        print('uro', uri)
         return uri
 
     def __conect_db(self):
@@ -143,7 +144,7 @@ class LKFBaseObject(LKFBase):
         account_id = config.get('ACCOUNT_ID', config.get('USER',{}).get('user',{}).get('parent_info',{}).get('id'))
         dbname = 'infosync_answers_client_{}'.format(account_id)
         self.settings.config['MONGO_CR'] = self.settings.config.get('MONGO_CR', {})
-        if not self.settings.config['MONGO_CR'].get(dbname):
+        if self.settings.config['MONGO_CR'].get(dbname) == None:
             self.settings.config['MONGO_URI'] = self.get_mongo_uri(account_id)
 
             # mongo = MongoClient(self.config)

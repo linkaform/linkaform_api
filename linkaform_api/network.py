@@ -10,6 +10,7 @@ import psycopg2
 
 from pymongo import MongoClient
 from pymongo.collection import Collection
+from pymongo.errors import OperationFailure
 requests.packages.urllib3.disable_warnings()
 
 
@@ -662,7 +663,16 @@ class Network:
 
     def get_collections(self, collection='form_answer', create=False):
         database = self.get_user_connection()
-        return Collection(database['db'], collection, create)
+        try:
+            return Collection(database['db'], collection, create)
+        except OperationFailure as e:
+            # create=True manda el comando admin `create`, que truena con
+            # NamespaceExists (code 48) si la colección ya existe. En ese caso
+            # regresar el conector normal (sin create=True). Cualquier otro
+            # OperationFailure (permisos, auth, etc.) se sigue propagando.
+            if create and e.code == 48:
+                return Collection(database['db'], collection)
+            raise
 
     def get_infsoync_collections(self, collection='form_answer', create=False):
         database = get_infosync_connection()
