@@ -82,7 +82,7 @@ class ConnectionClient(object):
         return self.session.patch(url, data, files=files, **kwargs)
 
     def delete(self, url, data, files=None, **kwargs):
-        return self.session.delete(url, data, files=files, **kwargs)
+        return self.session.delete(url, data=data, files=files, **kwargs)
 
 class Network:
 
@@ -402,6 +402,7 @@ class Network:
 
             if not up_file:
                 extra_args = {'verify': True}
+                print('---------')
                 r = self.connection_client.delete(url, data, **extra_args)
 
         response['status_code'] = r.status_code
