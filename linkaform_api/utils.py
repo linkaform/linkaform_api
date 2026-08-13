@@ -184,6 +184,15 @@ class Cache:
         user = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
         return user
 
+    def create_user_couch_db(self, user_id, db_name, jwt_settings_key=False):
+        #Returns all users of a group
+        #user_type 'users', 'admin_users','supervisor_users'
+        url = self.api_url.db_tools['create_couch_db']['url']
+        method = self.api_url.db_tools['create_couch_db']['method']
+        data = {'user_id':int(user_id), 'db_name':db_name}
+        response = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
+        return response
+
     def delete_inbox_records(self, delete_records, jwt_settings_key=False):
         #  delete_records {user_id:[record_id,]}
         url_method = self.api_url.record['delete_inbox']
@@ -194,8 +203,6 @@ class Cache:
         return response
 
     def delete_users_inbox_thread_function(self, url_method, inboxes, jwt_settings_key=False):
-        print('stop', url_method)
-        print('inbox=', inboxes)
         response = self.network.dispatch(url_method=url_method, data=inboxes, jwt_settings_key=jwt_settings_key)
         if response.get('data'):
             records_updated = response['data']
@@ -1083,6 +1090,24 @@ class Cache:
         url = self.api_url.script['update_script']['url'].format(script_id)
         method = self.api_url.script['update_script']['method']
         return self.network.dispatch(url=url, method=method, data=properites, jwt_settings_key=jwt_settings_key)
+
+    def get_script_md5(self, script_id, jwt_settings_key=False):
+        """
+        Obtiene el md5 del contenido del script tal como esta desplegado en el servidor
+        (requiere el endpoint scripts/<script_id>/md5/ en el backend).
+        Regresa None si el backend no lo soporta o el script no existe, para que el
+        caller pueda decidir subir el script de todas formas en vez de tronar.
+        """
+        url = self.api_url.script['get_script_md5']['url'].format(script_id)
+        method = self.api_url.script['get_script_md5']['method']
+        try:
+            res = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+        except Exception as e:
+            print(f'get_script_md5: error consultando md5 remoto para script_id={script_id}: {e}')
+            return None
+        if not res or res.get('status_code') not in (200, 201):
+            return None
+        return res.get('data', {}).get('md5') or res.get('json', {}).get('md5')
 
     def post_upload_tmp(self, data, up_file, jwt_settings_key=False):
         #data:

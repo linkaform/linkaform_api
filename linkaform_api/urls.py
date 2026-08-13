@@ -18,6 +18,7 @@ class Api_url:
         self.report = self.get_report()
         self.script = self.get_script()
         self.users = self.get_users_url()
+        self.db_tools = self.get_db_tools()
         # AIRFLOW
         self.airflow_dest_url = settings.config['AIRFLOW_PROTOCOL'] + '://' + settings.config['AIRFLOW_HOST']
         if settings.config.get('AIRFLOW_PORT'):
@@ -142,6 +143,7 @@ class Api_url:
             'upload_script': {'url': self.dest_url + '/api/infosync/upload_script/', 'method': 'POST'},
             'update_script': {'url': self.dest_url + '/api/infosync/scripts/{}/', 'method': 'PATCH'},
             'share_script': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'},
+            'get_script_md5': {'url': self.dest_url + '/api/infosync/scripts/{}/md5/', 'method': 'GET'},
         }
 
     def get_users_url(self):
@@ -166,3 +168,7 @@ class Api_url:
             'user_inbox': {'url': self.dest_url + '/api/infosync/inbox/all_docs/', 'method': 'POST'},
         }
 
+    def get_db_tools(self):
+        return  {
+            'create_couch_db': {'url': self.dest_url + '/api/infosync/clave10_admin/create_db/', 'method':'POST'},
+        }
