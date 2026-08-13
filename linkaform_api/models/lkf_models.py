@@ -2,7 +2,7 @@
 #!/usr/bin/python
 
 #Python Imports
-import time, simplejson
+import re, time, simplejson
 from bson import ObjectId
 from pydantic import BaseModel, validator, StrictBool, AnyUrl
 from typing import (
@@ -25,6 +25,23 @@ from .base_models import UserData
 
 #     def self.LKFException(self, msg):
 #         return BaseException(msg)
+
+FORM_VERSION_RE = re.compile(r'version:\s*(\d+)')
+
+
+def parse_form_version(description):
+    """Extracts the 'version: <epoch>' marker addons stamp into a form's <description>.
+
+    Forms with no marker return None, which callers must treat as "always install" -
+    there is no reliable version to diff against.
+    """
+    if not description or not isinstance(description, str):
+        return None
+    match = FORM_VERSION_RE.search(description)
+    if match:
+        return match.group(1)
+    return None
+
 
 class LKFModulesModel(BaseModel, LKFBaseObject):
     created_by: UserData
@@ -339,16 +356,15 @@ class LKFModules(LKFBaseObject):
                 'item_name':form_name,
             }
         item = self.serach_module_item(item_info)
+        form_version = parse_form_version(form_model.get('description'))
         if item:
             #Creating New FormExist, lest update it!!!
             item_id = item['item_id']
-            current_form_version = item['item_version'],
-            form_version = form_model['updated_at'],
-            if current_form_version == form_version and False:
+            current_form_version = item.get('item_version')
+            if form_version and current_form_version == form_version:
                 item['status'] = 'unchanged'
                 item_info.update(item)
-                print('nothgin new')
-                pass
+                print(f'Form {form_name} unchanged (version {form_version}), skipping upload')
             else:
                 self.update_parent_id(parent_id, item, **kwargs)
                 form_model.update({'form_id':item_id})
@@ -358,7 +374,7 @@ class LKFModules(LKFBaseObject):
                     updated_at = res['json']['updated_at']['$date']
                     item.update({
                         'updated_by':self.get_user_data(),
-                        'item_version':form_model['updated_at'],
+                        'item_version':form_version,
                         'updated_at':updated_at,
                         'status':'update',
                         'parent_id':parent_id
@@ -391,7 +407,7 @@ class LKFModules(LKFBaseObject):
                     'item_type': 'form',
                     'item_name':form_name,
                     'item_full_name':form_full_name,
-                    'item_version':form_model['updated_at'],
+                    'item_version':form_version,
                     'status':'create'
                 }
                 self.update_parent_id(parent_id, item_info, **kwargs)
