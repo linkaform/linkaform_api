@@ -139,7 +139,6 @@ class LKFBaseObject(LKFBase):
             self.config['MONGODB_HOST'],
             dbname,
             )
-        print('uro', uri)
         return uri
 
     def __conect_db(self):

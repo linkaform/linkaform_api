@@ -29,6 +29,21 @@ from .base_models import UserData
 FORM_VERSION_RE = re.compile(r'version:\s*(\d+)')
 
 
+def as_form_version(value):
+    """Normalizes an item_version to int.
+
+    The legacy tracking stored updated_at as a number and the version marker arrives as
+    a string, so both sides must be coerced before comparing - otherwise the check never
+    matches (and blows up with a TypeError once '>' is used).
+    """
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return int(float(value))
+    except (TypeError, ValueError):
+        return None
+
+
 def parse_form_version(description):
     """Extracts the 'version: <epoch>' marker addons stamp into a form's <description>.
 
@@ -39,7 +54,7 @@ def parse_form_version(description):
         return None
     match = FORM_VERSION_RE.search(description)
     if match:
-        return match.group(1)
+        return as_form_version(match.group(1))
     return None
 
 
@@ -270,13 +285,11 @@ class LKFModules(LKFBaseObject):
                 'load_data':item.get('load_data'), 
                 'load_demo':item.get('load_demo') ,
                 'parent_id':parent_id})
-            catalog_item_revision = item['item_version']
-            catalog_version = catalog_model['updated_at']
-            catalog_item_revision =  datetime.strptime(catalog_item_revision[:19], "%Y-%m-%dT%H:%M:%S")
-            catalog_version =  datetime.strptime(catalog_version[:19], "%Y-%m-%dT%H:%M:%S")
-            if False: #catalog_version >= catalog_item_revision and catalog_name:
-                print(f'the catalog is at its latest state {catalog_version}, {catalog_item_revision}vs no need to update')
-                pass
+            catalog_item_revision = item.get('item_version')
+            catalog_version = catalog_model.get('updated_at')
+            if catalog_version and catalog_item_revision == catalog_version:
+                item['status'] = 'unchanged'
+                item_info.update(item)
             else:
                 self.update_parent_id(parent_id, item, **kwargs)
                 catalog_model.update({'catalog_id':item_id})
@@ -291,8 +304,9 @@ class LKFModules(LKFBaseObject):
                     item.update({
                         'updated_by':self.get_user_data(),
                         'item_version':catalog_model['updated_at'],
-                        'updated_at':updated_at
-                        }) 
+                        'updated_at':updated_at,
+                        'status':'update',
+                        })
                     update_query = {'_id':item['_id']}
                     item_info.update(item)
                     self.update(update_query, item)
@@ -331,6 +345,7 @@ class LKFModules(LKFBaseObject):
                     'load_demo': False,
                     'item_version':catalog_model['updated_at'],
                     'local_path': local_path,
+                    'status':'create',
                 }
                 self.update_parent_id(parent_id, item_info, **kwargs)
                 item_info.update({'parent_id':parent_id})    
@@ -360,11 +375,16 @@ class LKFModules(LKFBaseObject):
         if item:
             #Creating New FormExist, lest update it!!!
             item_id = item['item_id']
-            current_form_version = item.get('item_version')
-            if form_version and current_form_version == form_version:
+            current_form_version = as_form_version(item.get('item_version'))
+            is_newer = (form_version is None or current_form_version is None
+                        or form_version > current_form_version)
+            if not is_newer and not kwargs.get('force'):
+                # La forma local no es mas nueva que la instalada: no se sube, pero si
+                # cambio de carpeta hay que moverla de todas formas.
+                self.update_parent_id(parent_id, item, **kwargs)
                 item['status'] = 'unchanged'
                 item_info.update(item)
-                print(f'Form {form_name} unchanged (version {form_version}), skipping upload')
+                print(f'Form {form_name} sin cambios (local {form_version} <= instalada {current_form_version}), no se sube')
             else:
                 self.update_parent_id(parent_id, item, **kwargs)
                 form_model.update({'form_id':item_id})
@@ -503,11 +523,15 @@ class LKFModules(LKFBaseObject):
                     'item_full_name':script_path,
                     'item_version':script_version,
                 }
-                item_info.update({'parent_id':parent_id})   
+                # El move va ANTES de sellar parent_id en item_info: update_parent_id se
+                # salta el movimiento cuando parent_id ya coincide con item_obj['parent_id'],
+                # asi que sellarlo primero dejaba el script recien creado en la raiz (solo se
+                # movia corriendo con -f/force). Mismo orden que install_forms/install_catalog.
+                self.update_parent_id(parent_id, item_info, **kwargs)
+                item_info.update({'parent_id':parent_id})
                 self.create(item_info)
                 self.load_module_data( module, item_type, script_name, script_name, script_id)
                 self.load_item_data('script', script_name, script_name, script_id)
-                self.update_parent_id(parent_id, item_info, **kwargs)
             elif res.get('status_code') == 400:
                 raise self.LKFException(f'Ya existe un script con este Nombre: {script_name}')
             else:
