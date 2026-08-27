@@ -538,6 +538,14 @@ class Cache:
     def get_pdf_record(self, record_id, template_id=None, upload_data=None, send_url=False, name_pdf='', jwt_settings_key=False):
         return self.network.pdf_record(record_id , template_id=template_id, upload_data=upload_data, send_url=send_url, name_pdf=name_pdf, jwt_settings_key=jwt_settings_key)
 
+    def get_pdf_templates(self, form_id, jwt_settings_key=False):
+        url = self.api_url.form['get_pdf_templates']['url'].format(form_id)
+        method = self.api_url.form['get_pdf_templates']['method']
+        response = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
+        if response['status_code'] == 200:
+            return response['data']
+        return False
+
     def get_item(self, item_id, item_type=None, jwt_settings_key=False):
         # Delete an item
         url = self.api_url.item['get_item']['url'].format(item_id)
