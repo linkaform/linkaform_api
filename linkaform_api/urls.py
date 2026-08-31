@@ -81,6 +81,7 @@ class Api_url:
             'get_inbox_forms': {'url': self.dest_url + '/api/infosync/form/?id__in=', 'method':'GET'},
             'get_form_rules': {'url': self.dest_url + '/api/infosync/form_rules/?form_id=', 'method':'GET'},
             'get_form_workflows': {'url': self.dest_url + '/api/infosync/workflows/?form_id=', 'method':'GET'},
+            'get_pdf_templates': {'url': self.dest_url + '/api/infosync/templates/?form_id={}&filter_id=0&multiple_records=true', 'method':'GET'},
             'share_form': {'url': self.dest_url + '/api/infosync/file_shared/', 'method': 'PATCH'},
             'set_form_answer': {'url': self.dest_url + '/api/infosync/form_answer/', 'method':'POST'},
             'run_wf_action': {'url': self.dest_url + '/api/infosync/workflow_action/execute_task/', 'method':'POST'},
