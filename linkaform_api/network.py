@@ -1,7 +1,7 @@
 # coding: utf-8
 #!/usr/bin/python
 
-import logging, requests, sys, simplejson, time, threading, concurrent.futures
+import logging, os, requests, sys, simplejson, time, threading, concurrent.futures
 from bson import json_util, ObjectId
 from requests.adapters import HTTPAdapter
 from urllib.parse import quote
@@ -12,6 +12,39 @@ from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.errors import OperationFailure
 requests.packages.urllib3.disable_warnings()
+
+
+# Prende el cronometro por request (LKF_HTTP_TIMING=1). Se lee una sola vez al
+# importar para no pagar un getenv por llamada.
+HTTP_TIMING = os.environ.get('LKF_HTTP_TIMING', '') not in ('', '0', 'false', 'False')
+# Solo se imprimen las llamadas que pasan de este umbral en segundos, para que el
+# log no se llene de requests rapidos. LKF_HTTP_TIMING_MIN=0 imprime todas.
+try:
+    HTTP_TIMING_MIN = float(os.environ.get('LKF_HTTP_TIMING_MIN', '0.5'))
+except ValueError:
+    HTTP_TIMING_MIN = 0.5
+
+
+def log_http_timing(method, url, elapsed, status_code, server_elapsed=None):
+    """Imprime cuanto tardo una llamada al back, para ubicar el endpoint lento.
+
+    elapsed        = reloj de pared del dispatch completo.
+    server_elapsed = r.elapsed de requests, o sea SOLO el ultimo intento y hasta que
+                     llegaron los headers. Si elapsed es mucho mayor que este, el
+                     tiempo no se fue en el back: se fue en los reintentos silenciosos
+                     de urllib3 (que incluyen POST/PATCH) o bajando el body.
+    """
+    if elapsed < HTTP_TIMING_MIN:
+        return
+    extra = ''
+    if server_elapsed is not None:
+        lost = elapsed - server_elapsed
+        extra = '  (back {:.2f}s'.format(server_elapsed)
+        if lost > 0.5:
+            extra += ' + {:.2f}s fuera del back / reintentos'.format(lost)
+        extra += ')'
+    print('[http] {:>7.2f}s  {:<6} {}  -> {}{}'.format(elapsed, method, url, status_code, extra))
+    sys.stdout.flush()
 
 
 def unlist(arg):
@@ -144,6 +177,11 @@ class Network:
         if type(data) in (dict,str) and not up_file:
             data = simplejson.dumps(data, default=json_util.default, for_json=True)
 
+        # Cronometro de cada llamada al back. Apagado por default; se prende con
+        # LKF_HTTP_TIMING=1 para saber que endpoint es el que se esta tardando
+        # (ej. instalaciones de formas que se sienten "colgadas").
+        timing_started_at = time.time() if HTTP_TIMING else None
+
         use_jwt = self.settings.config['USE_JWT']
         if method == 'GET':
             params = params if params else {}
@@ -162,6 +200,10 @@ class Network:
             elif method == 'DELETE':
                 response = self.do_delete(url, data, use_login, use_api_key, use_jwt=use_jwt,
                     jwt_settings_key=jwt_settings_key, up_file=up_file)
+
+        if timing_started_at is not None:
+            log_http_timing(method, url, time.time() - timing_started_at,
+                response.get('status_code'), response.get('elapsed'))
 
         if response['status_code'] == 502:
             if count < 11 :
@@ -211,6 +253,7 @@ class Network:
             r = self.connection_client.get(url, **extra_args)
 
         response['status_code'] = r.status_code
+        response['elapsed'] = r.elapsed.total_seconds()
 
         if r.content and type(r.content) is dict:
             response['content'] = simplejson.loads(r.content)
@@ -268,6 +311,7 @@ class Network:
             response = r
         else:
             response['status_code'] = r.status_code
+            response['elapsed'] = r.elapsed.total_seconds()
             if r.content and type(r.content) is dict:
                 response['content'] = simplejson.loads(r.content)
 
@@ -347,6 +391,7 @@ class Network:
             response = r
         else:
             response['status_code'] = r.status_code
+            response['elapsed'] = r.elapsed.total_seconds()
 
             if r.content and type(r.content) is dict:
                 try:
@@ -406,6 +451,7 @@ class Network:
                 r = self.connection_client.delete(url, data, **extra_args)
 
         response['status_code'] = r.status_code
+        response['elapsed'] = r.elapsed.total_seconds()
 
         if r.content and type(r.content) is dict:
             try:

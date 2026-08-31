@@ -28,6 +28,12 @@ from . import network
 
 class Cache:
 
+    # Centinela para "el servidor no tiene el contenido del script": lo regresa
+    # get_script_md5 cuando scripts/<id>/md5/ contesta 404. No puede coincidir con
+    # ningun hexdigest, asi que quien compare versiones lo va a ver como "distinto"
+    # y va a resubir el archivo.
+    SCRIPT_MISSING_ON_SERVER = '__missing_on_server__'
+
     def __init__(self, settings):
         self.items = {}
         self.items_data = {}
@@ -470,6 +476,18 @@ class Cache:
     def get_user_by_email(self, user_email, jwt_settings_key=False):
         post_json = self.api_url.get_users_url()['user_id_by_email']
         url = post_json['url'].format(user_email)
+        response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
+        all_users = response.get('objects', [])
+        if not all_users:
+            all_users = response.get('json',{}).get('objects', [])
+        return all_users
+
+    def get_user_by_username(self, username, jwt_settings_key=False):
+        # Regresa los usuarios de plataforma cuyo username coincide.
+        # OJO: el username se interpola en el query string SIN urlencode, igual
+        # que get_user_by_email; el caller es responsable de validarlo antes.
+        post_json = self.api_url.get_users_url()['user_by_username']
+        url = post_json['url'].format(username)
         response = self.network.dispatch(url=url, method=post_json['method'], jwt_settings_key=jwt_settings_key)
         all_users = response.get('objects', [])
         if not all_users:
@@ -1094,9 +1112,16 @@ class Cache:
     def get_script_md5(self, script_id, jwt_settings_key=False):
         """
         Obtiene el md5 del contenido del script tal como esta desplegado en el servidor
-        (requiere el endpoint scripts/<script_id>/md5/ en el backend).
-        Regresa None si el backend no lo soporta o el script no existe, para que el
-        caller pueda decidir subir el script de todas formas en vez de tronar.
+        (endpoint scripts/<script_id>/md5/).
+
+        Regresa:
+          - el hexdigest, si el servidor tiene el archivo (200).
+          - SCRIPT_MISSING_ON_SERVER, si contesta 404: el servidor no tiene el contenido,
+            ya sea porque el archivo no esta en disco ('file_not_found') o porque el
+            Script ya no existe ('script_not_found'). El caller debe resubir.
+          - None, si no se pudo saber (405 porque el backend no expone el endpoint, 401,
+            400 o error de red), para que el caller decida con su tracking local en vez
+            de tronar o resubir a ciegas.
         """
         url = self.api_url.script['get_script_md5']['url'].format(script_id)
         method = self.api_url.script['get_script_md5']['method']
@@ -1105,7 +1130,11 @@ class Cache:
         except Exception as e:
             print(f'get_script_md5: error consultando md5 remoto para script_id={script_id}: {e}')
             return None
-        if not res or res.get('status_code') not in (200, 201):
+        if not res:
+            return None
+        if res.get('status_code') == 404:
+            return self.SCRIPT_MISSING_ON_SERVER
+        if res.get('status_code') not in (200, 201):
             return None
         return res.get('data', {}).get('md5') or res.get('json', {}).get('md5')
 

@@ -164,6 +164,10 @@ class Api_url:
             'update_password': {'url': self.dest_url + '/api/infosync/user_admin/{0}/', 'method': 'PATCH'},
             'updated_users' :{'url': self.dest_url + '/api/infosync/user_admin/?limit=0&updated_at__gte={}', 'method':'GET'},
             'user_by_id': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'GET'},
+            #  Coincidencia EXACTA a proposito (sin __contains, como si lo usa
+            #  user_id_by_email): 'ana' no debe matchear 'anabel'. El caller DEBE
+            #  mandar el username ya validado (sin & # ? / = %): no hay urlencode.
+            'user_by_username': {'url': self.dest_url + '/api/infosync/user/?username={0}', 'method':'GET'},
             'user_id_by_email': {'url': self.dest_url + '/api/infosync/user/?email__contains={0}', 'method':'GET'},
             'user_inbox': {'url': self.dest_url + '/api/infosync/inbox/all_docs/', 'method': 'POST'},
         }

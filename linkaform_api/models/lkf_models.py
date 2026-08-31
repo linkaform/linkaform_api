@@ -466,11 +466,16 @@ class LKFModules(LKFBaseObject):
             local_matches = script_version == script_item_version
             # El tracking local (item_version) solo refleja lo que ESTA herramienta subio
             # la ultima vez; si alguien mas reemplazo el script en el servidor por fuera de
-            # este flujo, seguiria pareciendo "sin cambios". Verificar contra el md5 real
-            # del servidor cuando el backend lo soporte (get_script_md5); si no, usar el
-            # tracking local como antes.
+            # este flujo, seguiria pareciendo "sin cambios". Por eso se verifica contra el
+            # md5 real del servidor (get_script_md5) y solo se cae al tracking local
+            # cuando el backend no pudo contestar.
             remote_version = lkf_api.get_script_md5(item_id)
-            if remote_version is not None:
+            if remote_version == lkf_api.SCRIPT_MISSING_ON_SERVER:
+                # 404: el servidor no tiene el contenido del script. Subir siempre, para
+                # repoblarlo, en vez de darlo por "sin cambios" segun el tracking local.
+                print('Sin contenido en el servidor, se resube: ', script_name)
+                skip_upload = False
+            elif remote_version is not None:
                 skip_upload = remote_version == script_version
             else:
                 skip_upload = local_matches
