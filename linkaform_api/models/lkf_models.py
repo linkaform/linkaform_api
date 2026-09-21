@@ -384,11 +384,14 @@ class LKFModules(LKFBaseObject):
                 self.update_parent_id(parent_id, item, **kwargs)
                 item['status'] = 'unchanged'
                 item_info.update(item)
-                print(f'Form {form_name} sin cambios (local {form_version} <= instalada {current_form_version}), no se sube')
+                print(f'Form {form_name} sin cambios (local {form_version} <= instalada {current_form_version}), no se sube', flush=True)
             else:
                 self.update_parent_id(parent_id, item, **kwargs)
                 form_model.update({'form_id':item_id})
                 #update form
+                # El POST de la forma puede tardar bastante en el back; avisamos ANTES
+                # de mandarlo (y con flush) para que se vea en que forma se esta atorando.
+                print('Installing Form (update): ', form_name, flush=True)
                 res = lkf_api.create_form(form_model)
                 if res.get('status_code') == 201:
                     updated_at = res['json']['updated_at']['$date']
@@ -411,6 +414,7 @@ class LKFModules(LKFBaseObject):
             if form_model.get('form_id'):
                 form_model.pop('form_id')
             # print('form_model', form_model)
+            print('Installing Form (create): ', form_name, flush=True)
             res = lkf_api.create_form(form_model)
             form_full_name = form_model['name']
             if res.get('status_code') == 201:
