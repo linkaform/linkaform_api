@@ -9,11 +9,49 @@ from pytz import timezone
 from openpyxl import load_workbook
 
 from ..lkf_object import LKFBaseObject
+from ..request_context import has_request_context, get_current_user
 
 from linkaform_api import settings, network, utils, lkf_models, upload_file
 
 # print('============ LKF API BASE ===================')
 class LKF_Base(LKFBaseObject):
+
+    @property
+    def user(self):
+        """Con ContextVar activo (Sanic, seteado por el middleware de
+        auth antes de invocar el handler) SIEMPRE gana -- es el JWT real de
+        quien hizo el request HTTP actual. Sin ContextVar (bootstrap del
+        singleton al importar routes.py, o script standalone con sys_argv)
+        cae al valor historico resuelto en __init__. Nunca lee ni escribe
+        self.config.
+        """
+        if has_request_context():
+            return get_current_user()
+        return getattr(self, '_user_local', {})
+
+    @user.setter
+    def user(self, value):
+        # Compatibilidad con codigo que hace self.user = {...} (update_settings)
+        # o self.user.update(...). Fuera de una request Sanic es lo unico que
+        # importa; dentro de una request no tiene efecto sobre otros
+        # objetos/rutas -- a proposito, es la fuga que @reload_user causaba.
+        self._user_local = value or {}
+
+    @property
+    def user_id(self):
+        return self.user.get('user_id') or self.user.get('id')
+
+    @property
+    def parent_id(self):
+        return self.user.get('parent_id')
+
+    @property
+    def timezone(self):
+        return self.user.get('timezone')
+
+    @property
+    def lang(self):
+        return self.user.get('lang')
 
     def __init__(self, settings, sys_argv=None, use_api=False, **kwargs):
         # print('--------------------LKF_Base----------------------------')

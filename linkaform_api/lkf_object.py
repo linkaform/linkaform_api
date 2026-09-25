@@ -105,13 +105,8 @@ class LKFBaseObject(LKFBase):
     # timezone: Optional[str]
 
     def decode_jwt(self):
-        token = self.config['JWT_KEY']
-        import sys
-        version = sys.version
-        pubKeyFile = open('/etc/ssl/certs/lkf_jwt_key.pub','r')
-        pub_key = pubKeyFile.read()
-        jwt_data = jwt.decode(token, pub_key, algorithms='RS256')
-        return jwt_data
+        from .jwt_utils import decode_jwt_token
+        return decode_jwt_token(self.config['JWT_KEY'])
 
     def get_user_data(self):
         u = self.config.get('USER')
