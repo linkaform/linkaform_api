@@ -1,5 +1,6 @@
 
 #from utils import Cache
+from .request_context import JWTAwareConfig
 
 class ImportData:
     MONGO = 1
@@ -17,7 +18,7 @@ WAIT_QUEUE_TIMEOUT = 1000
 MONGODB_URI = 'mongodb://%s/?replicaSet=%s&readPreference=%s'%(mongo_hosts, mongo_replicaSet, MONGO_READPREFERENCE)
 
 
-config = {
+config = JWTAwareConfig({
     'USERNAME' : 'your_likaform_username@here.com',
     'PASS' : 'YOUR_PASSOWRD_HERE',
     'COLLECTION' : 'form_answer',
@@ -60,7 +61,7 @@ config = {
     'COUCH_PASSWORD':'SET_PASSWORD',
     'COUCH_DEV_USER':'SET_USER',
     'COUCH_DEV_PASSWORD':'SET_PASSWORD',
-}
+})
 
 GLOBAL_ERRORS = []
 GLOBAL_VAR ={'count':0}

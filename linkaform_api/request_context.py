@@ -51,3 +51,44 @@ def submit_with_context(executor, fn, *args, **kwargs):
     """
     ctx = contextvars.copy_context()
     return executor.submit(ctx.run, fn, *args, **kwargs)
+
+
+_MISSING = object()
+
+
+class JWTAwareConfig(dict):
+    """settings.config, pero la key 'JWT_KEY' se resuelve contra el JWT de la
+    request actual (ContextVar) cuando hay una, en vez de leer el valor
+    guardado en el dict. Nunca escribe en el dict compartido -- evita la
+    fuga de identidad que tenia @reload_user (que si mutaba config['JWT_KEY']
+    in-place sobre este mismo dict, compartido por TODAS las instancias de
+    TODOS los modulos del proceso).
+
+    Fuera de una request Sanic (bootstrap del proceso, o un script standalone
+    corriendo con sys_argv) se comporta como un dict normal: usa el valor
+    real guardado, que es exactamente el que LKF_Base.__init__ escribe ahi
+    a partir de sys_argv. Cualquier otra key (incluida APIKEY_JWT_KEY) se
+    comporta como dict normal siempre.
+    """
+
+    def _request_jwt(self):
+        if not has_request_context():
+            return _MISSING
+        raw = get_current_jwt_raw()
+        if not raw:
+            return None
+        return raw.split(' ')[-1].strip()
+
+    def __getitem__(self, key):
+        if key == 'JWT_KEY':
+            jwt = self._request_jwt()
+            if jwt is not _MISSING:
+                return jwt
+        return super().__getitem__(key)
+
+    def get(self, key, default=None):
+        if key == 'JWT_KEY':
+            jwt = self._request_jwt()
+            if jwt is not _MISSING:
+                return jwt
+        return super().get(key, default)
