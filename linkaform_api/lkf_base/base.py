@@ -37,21 +37,54 @@ class LKF_Base(LKFBaseObject):
         # objetos/rutas -- a proposito, es la fuga que @reload_user causaba.
         self._user_local = value or {}
 
+    def _user_field(self, name, *keys):
+        # Override de instancia (asignacion explicita desde un script
+        # standalone) gana sobre el usuario resuelto. No se escribe en
+        # self.user: dentro de una request Sanic es el usuario del JWT
+        # compartido.
+        overrides = self.__dict__.get('_user_overrides', {})
+        if name in overrides:
+            return overrides[name]
+        for key in keys:
+            value = self.user.get(key)
+            if value:
+                return value
+        return self.user.get(keys[0]) if name != 'user_id' else None
+
+    def _set_user_field(self, name, value):
+        self.__dict__.setdefault('_user_overrides', {})[name] = value
+
     @property
     def user_id(self):
-        return self.user.get('user_id') or self.user.get('id')
+        return self._user_field('user_id', 'user_id', 'id')
+
+    @user_id.setter
+    def user_id(self, value):
+        self._set_user_field('user_id', value)
 
     @property
     def parent_id(self):
-        return self.user.get('parent_id')
+        return self._user_field('parent_id', 'parent_id')
+
+    @parent_id.setter
+    def parent_id(self, value):
+        self._set_user_field('parent_id', value)
 
     @property
     def timezone(self):
-        return self.user.get('timezone')
+        return self._user_field('timezone', 'timezone')
+
+    @timezone.setter
+    def timezone(self, value):
+        self._set_user_field('timezone', value)
 
     @property
     def lang(self):
-        return self.user.get('lang')
+        return self._user_field('lang', 'lang')
+
+    @lang.setter
+    def lang(self, value):
+        self._set_user_field('lang', value)
 
     def __init__(self, settings, sys_argv=None, use_api=False, **kwargs):
         # print('--------------------LKF_Base----------------------------')
