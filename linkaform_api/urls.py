@@ -150,6 +150,7 @@ class Api_url:
     def get_users_url(self):
         return  {
             'all_users': {'url': self.dest_url + '/api/infosync/user_admin/?limit=0', 'method':'GET'},
+            'activate_user': {'url': self.dest_url + '/api/infosync/activate_user/', 'method':'POST'},
             'create_user': {'url': self.dest_url + '/api/infosync/user_admin/', 'method':'POST'},
             'delete_inboxes': {'url': self.dest_url + '/api/infosync/inbox/bulk_docs/', 'method':'POST'},
             'get_form_users' :{'url': self.dest_url + '/api/infosync/item/{0}/get_users/?limit=0', 'method':'GET'},

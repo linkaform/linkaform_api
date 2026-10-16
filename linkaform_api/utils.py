@@ -190,6 +190,13 @@ class Cache:
         user = self.network.dispatch(url=url, method=method, data=data, jwt_settings_key=jwt_settings_key)
         return user
 
+    def activate_user(self, username, jwt_settings_key=False):
+        # POST /api/infosync/activate_user/ {"username": ...}. Sin auth en el backend.
+        # 202 = activado; 400 tambien cuando el usuario ya estaba activo; 404 si no existe.
+        url = self.api_url.users['activate_user']['url']
+        method = self.api_url.users['activate_user']['method']
+        return self.network.dispatch(url=url, method=method, data={'username': username}, jwt_settings_key=jwt_settings_key)
+
     def create_user_couch_db(self, user_id, db_name, jwt_settings_key=False):
         #Returns all users of a group
         #user_type 'users', 'admin_users','supervisor_users'
@@ -694,11 +701,15 @@ class Cache:
         response = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
         return response
 
-    def get_user_scripts(self, user_id, jwt_settings_key=False):
+    def get_user_scripts(self, user_id, jwt_settings_key=False, flat=False):
         """
-        Regresa todos los scripts que el usuario tiene compartidas
+        Regresa todos los scripts que el usuario tiene compartidas.
+        Con flat=True incluye los scripts de cualquier nivel de carpeta
+        (por defecto el back solo regresa el primer nivel).
         """
         url = self.api_url.users['get_user_scripts']['url'].format(user_id)
+        if flat:
+            url += '&flat=true'
         method = self.api_url.users['get_user_scripts']['method']
         response = self.network.dispatch(url=url, method=method, jwt_settings_key=jwt_settings_key)
         return response
