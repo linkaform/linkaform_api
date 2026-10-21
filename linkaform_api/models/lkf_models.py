@@ -640,6 +640,15 @@ class LKFModules(LKFBaseObject):
 
     def set_script_properties(self, script_id, properties):
         res = self.lkf_api.update_script(script_id, properties)
+        # Antes se descartaba la respuesta: si el backend rechazaba las propiedades
+        # (400/403/404) la instalacion parecia exitosa y el script quedaba igual.
+        status = res.get('status_code') if isinstance(res, dict) else None
+        if status in (200, 202, 204):
+            print(f'Propiedades aplicadas al script {script_id}: {properties}')
+        else:
+            print(f'Error aplicando propiedades al script {script_id}: status={status} '
+                  f'{(res.get("data") or res.get("json")) if isinstance(res, dict) else res}')
+        return res
 
     def update_parent_id(self, parent_id, item_obj, **kwargs):
         force = kwargs.get('force')
