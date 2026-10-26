@@ -855,6 +855,40 @@ class LKF_Base(LKFBaseObject):
                 self.LKFException('Error al cargar sus settings favor de revisar settings', e)
         return settings
 
+    # LinkaForm responde 400 con este texto cuando un valor de catalogo aun no
+    # existe: el catalogo se sincroniza con un workflow asincrono tras guardar el
+    # registro origen.
+    CATALOG_NOT_READY = 'No es una respuesta valida'
+
+    def retry_call(self, call, retry_if, retries=3, wait=3):
+        """ Ejecuta `call()` y la repite mientras `retry_if(respuesta)` sea True,
+        hasta `retries` intentos, esperando `wait` segundos entre uno y otro.
+        Regresa la ultima respuesta.
+
+        El retry de red (network.ConnectionClient) solo cubre errores de conexion:
+        un 4xx de negocio que LinkaForm resuelve solo con el tiempo no se reintenta.
+
+        OJO: la espera es time.sleep y bloquea el hilo (en Sanic, el worker). Dejar
+        `retries` y `wait` chicos. """
+        res = None
+        for attempt in range(retries):
+            res = call()
+            if not retry_if(res):
+                return res
+            if attempt < retries - 1:
+                time.sleep(wait)
+        return res
+
+    def retry_catalog(self, call, retries=3, wait=3):
+        """ Reintenta `call()` (post_forms_answers, patch_multi_record...) mientras
+        LinkaForm rechace con CATALOG_NOT_READY porque el valor de catalogo aun no
+        se sincroniza. Cualquier otra respuesta, buena o mala, se regresa tal cual. """
+        def not_ready(res):
+            if not isinstance(res, dict) or res.get('status_code') in (200, 201, 202, 204):
+                return False
+            return self.CATALOG_NOT_READY in str(res.get('json') or res.get('data') or '')
+        return self.retry_call(call, not_ready, retries=retries, wait=wait)
+
     def unlist(self, arg):
         if type(arg) == list and len(arg) > 0:
             return self.unlist(arg[0])
