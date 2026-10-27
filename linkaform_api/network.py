@@ -11,6 +11,8 @@ import psycopg2
 from pymongo import MongoClient
 from pymongo.collection import Collection
 from pymongo.errors import OperationFailure
+
+from linkaform_api.request_context import submit_with_context
 requests.packages.urllib3.disable_warnings()
 
 
@@ -493,7 +495,12 @@ class Network:
         if test:
             answers = [answers[0],answers[1]]
         with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
-            executor.map(lambda x: self.thread_function(x, url, jwt_settings_key=jwt_settings_key), answers)
+            # executor.map no copia los contextvars al hilo: ahi el JWT de la peticion
+            # (JWTAwareConfig) no existe y se usaba el JWT global guardado, que LinkaForm
+            # rechaza con 440 "No tienes sesion activa". submit_with_context si lo copia.
+            for answer in answers:
+                submit_with_context(executor, self.thread_function, answer, url,
+                    jwt_settings_key=jwt_settings_key)
         #print(' self.thread_result',  self.thread_result)
         #for index, answer in enumerate(answers):
             #print('answer', answer)
@@ -763,7 +770,12 @@ class Network:
         if test:
             answers = [answers[0],answers[1]]
         with concurrent.futures.ThreadPoolExecutor(max_workers=128) as executor:
-            executor.map(lambda x: self.thread_function(x, url, jwt_settings_key=jwt_settings_key), answers)
+            # executor.map no copia los contextvars al hilo: ahi el JWT de la peticion
+            # (JWTAwareConfig) no existe y se usaba el JWT global guardado, que LinkaForm
+            # rechaza con 440 "No tienes sesion activa". submit_with_context si lo copia.
+            for answer in answers:
+                submit_with_context(executor, self.thread_function, answer, url,
+                    jwt_settings_key=jwt_settings_key)
         for index, r in enumerate(self.thread_result):
             if r['status_code'] in  (201,200,202,204):
                 print("Answer %s saved."%(index + 1))
