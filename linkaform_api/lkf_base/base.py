@@ -837,7 +837,9 @@ class LKF_Base(LKFBaseObject):
 
     def update_settings(self, settings, use_api=False):
         lkf_api = utils.Cache(settings)
-        APIKEY = settings.config.get('APIKEY', settings.config.get('API_KEY', ))
+        APIKEY = settings.config.get('APIKEY')
+        if not APIKEY or APIKEY == 'your_APIKEY_HERE':
+            APIKEY = settings.config.get('API_KEY', APIKEY)
         if not settings.config.get("SESSION"):
             user = lkf_api.get_jwt(api_key=APIKEY, get_user=True)
             try:
